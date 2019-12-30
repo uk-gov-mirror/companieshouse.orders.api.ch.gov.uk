@@ -1,0 +1,10 @@
+server:
+  servlet:
+    context-path: /orders
+
+uk:
+  gov:
+    companieshouse:
+      orders:
+        api:
+          health: /healthcheck
