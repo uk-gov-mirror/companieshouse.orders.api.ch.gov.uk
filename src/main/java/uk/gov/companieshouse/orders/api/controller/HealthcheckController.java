@@ -1,0 +1,18 @@
+package uk.gov.companieshouse.orders.api.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Returns HTTP OK response to allow Mesos/Marathon to ensure a healthy service is running
+ * at all times by removing/replacing unhealthy instance of the application.
+ */
+@RestController
+public class HealthcheckController {
+    @GetMapping("${uk.gov.companieshouse.orders.api.health}")
+    public ResponseEntity<Void> getHealthCheck (){
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+}
