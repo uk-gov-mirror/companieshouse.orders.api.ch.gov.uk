@@ -1,6 +1,6 @@
 #Companies House Orders API
 ##orders.api.ch.gov.uk
-CH API handling CRUD operations on CH Ordering Service
+API handling CRUD operations on CH Ordering Service
 
 ###Requirements
 * [Java 8][1]
@@ -10,6 +10,11 @@ CH API handling CRUD operations on CH Ordering Service
 ###Getting Started
 1. Run `make` to build
 2. Run `./start.sh` to run
+
+###Environment Variables
+Name | Description | Mandatory | Location
+--- | --- | --- | ---
+ORDERS_API_PORT | Port this application runs on when deployed. | ✓ | start.sh
 
 ###Endpoints
 Path | Method | Description
