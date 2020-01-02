@@ -20,8 +20,6 @@ public class HealthcheckControllerTest {
     @Test
     @DisplayName("Health check confirms health with HTTP 200")
     public void applicationHealthcheckRunsSuccessfully(){
-        // Given the app is running
-
         // When the health endpoint is polled
         final ResponseEntity<Void> response = controllerUnderTest.getHealthCheck();
 
