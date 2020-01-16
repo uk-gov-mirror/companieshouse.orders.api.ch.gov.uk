@@ -17,7 +17,7 @@ import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 
@@ -57,7 +57,18 @@ class BasketControllerIntegrationTest {
 
         final Optional<BasketItem> retrievedBasketItem = repository.findById(ERIC_IDENTITY_VALUE);
         assertEquals(retrievedBasketItem.get().getData().getItems()[0].getItemUri(), ITEM_URI);
+    }
 
+    @Test
+    @DisplayName("Fails to add item to basket that fails validation")
+    public void failsToAddItemToBasketIfFailsValidation() throws Exception {
+
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 }
 

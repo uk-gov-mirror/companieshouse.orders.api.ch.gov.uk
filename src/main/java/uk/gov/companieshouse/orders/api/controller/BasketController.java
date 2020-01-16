@@ -15,6 +15,7 @@ import uk.gov.companieshouse.orders.api.service.BasketItemService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,14 +38,12 @@ public class BasketController {
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
-    public ResponseEntity<BasketItem> addItemToBasket(final @RequestBody AddToBasketItemDTO addToBasketItemDTO,
+    public ResponseEntity<BasketItem> addItemToBasket(final @Valid @RequestBody AddToBasketItemDTO addToBasketItemDTO,
                                                       HttpServletRequest request,
                                                       final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
         trace("Post received", requestId);
 
         final Optional<BasketItem> basketItem = basketItemservice.getBasketById(EricHeaderHelper.getIdentity(request));
-        System.out.println("INCONTROLER");
-        System.out.println(addToBasketItemDTO.getItemUri());
 
         Item item = new Item();
         item.setItemUri(addToBasketItemDTO.getItemUri());
