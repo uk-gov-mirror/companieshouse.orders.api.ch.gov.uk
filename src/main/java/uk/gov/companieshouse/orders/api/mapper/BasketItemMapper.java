@@ -1,11 +1,12 @@
 package uk.gov.companieshouse.orders.api.mapper;
 
 import org.mapstruct.Mapper;
-import uk.gov.companieshouse.orders.api.dto.BasketItemDTO;
+import org.mapstruct.Mapping;
+import uk.gov.companieshouse.orders.api.dto.AddToBasketItemDTO;
 import uk.gov.companieshouse.orders.api.model.BasketItem;
 
 @Mapper(componentModel = "spring")
 public interface BasketItemMapper {
-    BasketItem basketItemDTOtoBasketItem(BasketItemDTO basketItemDTO);
-    BasketItemDTO basketItemtoBasketItemDTO(BasketItem basketItemDTO);
+    //@Mapping(target = "data.items[0].itemUri", source="itemUri")
+    BasketItem addBasketItemDTOToBasketItem(AddToBasketItemDTO addToBasketItemDTO);
 }

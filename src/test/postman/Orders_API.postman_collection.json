@@ -1,0 +1,69 @@
+{
+	"info": {
+		"_postman_id": "4adf861e-92f0-4220-8d7b-93a1d31d831d",
+		"name": "Orders API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Basket API",
+			"item": [
+				{
+					"name": "Add item to basket",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "accessToken",
+				"value": "Inbbpx3dddbOPfj6qccOAt3XARYgEd898wCIriT-TsLDRfmgncn63X7qkBrG2DAsDYPoJkIveufHhwfSsCZ19Q",
+				"type": "string"
+			},
+			{
+				"key": "tokenType",
+				"value": "Bearer",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "4a6a998a-44a2-41b3-9a57-7a695f037e2c",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "bc59c0f8-702d-4034-9dca-ce061f1c505d",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

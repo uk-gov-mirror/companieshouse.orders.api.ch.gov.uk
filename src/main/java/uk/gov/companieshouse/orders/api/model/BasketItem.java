@@ -1,31 +1,61 @@
 package uk.gov.companieshouse.orders.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.gson.Gson;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotNull;
-import java.util.Map;
+import java.time.LocalDateTime;
 
+@Document(collection = "basket")
 public class BasketItem {
-    private ItemOptions itemOptions;
+    @Id
+    private String id;
 
-    private String companyNumber;
+    private LocalDateTime createdAt;
 
-    public ItemOptions getItemOptions() {
-        return itemOptions;
+    private LocalDateTime updatedAt;
+
+    private BasketData data;
+
+
+    public String getId() {
+        return id;
     }
 
-    public void setItemOptions(ItemOptions itemOptions) {
-        this.itemOptions = itemOptions;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public String getCompanyNumber() {
-        return companyNumber;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCompanyNumber(String companyNumber) {
-        this.companyNumber = companyNumber;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public BasketData getData() {
+        return data;
+    }
+
+    public void setData(BasketData data) {
+        this.data = data;
+    }
+
+    public void setItems(Item[] items) {
+        data.setItems(items);
+    }
+
+    public Item[] getItems() {
+        return data.getItems();
     }
 
     @Override
