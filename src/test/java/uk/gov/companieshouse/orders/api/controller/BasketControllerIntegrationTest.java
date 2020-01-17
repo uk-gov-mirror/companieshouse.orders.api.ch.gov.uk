@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
@@ -61,6 +62,7 @@ class BasketControllerIntegrationTest {
 
         final Optional<Basket> retrievedBasket = repository.findById(ERIC_IDENTITY_VALUE);
         assertEquals(retrievedBasket.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
+        assertEquals(retrievedBasket.get().getData().getItems().size(), 1);
     }
 
     @Test
@@ -116,8 +118,12 @@ class BasketControllerIntegrationTest {
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"gibberish\":\"gibberish\"}"))
                 .andExpect(status().isBadRequest());
+
+        final Optional<Basket> retrievedBasket = repository.findById(ERIC_IDENTITY_VALUE);
+        assertFalse(retrievedBasket.isPresent());
     }
 }
 

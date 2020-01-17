@@ -28,7 +28,7 @@ public class BasketController {
     private static final String REQUEST_ID_HEADER_NAME = "X-Request-ID";
     private static final String LOG_MESSAGE_DATA_KEY = "message";
 
-    private BasketMapper mapper;
+    private final BasketMapper mapper;
     private final BasketService basketService;
 
     public BasketController(final BasketMapper mapper, final BasketService basketService){
