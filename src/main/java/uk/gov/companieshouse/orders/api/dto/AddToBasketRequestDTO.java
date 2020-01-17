@@ -7,7 +7,7 @@ import com.google.gson.Gson;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-public class AddToBasketItemRequestDTO {
+public class AddToBasketRequestDTO {
 
     @NotBlank
     @JsonProperty("item_uri")

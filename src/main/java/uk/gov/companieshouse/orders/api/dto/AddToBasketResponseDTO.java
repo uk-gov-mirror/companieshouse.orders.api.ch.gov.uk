@@ -2,7 +2,7 @@ package uk.gov.companieshouse.orders.api.dto;
 
 import com.google.gson.Gson;
 
-public class AddToBasketItemResponseDTO {
+public class AddToBasketResponseDTO {
 
     private String itemUri;
 

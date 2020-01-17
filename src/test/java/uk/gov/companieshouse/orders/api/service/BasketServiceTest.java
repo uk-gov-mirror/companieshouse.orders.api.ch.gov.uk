@@ -5,8 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
-import uk.gov.companieshouse.orders.api.repository.BasketItemRepository;
+import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 
 import java.time.LocalDateTime;
 
@@ -17,61 +17,61 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 
 @ExtendWith(MockitoExtension.class)
-public class BasketItemServiceTest {
+public class BasketServiceTest {
 
     @InjectMocks
-    private BasketItemService service;
+    private BasketService service;
 
     @Mock
-    private BasketItemRepository repository;
+    private BasketRepository repository;
 
     private static final LocalDateTime CREATED_AT = LocalDateTime.of(2020, 01, 12, 9, 1);
 
     @Test
     public void saveBasketItemPopulatesCreatedAtAndUpdatedAtAndSavesItem() {
-        final BasketItem basketItem = new BasketItem();
-        basketItem.setId(ERIC_IDENTITY_VALUE);
+        final Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        service.saveBasketItem(basketItem);
+        service.saveBasketItem(basket);
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
-        assertThat(basketItem.getCreatedAt().isAfter(intervalStart) ||
-                basketItem.getCreatedAt().isEqual(intervalStart), is(true));
-        assertThat(basketItem.getCreatedAt().isBefore(intervalEnd) ||
-                basketItem.getCreatedAt().isEqual(intervalEnd), is(true));
-        assertThat(basketItem.getUpdatedAt().isAfter(intervalStart) ||
-                basketItem.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(basketItem.getUpdatedAt().isBefore(intervalEnd) ||
-                basketItem.getUpdatedAt().isEqual(intervalEnd), is(true));
-        verify(repository).save(basketItem);
+        assertThat(basket.getCreatedAt().isAfter(intervalStart) ||
+                basket.getCreatedAt().isEqual(intervalStart), is(true));
+        assertThat(basket.getCreatedAt().isBefore(intervalEnd) ||
+                basket.getCreatedAt().isEqual(intervalEnd), is(true));
+        assertThat(basket.getUpdatedAt().isAfter(intervalStart) ||
+                basket.getUpdatedAt().isEqual(intervalStart), is(true));
+        assertThat(basket.getUpdatedAt().isBefore(intervalEnd) ||
+                basket.getUpdatedAt().isEqual(intervalEnd), is(true));
+        verify(repository).save(basket);
     }
 
     @Test
     public void saveBasketItemPopulatesUpdatedAtAndSavesItem() {
-        final BasketItem basketItem = new BasketItem();
-        basketItem.setCreatedAt(CREATED_AT);
-        basketItem.setId(ERIC_IDENTITY_VALUE);
+        final Basket basket = new Basket();
+        basket.setCreatedAt(CREATED_AT);
+        basket.setId(ERIC_IDENTITY_VALUE);
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        service.saveBasketItem(basketItem);
+        service.saveBasketItem(basket);
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
-        assertThat(basketItem.getCreatedAt(), is(CREATED_AT));
-        assertThat(basketItem.getUpdatedAt().isAfter(intervalStart) ||
-                basketItem.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(basketItem.getUpdatedAt().isBefore(intervalEnd) ||
-                basketItem.getUpdatedAt().isEqual(intervalEnd), is(true));
-        verify(repository).save(basketItem);
+        assertThat(basket.getCreatedAt(), is(CREATED_AT));
+        assertThat(basket.getUpdatedAt().isAfter(intervalStart) ||
+                basket.getUpdatedAt().isEqual(intervalStart), is(true));
+        assertThat(basket.getUpdatedAt().isBefore(intervalEnd) ||
+                basket.getUpdatedAt().isEqual(intervalEnd), is(true));
+        verify(repository).save(basket);
     }
 
     @Test
     public void createBasketThrowsExceptionIfIdNotPresent() {
         assertThrows(IllegalArgumentException.class, () -> {
-            final BasketItem basketItem = new BasketItem();
-            service.saveBasketItem(basketItem);
+            final Basket basket = new Basket();
+            service.saveBasketItem(basket);
         });
     }
 
@@ -82,7 +82,7 @@ public class BasketItemServiceTest {
      * @param intervalStart roughly the start of the test
      * @param intervalEnd roughly the end of the test
      */
-    private void verifyCreationTimestampsWithinExecutionInterval(final BasketItem itemCreated,
+    private void verifyCreationTimestampsWithinExecutionInterval(final Basket itemCreated,
                                                                  final LocalDateTime intervalStart,
                                                                  final LocalDateTime intervalEnd) {
         assertThat(itemCreated.getCreatedAt().isAfter(intervalStart) ||

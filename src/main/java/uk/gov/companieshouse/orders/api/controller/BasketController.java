@@ -3,14 +3,14 @@ package uk.gov.companieshouse.orders.api.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.companieshouse.orders.api.dto.AddToBasketItemRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.AddToBasketItemResponseDTO;
-import uk.gov.companieshouse.orders.api.mapper.BasketItemMapper;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
+import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
+import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
+import uk.gov.companieshouse.orders.api.model.Basket;
 
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-import uk.gov.companieshouse.orders.api.service.BasketItemService;
+import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,35 +28,35 @@ public class BasketController {
     private static final String REQUEST_ID_HEADER_NAME = "X-Request-ID";
     private static final String LOG_MESSAGE_DATA_KEY = "message";
 
-    private BasketItemMapper mapper;
-    private final BasketItemService basketItemservice;
+    private BasketMapper mapper;
+    private final BasketService basketService;
 
-    public BasketController(final BasketItemMapper mapper, final BasketItemService basketItemservice){
+    public BasketController(final BasketMapper mapper, final BasketService basketService){
         this.mapper = mapper;
-        this.basketItemservice = basketItemservice;
+        this.basketService = basketService;
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
-    public ResponseEntity<AddToBasketItemResponseDTO> addItemToBasket(final @Valid @RequestBody AddToBasketItemRequestDTO addToBasketItemRequestDTO,
-                                                                      HttpServletRequest request,
-                                                                      final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
-        trace("ENTERING addItemToBasket(" + addToBasketItemRequestDTO + ")", requestId);
+    public ResponseEntity<AddToBasketResponseDTO> addItemToBasket(final @Valid @RequestBody AddToBasketRequestDTO addToBasketRequestDTO,
+                                                                  HttpServletRequest request,
+                                                                  final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
+        trace("ENTERING addItemToBasket(" + addToBasketRequestDTO + ")", requestId);
 
-        final Optional<BasketItem> retrievedBasketItem = basketItemservice.getBasketById(EricHeaderHelper.getIdentity(request));
+        final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
-        BasketItem item = mapper.addBasketItemDTOToBasketItem(addToBasketItemRequestDTO);
+        Basket mappedBasket = mapper.addToBasketRequestDTOToBasket(addToBasketRequestDTO);
 
-        BasketItem returnedBasketItem;
-        if(retrievedBasketItem.isPresent()) {
-            retrievedBasketItem.get().getData().setItems(item.getData().getItems());
-            returnedBasketItem = basketItemservice.saveBasketItem(retrievedBasketItem.get());
+        Basket returnedBasket;
+        if(retrievedBasket.isPresent()) {
+            retrievedBasket.get().getData().setItems(mappedBasket.getData().getItems());
+            returnedBasket = basketService.saveBasketItem(retrievedBasket.get());
         } else {
-            item.setId(EricHeaderHelper.getIdentity(request));
-            returnedBasketItem = basketItemservice.saveBasketItem(item);
+            mappedBasket.setId(EricHeaderHelper.getIdentity(request));
+            returnedBasket = basketService.saveBasketItem(mappedBasket);
         }
 
-        final AddToBasketItemResponseDTO basketItemDTO = mapper.basketItemToBasketItemDTO(returnedBasketItem);
-        trace("EXITING addItemToBasket() with " + addToBasketItemRequestDTO, requestId);
+        final AddToBasketResponseDTO basketItemDTO = mapper.basketToAddToBasketDTO(returnedBasket);
+        trace("EXITING addItemToBasket() with " + addToBasketRequestDTO, requestId);
         return ResponseEntity.status(HttpStatus.OK).body(basketItemDTO);
     }
 

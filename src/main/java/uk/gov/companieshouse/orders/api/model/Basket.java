@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Document(collection = "basket")
-public class BasketItem {
+public class Basket {
     @Id
     private String id;
 
