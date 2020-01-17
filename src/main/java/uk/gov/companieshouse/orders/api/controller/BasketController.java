@@ -46,18 +46,14 @@ public class BasketController {
 
         final Optional<BasketItem> basketItem = basketItemservice.getBasketById(EricHeaderHelper.getIdentity(request));
 
-        Item item = new Item();
-        item.setItemUri(addToBasketItemDTO.getItemUri());
+        BasketItem item = mapper.addBasketItemDTOToBasketItem(addToBasketItemDTO);
+
         if(basketItem.isPresent()) {
-            basketItem.get().getData().setItems(Arrays.asList(item));
+            basketItem.get().getData().setItems(item.getData().getItems());
             basketItemservice.saveBasketItem(basketItem.get());
         } else {
-            BasketItem newBasketItem = new BasketItem();
-            newBasketItem.setId(EricHeaderHelper.getIdentity(request));
-            BasketData basketData = new BasketData();
-            basketData.setItems(Arrays.asList(item));
-            newBasketItem.setData(basketData);
-            basketItemservice.createBasketItem(newBasketItem);
+            item.setId(EricHeaderHelper.getIdentity(request));
+            basketItemservice.createBasketItem(item);
         }
 
         BasketItem res = null;
