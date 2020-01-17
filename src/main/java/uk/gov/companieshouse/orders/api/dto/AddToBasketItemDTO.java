@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 
 public class AddToBasketItemDTO {
 
-    @NotBlank(message = "item_uri cannot be null")
+    @NotBlank
     @JsonProperty("item_uri")
     private String itemUri;
 

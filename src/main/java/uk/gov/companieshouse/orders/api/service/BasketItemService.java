@@ -16,10 +16,6 @@ public class BasketItemService {
         this.repository = repository;
     }
 
-    public BasketItem addItemToBasket(BasketItem basketItem) {
-        return repository.save(basketItem);
-    }
-
     public BasketItem createBasketItem(BasketItem basketItem) {
         final LocalDateTime now = LocalDateTime.now();
         basketItem.setUpdatedAt(now);
