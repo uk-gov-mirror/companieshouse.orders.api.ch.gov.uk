@@ -28,7 +28,7 @@ public class BasketServiceTest {
     private static final LocalDateTime CREATED_AT = LocalDateTime.of(2020, 01, 12, 9, 1);
 
     @Test
-    public void saveBasketItemPopulatesCreatedAtAndUpdatedAtAndSavesItem() {
+    public void saveBasketPopulatesCreatedAtAndUpdatedAtAndSavesItem() {
         final Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
 
@@ -49,7 +49,7 @@ public class BasketServiceTest {
     }
 
     @Test
-    public void saveBasketItemPopulatesUpdatedAtAndSavesItem() {
+    public void saveBasketPopulatesUpdatedAtAndSavesItem() {
         final Basket basket = new Basket();
         basket.setCreatedAt(CREATED_AT);
         basket.setId(ERIC_IDENTITY_VALUE);

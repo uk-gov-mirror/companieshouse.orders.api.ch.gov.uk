@@ -55,9 +55,9 @@ public class BasketController {
             returnedBasket = basketService.saveBasket(mappedBasket);
         }
 
-        final AddToBasketResponseDTO basketItemDTO = mapper.basketToAddToBasketDTO(returnedBasket);
+        final AddToBasketResponseDTO addToBasketResponseDTO = mapper.basketToAddToBasketDTO(returnedBasket);
         trace("EXITING addItemToBasket() with " + addToBasketRequestDTO, requestId);
-        return ResponseEntity.status(HttpStatus.OK).body(basketItemDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(addToBasketResponseDTO);
     }
 
     /**

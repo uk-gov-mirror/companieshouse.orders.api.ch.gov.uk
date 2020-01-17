@@ -36,7 +36,7 @@ public class BasketMapperTest {
     private BasketMapper basketMapper;
 
     @Test
-    public void testAddToBasketItemDTOToBasket(){
+    public void testAddToBasketRequestDTOToBasket(){
         final AddToBasketRequestDTO dto = new AddToBasketRequestDTO();
         dto.setItemUri(ITEM_URI);
 
@@ -47,14 +47,14 @@ public class BasketMapperTest {
     }
 
     @Test
-    public void testBasketItemToBasketItemDTO() {
+    public void testBasketToAddToBasketResponseDTO() {
         Basket basket = new Basket();
         Item item = new Item();
         item.setItemUri(ITEM_URI);
         basket.getData().setItems(Arrays.asList(item));
 
-        AddToBasketResponseDTO basketItemDTO = basketMapper.basketToAddToBasketDTO(basket);
+        AddToBasketResponseDTO addToBasketResponseDTO = basketMapper.basketToAddToBasketDTO(basket);
 
-        assertEquals(ITEM_URI, basketItemDTO.getItemUri());
+        assertEquals(ITEM_URI, addToBasketResponseDTO.getItemUri());
     }
 }
