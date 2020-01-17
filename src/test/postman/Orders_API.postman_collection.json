@@ -11,10 +11,33 @@
 				{
 					"name": "Add item to basket",
 					"request": {
-						"method": "GET",
-						"header": [],
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"item_uri\": \"/orderable/certificate/2222\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": ""
+							"raw": "{{base_url}}/basket/items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"basket",
+								"items"
+							]
 						}
 					},
 					"response": []
@@ -28,7 +51,7 @@
 		"oauth2": [
 			{
 				"key": "accessToken",
-				"value": "Inbbpx3dddbOPfj6qccOAt3XARYgEd898wCIriT-TsLDRfmgncn63X7qkBrG2DAsDYPoJkIveufHhwfSsCZ19Q",
+				"value": "O5AsC0ZKNMuATZhJLa5muDdbpLnhhDFESSWgLBM4S-da3EgXLC9p54E_IFXJEn5G4YRVOBhqmpszauB5AAfkpg",
 				"type": "string"
 			},
 			{

@@ -3,20 +3,18 @@ package uk.gov.companieshouse.orders.api.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.gov.companieshouse.orders.api.dto.AddToBasketItemDTO;
+import uk.gov.companieshouse.orders.api.dto.AddToBasketItemRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.AddToBasketItemResponseDTO;
 import uk.gov.companieshouse.orders.api.mapper.BasketItemMapper;
-import uk.gov.companieshouse.orders.api.model.BasketData;
 import uk.gov.companieshouse.orders.api.model.BasketItem;
 
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.service.BasketItemService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,25 +37,27 @@ public class BasketController {
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
-    public ResponseEntity<BasketItem> addItemToBasket(final @Valid @RequestBody AddToBasketItemDTO addToBasketItemDTO,
-                                                      HttpServletRequest request,
-                                                      final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
-        trace("Post received", requestId);
+    public ResponseEntity<AddToBasketItemResponseDTO> addItemToBasket(final @Valid @RequestBody AddToBasketItemRequestDTO addToBasketItemRequestDTO,
+                                                                      HttpServletRequest request,
+                                                                      final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
+        trace("ENTERING addItemToBasket(" + addToBasketItemRequestDTO + ")", requestId);
 
-        final Optional<BasketItem> basketItem = basketItemservice.getBasketById(EricHeaderHelper.getIdentity(request));
+        final Optional<BasketItem> retrievedBasketItem = basketItemservice.getBasketById(EricHeaderHelper.getIdentity(request));
 
-        BasketItem item = mapper.addBasketItemDTOToBasketItem(addToBasketItemDTO);
+        BasketItem item = mapper.addBasketItemDTOToBasketItem(addToBasketItemRequestDTO);
 
-        if(basketItem.isPresent()) {
-            basketItem.get().getData().setItems(item.getData().getItems());
-            basketItemservice.saveBasketItem(basketItem.get());
+        BasketItem returnedBasketItem;
+        if(retrievedBasketItem.isPresent()) {
+            retrievedBasketItem.get().getData().setItems(item.getData().getItems());
+            returnedBasketItem = basketItemservice.saveBasketItem(retrievedBasketItem.get());
         } else {
             item.setId(EricHeaderHelper.getIdentity(request));
-            basketItemservice.saveBasketItem(item);
+            returnedBasketItem = basketItemservice.saveBasketItem(item);
         }
 
-        BasketItem res = null;
-        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        final AddToBasketItemResponseDTO basketItemDTO = mapper.basketItemToBasketItemDTO(returnedBasketItem);
+        trace("EXITING addItemToBasket() with " + addToBasketItemRequestDTO, requestId);
+        return ResponseEntity.status(HttpStatus.OK).body(basketItemDTO);
     }
 
     /**
