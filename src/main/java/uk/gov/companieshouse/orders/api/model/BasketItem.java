@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Document(collection = "basket")
 public class BasketItem {
@@ -15,7 +16,7 @@ public class BasketItem {
 
     private LocalDateTime updatedAt;
 
-    private BasketData data;
+    private BasketData data = new BasketData();
 
 
     public String getId() {
@@ -50,11 +51,11 @@ public class BasketItem {
         this.data = data;
     }
 
-    public void setItems(Item[] items) {
+    public void setItems(List<Item> items) {
         data.setItems(items);
     }
 
-    public Item[] getItems() {
+    public List<Item> getItems() {
         return data.getItems();
     }
 

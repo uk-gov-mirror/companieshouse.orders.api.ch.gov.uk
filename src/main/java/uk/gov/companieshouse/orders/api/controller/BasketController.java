@@ -16,6 +16,7 @@ import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -48,19 +49,13 @@ public class BasketController {
         Item item = new Item();
         item.setItemUri(addToBasketItemDTO.getItemUri());
         if(basketItem.isPresent()) {
-            if(basketItem.get().getData() != null) {
-                basketItem.get().getData().setItems(new Item[]{item});
-            } else {
-                BasketData basketData = new BasketData();
-                basketData.setItems(new Item[]{item});
-                basketItem.get().setData(basketData);
-            }
+            basketItem.get().getData().setItems(Arrays.asList(item));
             basketItemservice.saveBasketItem(basketItem.get());
         } else {
             BasketItem newBasketItem = new BasketItem();
             newBasketItem.setId(EricHeaderHelper.getIdentity(request));
             BasketData basketData = new BasketData();
-            basketData.setItems(new Item[]{item});
+            basketData.setItems(Arrays.asList(item));
             newBasketItem.setData(basketData);
             basketItemservice.createBasketItem(newBasketItem);
         }

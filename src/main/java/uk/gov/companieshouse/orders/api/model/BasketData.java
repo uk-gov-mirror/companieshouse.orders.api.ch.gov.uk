@@ -2,12 +2,15 @@ package uk.gov.companieshouse.orders.api.model;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BasketData {
     private DeliveryDetails deliveryDetails;
 
     private String etag;
 
-    private Item[] items;
+    private List<Item> items = new ArrayList<Item>();
 
     private String kind;
 
@@ -32,11 +35,11 @@ public class BasketData {
         this.etag = etag;
     }
 
-    public Item[] getItems() {
+    public List<Item> getItems() {
         return items;
     }
 
-    public void setItems(Item[] items) {
+    public void setItems(List<Item> items) {
         this.items = items;
     }
 

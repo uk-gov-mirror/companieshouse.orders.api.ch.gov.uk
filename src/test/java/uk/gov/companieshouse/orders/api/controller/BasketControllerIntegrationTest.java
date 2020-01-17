@@ -16,6 +16,7 @@ import uk.gov.companieshouse.orders.api.model.BasketItem;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.repository.BasketItemRepository;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -60,7 +61,7 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isCreated());
 
         final Optional<BasketItem> retrievedBasketItem = repository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasketItem.get().getData().getItems()[0].getItemUri(), ITEM_URI);
+        assertEquals(retrievedBasketItem.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
     }
 
     @Test
@@ -80,7 +81,7 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isCreated());
 
         final Optional<BasketItem> retrievedBasketItem = repository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasketItem.get().getData().getItems()[0].getItemUri(), ITEM_URI);
+        assertEquals(retrievedBasketItem.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
 
     }
 
@@ -90,7 +91,7 @@ class BasketControllerIntegrationTest {
         Item item = new Item();
         item.setItemUri(ITEM_URI_OLD);
         BasketData basketData = new BasketData();
-        basketData.setItems(new Item[]{item});
+        basketData.setItems(Arrays.asList(item));
         BasketItem newItem = new BasketItem();
         newItem.setData(basketData);
         repository.save(newItem);
@@ -106,7 +107,7 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isCreated());
 
         final Optional<BasketItem> retrievedBasketItem = repository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasketItem.get().getData().getItems()[0].getItemUri(), ITEM_URI);
+        assertEquals(retrievedBasketItem.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
 
     }
 
