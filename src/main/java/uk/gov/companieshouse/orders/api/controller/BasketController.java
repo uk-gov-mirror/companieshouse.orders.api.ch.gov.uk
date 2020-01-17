@@ -53,7 +53,7 @@ public class BasketController {
             basketItemservice.saveBasketItem(basketItem.get());
         } else {
             item.setId(EricHeaderHelper.getIdentity(request));
-            basketItemservice.createBasketItem(item);
+            basketItemservice.saveBasketItem(item);
         }
 
         BasketItem res = null;

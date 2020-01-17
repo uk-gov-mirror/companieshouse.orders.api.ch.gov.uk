@@ -12,7 +12,9 @@ import java.time.LocalDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 
 @ExtendWith(MockitoExtension.class)
 public class BasketItemServiceTest {
@@ -23,16 +25,54 @@ public class BasketItemServiceTest {
     @Mock
     private BasketItemRepository repository;
 
+    private static final LocalDateTime CREATED_AT = LocalDateTime.of(2020, 01, 12, 9, 1);
+
     @Test
-    public void createBasketItemPopulatesAndSavesItem() {
+    public void saveBasketItemPopulatesCreatedAtAndUpdatedAtAndSavesItem() {
         final BasketItem basketItem = new BasketItem();
+        basketItem.setId(ERIC_IDENTITY_VALUE);
+
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        service.createBasketItem(basketItem);
+        service.saveBasketItem(basketItem);
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
-        verifyCreationTimestampsWithinExecutionInterval(basketItem, intervalStart, intervalEnd);
+        assertThat(basketItem.getCreatedAt().isAfter(intervalStart) ||
+                basketItem.getCreatedAt().isEqual(intervalStart), is(true));
+        assertThat(basketItem.getCreatedAt().isBefore(intervalEnd) ||
+                basketItem.getCreatedAt().isEqual(intervalEnd), is(true));
+        assertThat(basketItem.getUpdatedAt().isAfter(intervalStart) ||
+                basketItem.getUpdatedAt().isEqual(intervalStart), is(true));
+        assertThat(basketItem.getUpdatedAt().isBefore(intervalEnd) ||
+                basketItem.getUpdatedAt().isEqual(intervalEnd), is(true));
         verify(repository).save(basketItem);
+    }
+
+    @Test
+    public void saveBasketItemPopulatesUpdatedAtAndSavesItem() {
+        final BasketItem basketItem = new BasketItem();
+        basketItem.setCreatedAt(CREATED_AT);
+        basketItem.setId(ERIC_IDENTITY_VALUE);
+
+        final LocalDateTime intervalStart = LocalDateTime.now();
+
+        service.saveBasketItem(basketItem);
+
+        final LocalDateTime intervalEnd = LocalDateTime.now();
+        assertThat(basketItem.getCreatedAt(), is(CREATED_AT));
+        assertThat(basketItem.getUpdatedAt().isAfter(intervalStart) ||
+                basketItem.getUpdatedAt().isEqual(intervalStart), is(true));
+        assertThat(basketItem.getUpdatedAt().isBefore(intervalEnd) ||
+                basketItem.getUpdatedAt().isEqual(intervalEnd), is(true));
+        verify(repository).save(basketItem);
+    }
+
+    @Test
+    public void createBasketThrowsExceptionIfIdNotPresent() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            final BasketItem basketItem = new BasketItem();
+            service.saveBasketItem(basketItem);
+        });
     }
 
     /**

@@ -16,15 +16,14 @@ public class BasketItemService {
         this.repository = repository;
     }
 
-    public BasketItem createBasketItem(BasketItem basketItem) {
-        final LocalDateTime now = LocalDateTime.now();
-        basketItem.setUpdatedAt(now);
-        basketItem.setCreatedAt(now);
-        return repository.save(basketItem);
-    }
-
     public BasketItem saveBasketItem(BasketItem basketItem) {
         final LocalDateTime now = LocalDateTime.now();
+        if(basketItem.getId() == null) {
+            throw new IllegalArgumentException("ID Must be present");
+        }
+        if(basketItem.getCreatedAt() == null) {
+            basketItem.setCreatedAt(now);
+        }
         basketItem.setUpdatedAt(now);
         return repository.save(basketItem);
     }
