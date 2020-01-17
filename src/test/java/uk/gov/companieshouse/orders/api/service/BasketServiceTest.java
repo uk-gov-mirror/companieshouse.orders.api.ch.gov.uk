@@ -34,7 +34,7 @@ public class BasketServiceTest {
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        service.saveBasketItem(basket);
+        service.saveBasket(basket);
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
         assertThat(basket.getCreatedAt().isAfter(intervalStart) ||
@@ -56,7 +56,7 @@ public class BasketServiceTest {
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        service.saveBasketItem(basket);
+        service.saveBasket(basket);
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
         assertThat(basket.getCreatedAt(), is(CREATED_AT));
@@ -71,7 +71,7 @@ public class BasketServiceTest {
     public void createBasketThrowsExceptionIfIdNotPresent() {
         assertThrows(IllegalArgumentException.class, () -> {
             final Basket basket = new Basket();
-            service.saveBasketItem(basket);
+            service.saveBasket(basket);
         });
     }
 

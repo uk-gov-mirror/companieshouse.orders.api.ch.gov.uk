@@ -49,10 +49,10 @@ public class BasketController {
         Basket returnedBasket;
         if(retrievedBasket.isPresent()) {
             retrievedBasket.get().getData().setItems(mappedBasket.getData().getItems());
-            returnedBasket = basketService.saveBasketItem(retrievedBasket.get());
+            returnedBasket = basketService.saveBasket(retrievedBasket.get());
         } else {
             mappedBasket.setId(EricHeaderHelper.getIdentity(request));
-            returnedBasket = basketService.saveBasketItem(mappedBasket);
+            returnedBasket = basketService.saveBasket(mappedBasket);
         }
 
         final AddToBasketResponseDTO basketItemDTO = mapper.basketToAddToBasketDTO(returnedBasket);

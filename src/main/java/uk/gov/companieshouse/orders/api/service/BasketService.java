@@ -16,7 +16,7 @@ public class BasketService {
         this.repository = repository;
     }
 
-    public Basket saveBasketItem(Basket basket) {
+    public Basket saveBasket(Basket basket) {
         final LocalDateTime now = LocalDateTime.now();
         if(basket.getId() == null) {
             throw new IllegalArgumentException("ID Must be present");
