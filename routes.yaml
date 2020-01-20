@@ -2,4 +2,4 @@ app_name: orders.api.ch.gov.uk
 group: api
 weight: 991
 routes:
-   1: ^/orders/healthcheck
+   1: ^/basket/items
