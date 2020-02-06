@@ -2,12 +2,15 @@ package uk.gov.companieshouse.orders.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.data.mongodb.core.convert.DbRefResolver;
-import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
-import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.*;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import uk.gov.companieshouse.orders.api.converter.EnumToStringConverterFactory;
+import uk.gov.companieshouse.orders.api.converter.StringToEnumConverterFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class MongoConfig {
@@ -27,6 +30,11 @@ public class MongoConfig {
 
         // Don't save _class to mongo
         mappingConverter.setTypeMapper(new DefaultMongoTypeMapper(null));
+
+        final List<ConverterFactory<?, ?>> converters = new ArrayList<>();
+        converters.add(new StringToEnumConverterFactory());
+        converters.add(new EnumToStringConverterFactory());
+        mappingConverter.setCustomConversions(new MongoCustomConversions(converters));
 
         return mappingConverter;
     }

@@ -12,7 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
 import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.BasketItem;
 
 import java.util.Arrays;
 
@@ -49,7 +49,7 @@ public class BasketMapperTest {
     @Test
     public void testBasketToAddToBasketResponseDTO() {
         Basket basket = new Basket();
-        Item item = new Item();
+        BasketItem item = new BasketItem();
         item.setItemUri(ITEM_URI);
         basket.getData().setItems(Arrays.asList(item));
 

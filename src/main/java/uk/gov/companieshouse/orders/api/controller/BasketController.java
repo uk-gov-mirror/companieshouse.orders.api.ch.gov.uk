@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.controller;
 
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.service.BasketService;
+import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,10 +32,12 @@ public class BasketController {
 
     private final BasketMapper mapper;
     private final BasketService basketService;
+    private final CheckoutService checkoutService;
 
-    public BasketController(final BasketMapper mapper, final BasketService basketService){
+    public BasketController(final BasketMapper mapper, final BasketService basketService, CheckoutService checkoutService){
         this.mapper = mapper;
         this.basketService = basketService;
+        this.checkoutService = checkoutService;
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
@@ -58,6 +62,19 @@ public class BasketController {
         final AddToBasketResponseDTO addToBasketResponseDTO = mapper.basketToAddToBasketDTO(returnedBasket);
         trace("EXITING addItemToBasket() with " + addToBasketRequestDTO, requestId);
         return ResponseEntity.status(HttpStatus.OK).body(addToBasketResponseDTO);
+    }
+
+    @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkout}")
+    public ResponseEntity<String> checkoutBasket(HttpServletRequest request,
+                                            final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
+        trace("Entering checkoutBasket", requestId);
+
+        final Basket retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request))
+                .orElseThrow(ResourceNotFoundException::new);
+
+        checkoutService.createCheckout(retrievedBasket);
+
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
     /**

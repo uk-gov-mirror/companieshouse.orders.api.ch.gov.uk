@@ -12,7 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.BasketItem;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 
 import java.util.Arrays;
@@ -89,7 +89,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Successfully replaces an item in the basket")
     public void successfullyReplacesAnItemInTheBasket() throws Exception {
-        Item item = new Item();
+        BasketItem item = new BasketItem();
         item.setItemUri(ITEM_URI_OLD);
         BasketData basketData = new BasketData();
         basketData.setItems(Arrays.asList(item));

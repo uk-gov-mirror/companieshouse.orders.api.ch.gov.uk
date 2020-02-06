@@ -1,6 +1,6 @@
 package uk.gov.companieshouse.orders.api.model;
 
-public class Item {
+public class BasketItem {
     private String itemUri;
 
     public String getItemUri() {

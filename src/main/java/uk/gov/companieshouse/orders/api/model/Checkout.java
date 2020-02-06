@@ -1,14 +1,12 @@
 package uk.gov.companieshouse.orders.api.model;
 
-import com.google.gson.Gson;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-@Document(collection = "basket")
-public class Basket {
+@Document(collection = "checkout")
+public class Checkout {
     @Id
     private String id;
 
@@ -16,8 +14,7 @@ public class Basket {
 
     private LocalDateTime updatedAt;
 
-    private BasketData data = new BasketData();
-
+    private CheckoutData data = new CheckoutData();
 
     public String getId() {
         return id;
@@ -43,23 +40,11 @@ public class Basket {
         this.updatedAt = updatedAt;
     }
 
-    public BasketData getData() {
+    public CheckoutData getData() {
         return data;
     }
 
-    public void setData(BasketData data) {
+    public void setData(CheckoutData data) {
         this.data = data;
     }
-
-    public void setItems(List<BasketItem> items) {
-        data.setItems(items);
-    }
-
-    public List<BasketItem> getItems() {
-        return data.getItems();
-    }
-
-    @Override
-    public String toString() { return new Gson().toJson(this); }
-
 }
