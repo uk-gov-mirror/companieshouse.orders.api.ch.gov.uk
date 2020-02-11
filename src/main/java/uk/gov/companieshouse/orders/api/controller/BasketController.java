@@ -4,23 +4,35 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
+import uk.gov.companieshouse.orders.api.exception.ConflictException;
+import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.model.Basket;
 
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.api.model.Certificate;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
+import uk.gov.companieshouse.orders.api.validator.CheckoutBasketValidator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 
 @RestController
@@ -33,11 +45,19 @@ public class BasketController {
     private final BasketMapper mapper;
     private final BasketService basketService;
     private final CheckoutService checkoutService;
+    private final CheckoutBasketValidator checkoutBasketValidator;
+    private final ApiClientService apiClientService;
 
-    public BasketController(final BasketMapper mapper, final BasketService basketService, CheckoutService checkoutService){
+    public BasketController(final BasketMapper mapper,
+                            final BasketService basketService,
+                            final CheckoutService checkoutService,
+                            final CheckoutBasketValidator checkoutBasketValidator,
+                            final ApiClientService apiClientService){
         this.mapper = mapper;
         this.basketService = basketService;
         this.checkoutService = checkoutService;
+        this.checkoutBasketValidator = checkoutBasketValidator;
+        this.apiClientService = apiClientService;
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
@@ -65,14 +85,30 @@ public class BasketController {
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkout}")
-    public ResponseEntity<String> checkoutBasket(HttpServletRequest request,
+    public ResponseEntity<?> checkoutBasket(HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("Entering checkoutBasket", requestId);
 
         final Basket retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request))
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(ConflictException::new);
 
-        checkoutService.createCheckout(retrievedBasket);
+        final List<String> errors = checkoutBasketValidator.getValidationErrors(retrievedBasket);
+        if (!errors.isEmpty()) {
+            return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, errors));
+        }
+
+        Item item;
+        String itemUri = null;
+        try {
+            itemUri = retrievedBasket.getData().getItems().get(0).getItemUri();
+            item = apiClientService.getItem(itemUri);
+        } catch (Exception exception) {
+            LOGGER.error("Failed to get item "+itemUri, exception);
+            return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "Failed to retrieve item"));
+        }
+
+        Checkout checkout = checkoutService.createCheckout(item);
+        trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }

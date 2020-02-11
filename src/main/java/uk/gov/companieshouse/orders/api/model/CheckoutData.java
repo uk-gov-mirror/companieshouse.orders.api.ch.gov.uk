@@ -13,7 +13,7 @@ public class CheckoutData {
 
     private DeliveryDetails deliveryDetails = new DeliveryDetails();
 
-    private List<Certificate> items = new ArrayList<Certificate>();
+    private List<Item> items = new ArrayList<Item>();
 
     private String kind;
 
@@ -53,11 +53,11 @@ public class CheckoutData {
         this.deliveryDetails = deliveryDetails;
     }
 
-    public List<Certificate> getItems() {
+    public List<Item> getItems() {
         return items;
     }
 
-    public void setItems(List<Certificate> items) {
+    public void setItems(List<Item> items) {
         this.items = items;
     }
 
