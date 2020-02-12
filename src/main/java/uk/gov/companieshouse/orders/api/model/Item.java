@@ -119,7 +119,7 @@ public class Item {
         this.kind = kind;
     }
 
-    public Boolean getPostalDelivery() {
+    public Boolean isPostalDelivery() {
         return isPostalDelivery;
     }
 
