@@ -5,6 +5,7 @@ import uk.gov.companieshouse.api.handler.order.item.request.PrivateItemURIPatter
 import uk.gov.companieshouse.api.handler.regex.URIValidator;
 import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 import uk.gov.companieshouse.orders.api.client.ApiClient;
+import uk.gov.companieshouse.orders.api.exception.ServiceException;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Item;
 
@@ -27,7 +28,7 @@ public class ApiClientService {
             certificate.setItemUri(itemUri);
             return certificate;
         } else {
-            throw new Exception("Unrecognised uri pattern for "+itemUri);
+            throw new ServiceException("Unrecognised uri pattern for "+itemUri);
         }
     }
 

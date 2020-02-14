@@ -11,6 +11,7 @@ import uk.gov.companieshouse.api.handler.order.item.request.CertificateGet;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 import uk.gov.companieshouse.orders.api.client.ApiClient;
+import uk.gov.companieshouse.orders.api.exception.ServiceException;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.Item;
@@ -64,8 +65,8 @@ public class ApiClientServiceTest {
     }
 
     @Test
-    public void shouldThrowExceptionIfCertificateItemUriIsInvalid() throws Exception {
-        Exception exception = assertThrows(Exception.class, () -> {
+    public void shouldThrowExceptionIfCertificateItemUriIsInvalid() throws ServiceException {
+        ServiceException exception = assertThrows(ServiceException.class, () -> {
             Item item = serviceUnderTest.getItem(INVALID_CERTIFICATE_URI);
         });
         assertEquals("Unrecognised uri pattern for "+INVALID_CERTIFICATE_URI, exception.getMessage());
