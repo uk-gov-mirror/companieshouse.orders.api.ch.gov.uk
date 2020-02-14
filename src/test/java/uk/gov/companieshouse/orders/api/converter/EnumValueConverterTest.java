@@ -1,16 +1,9 @@
 package uk.gov.companieshouse.orders.api.converter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 
-@RunWith(MockitoJUnitRunner.class)
 public class EnumValueConverterTest {
 
     enum COLOUR {

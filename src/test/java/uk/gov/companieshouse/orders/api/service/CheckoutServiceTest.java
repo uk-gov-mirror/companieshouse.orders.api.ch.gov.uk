@@ -2,11 +2,13 @@ package uk.gov.companieshouse.orders.api.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 
 import java.time.LocalDateTime;
@@ -15,7 +17,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CheckoutServiceTest {

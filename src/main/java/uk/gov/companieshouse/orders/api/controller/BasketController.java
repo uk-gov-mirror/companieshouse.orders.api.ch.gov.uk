@@ -1,21 +1,18 @@
 package uk.gov.companieshouse.orders.api.controller;
 
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
-import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
-import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.model.Basket;
-
-import uk.gov.companieshouse.logging.Logger;
-import uk.gov.companieshouse.logging.LoggerFactory;
-import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;

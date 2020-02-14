@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.orders.api.model;
 
-// TODO add to this
 public class CertificateItemOptions {
 
     private CertificateType certificateType;

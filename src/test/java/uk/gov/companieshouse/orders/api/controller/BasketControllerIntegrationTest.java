@@ -11,7 +11,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
@@ -30,8 +29,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
-
-
 
 @AutoConfigureMockMvc
 @SpringBootTest

@@ -1,15 +1,10 @@
 package uk.gov.companieshouse.orders.api.service;
 
 import org.springframework.stereotype.Service;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
-import uk.gov.companieshouse.api.handler.exception.URIValidationException;
-import uk.gov.companieshouse.api.handler.order.item.request.PrivateItemURIPattern;
-import uk.gov.companieshouse.api.handler.regex.URIValidator;
-import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
-import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 
 import java.time.LocalDateTime;
 
