@@ -10,6 +10,7 @@ import uk.gov.companieshouse.api.handler.order.item.PrivateItemResourceHandler;
 import uk.gov.companieshouse.api.handler.order.item.request.CertificateGet;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import uk.gov.companieshouse.orders.api.client.ApiClient;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.Item;
