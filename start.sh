@@ -28,4 +28,3 @@ else
 fi
 
 exec java ${JAVA_MEM_ARGS} -jar -Dserver.port="${PORT}" "${APP_DIR}/orders.api.ch.gov.uk.jar"
-

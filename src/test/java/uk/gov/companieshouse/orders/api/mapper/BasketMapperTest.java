@@ -1,18 +1,16 @@
 package uk.gov.companieshouse.orders.api.mapper;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
 import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.BasketItem;
 
 import java.util.Arrays;
 
@@ -23,7 +21,6 @@ import static org.junit.Assert.assertThat;
 
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(BasketMapperTest.Config.class)
-@RunWith(SpringRunner.class)
 public class BasketMapperTest {
 
     private static final String ITEM_URI = "/orderable/certificate/12345678";
@@ -49,7 +46,7 @@ public class BasketMapperTest {
     @Test
     public void testBasketToAddToBasketResponseDTO() {
         Basket basket = new Basket();
-        Item item = new Item();
+        BasketItem item = new BasketItem();
         item.setItemUri(ITEM_URI);
         basket.getData().setItems(Arrays.asList(item));
 
