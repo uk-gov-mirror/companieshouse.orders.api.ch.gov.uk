@@ -27,8 +27,4 @@ else
     source "${APP_DIR}/app_env"
 fi
 
-#exec java ${JAVA_MEM_ARGS} -jar -Dserver.port="${PORT}" "${APP_DIR}/orders.api.ch.gov.uk.jar"
-exec java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=21092 -jar -Dserver.port="${PORT}" "${APP_DIR}/orders.api.ch.gov.uk.jar"
-
-
-#mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=21092"
+exec java ${JAVA_MEM_ARGS} -jar -Dserver.port="${PORT}" "${APP_DIR}/orders.api.ch.gov.uk.jar"
