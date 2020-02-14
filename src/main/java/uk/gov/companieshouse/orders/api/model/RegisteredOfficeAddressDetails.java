@@ -28,17 +28,4 @@ public class RegisteredOfficeAddressDetails {
     @Override
     public String toString() { return new Gson().toJson(this); }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RegisteredOfficeAddressDetails)) return false;
-        RegisteredOfficeAddressDetails that = (RegisteredOfficeAddressDetails) o;
-        return includeAddressRecordsType == that.includeAddressRecordsType &&
-                Objects.equals(includeDates, that.includeDates);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(includeAddressRecordsType, includeDates);
-    }
 }
