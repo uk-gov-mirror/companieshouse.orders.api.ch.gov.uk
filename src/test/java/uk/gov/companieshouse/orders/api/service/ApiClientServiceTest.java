@@ -59,6 +59,7 @@ public class ApiClientServiceTest {
         Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
 
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        assertEquals(VALID_CERTIFICATE_URI, item.getItemUri());
     }
 
     @Test

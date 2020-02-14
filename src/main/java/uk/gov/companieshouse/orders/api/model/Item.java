@@ -35,6 +35,8 @@ public class Item {
 
     private Integer quantity;
 
+    private String itemUri;
+
     public String getId() {
         return id;
     }
@@ -145,5 +147,13 @@ public class Item {
 
     public void setLinks(Links links) {
         this.links = links;
+    }
+
+    public String getItemUri() {
+        return itemUri;
+    }
+
+    public void setItemUri(String itemUri) {
+        this.itemUri = itemUri;
     }
 }

@@ -23,6 +23,7 @@ public class ApiClientService {
         if (URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri)) {
             CertificateApi certificateApi = apiClient.getInternalApiClient().privateItemResourceHandler().getCertificate(itemUri).execute().getData();
             Item certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
+            certificate.setItemUri(itemUri);
             return certificate;
         } else {
             throw new Exception("Unrecognised uri pattern for "+itemUri);
