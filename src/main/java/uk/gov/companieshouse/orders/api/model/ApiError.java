@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.orders.api.controller;
+package uk.gov.companieshouse.orders.api.model;
 
 import org.springframework.http.HttpStatus;
 
