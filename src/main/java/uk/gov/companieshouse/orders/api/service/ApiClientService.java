@@ -1,13 +1,13 @@
 package uk.gov.companieshouse.orders.api.service;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.handler.order.item.request.PrivateItemURIPattern;
 import uk.gov.companieshouse.api.handler.regex.URIValidator;
 import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Item;
 
-@Component
+@Service
 public class ApiClientService {
 
     private final ApiToCertificateMapper apiToCertificateMapper;
