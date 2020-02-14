@@ -72,22 +72,4 @@ public class DirectorOrSecretaryDetails {
     @Override
     public String toString() { return new Gson().toJson(this); }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof DirectorOrSecretaryDetails)) return false;
-        DirectorOrSecretaryDetails that = (DirectorOrSecretaryDetails) o;
-        return Objects.equals(includeAddress, that.includeAddress) &&
-                Objects.equals(includeAppointmentDate, that.includeAppointmentDate) &&
-                Objects.equals(includeBasicInformation, that.includeBasicInformation) &&
-                Objects.equals(includeCountryOfResidence, that.includeCountryOfResidence) &&
-                Objects.equals(includeDobType, that.includeDobType) &&
-                Objects.equals(includeNationality, that.includeNationality) &&
-                Objects.equals(includeOccupation, that.includeOccupation);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(includeAddress, includeAppointmentDate, includeBasicInformation, includeCountryOfResidence, includeDobType, includeNationality, includeOccupation);
-    }
 }

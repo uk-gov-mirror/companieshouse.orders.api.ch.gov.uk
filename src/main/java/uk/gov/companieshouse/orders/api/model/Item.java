@@ -1,8 +1,12 @@
 package uk.gov.companieshouse.orders.api.model;
 
+import org.springframework.data.mongodb.core.mapping.Field;
+
 import java.util.Map;
 
 public class Item {
+
+    @Field("id")
     private String id;
 
     private String companyName;
