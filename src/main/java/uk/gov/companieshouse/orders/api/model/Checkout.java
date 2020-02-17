@@ -16,6 +16,8 @@ public class Checkout {
 
     private CheckoutData data = new CheckoutData();
 
+    private String userId;
+
     public String getId() {
         return id;
     }
@@ -46,5 +48,13 @@ public class Checkout {
 
     public void setData(CheckoutData data) {
         this.data = data;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

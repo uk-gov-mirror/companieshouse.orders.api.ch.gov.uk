@@ -5,6 +5,7 @@ import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
+import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import java.time.LocalDateTime;
 
@@ -26,9 +27,10 @@ public class CheckoutService {
         this.apiToCertificateMapper = apiToCertificateMapper;
     }
 
-    public Checkout createCheckout(Item item) {
+    public Checkout createCheckout(Item item, String userId) {
         final LocalDateTime now = LocalDateTime.now();
         Checkout checkout = new Checkout();
+        checkout.setUserId(userId);
         checkout.setCreatedAt(now);
         checkout.setUpdatedAt(now);
         checkout.getData().getItems().add(item);
