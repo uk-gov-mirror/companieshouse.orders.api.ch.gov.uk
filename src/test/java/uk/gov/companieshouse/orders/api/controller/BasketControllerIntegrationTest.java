@@ -223,7 +223,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Check out basket returns 403 is body is present")
+    @DisplayName("Check out basket returns 403 if body is present")
     public void checkoutBasketReturnsBadRequestIfBodyIsPresent() throws Exception {
 
         mockMvc.perform(post("/basket/checkout")
