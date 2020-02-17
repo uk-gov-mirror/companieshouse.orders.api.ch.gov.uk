@@ -10,7 +10,7 @@ public class BasketData {
 
     private String etag;
 
-    private List<BasketItem> items = new ArrayList<BasketItem>();
+    private List<BasketItem> items = new ArrayList<>();
 
     private String kind;
 

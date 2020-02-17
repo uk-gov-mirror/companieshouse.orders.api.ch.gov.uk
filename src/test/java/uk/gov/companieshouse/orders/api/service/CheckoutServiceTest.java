@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 
 @ExtendWith(MockitoExtension.class)
 public class CheckoutServiceTest {
@@ -42,7 +43,7 @@ public class CheckoutServiceTest {
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        serviceUnderTest.createCheckout(certificate);
+        serviceUnderTest.createCheckout(certificate, ERIC_IDENTITY_VALUE);
         verify(checkoutRepository).save(argCaptor.capture());
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
@@ -56,10 +57,11 @@ public class CheckoutServiceTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         when(checkoutRepository.save(any(Checkout.class))).thenReturn(new Checkout());
 
-        serviceUnderTest.createCheckout(certificate);
+        serviceUnderTest.createCheckout(certificate, ERIC_IDENTITY_VALUE);
         verify(checkoutRepository).save(argCaptor.capture());
 
         assertEquals(1, argCaptor.getValue().getData().getItems().size());
+        assertEquals(ERIC_IDENTITY_VALUE, argCaptor.getValue().getUserId());
         assertEquals(COMPANY_NUMBER, argCaptor.getValue().getData().getItems().get(0).getCompanyNumber());
     }
 

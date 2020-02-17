@@ -83,9 +83,14 @@ public class BasketController {
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkout}")
-    public ResponseEntity<?> checkoutBasket(HttpServletRequest request,
+    public ResponseEntity<?> checkoutBasket(@RequestBody(required = false) String json,
+                                            HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("Entering checkoutBasket", requestId);
+
+        if(json!=null) {
+            return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "The body must be empty"));
+        }
 
         final Basket retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request))
                 .orElseThrow(ConflictException::new);
@@ -105,7 +110,7 @@ public class BasketController {
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "Failed to retrieve item"));
         }
 
-        Checkout checkout = checkoutService.createCheckout(item);
+        Checkout checkout = checkoutService.createCheckout(item, EricHeaderHelper.getIdentity(request));
         trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
         return ResponseEntity.status(HttpStatus.OK).body(null);

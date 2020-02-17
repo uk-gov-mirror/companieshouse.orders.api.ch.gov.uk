@@ -2,8 +2,6 @@ package uk.gov.companieshouse.orders.api.model;
 
 import com.google.gson.Gson;
 
-import java.util.Objects;
-
 public class DirectorOrSecretaryDetails {
     private Boolean includeAddress;
     private Boolean includeAppointmentDate;

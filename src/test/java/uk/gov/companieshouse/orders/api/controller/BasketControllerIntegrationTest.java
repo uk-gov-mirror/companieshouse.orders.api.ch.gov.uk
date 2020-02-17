@@ -68,8 +68,8 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Successfully adds an item to the basket if it does not exist")
-    public void successfullyAddsItemToBasketIfItDoesNotExists() throws Exception {
+    @DisplayName("Add Item successfully adds an item to the basket, if the basket does not exist")
+    public void addItemSuccessfullyAddsItemToBasketIfBasketDoesNotExist() throws Exception {
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(ITEM_URI);
 
@@ -81,13 +81,13 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasket.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
-        assertEquals(retrievedBasket.get().getData().getItems().size(), 1);
+        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+        assertEquals(1, retrievedBasket.get().getData().getItems().size());
     }
 
     @Test
-    @DisplayName("Successfully adds an item to the basket if it exists")
-    public void successfullyAddsAnItemToBasketIfItAlreadyExists() throws Exception {
+    @DisplayName("Add item successfully adds an item to the basket, if the basket exists")
+    public void addItemSuccessfullyAddsAnItemToBasketIfBasketAlreadyExists() throws Exception {
         Basket basket = new Basket();
         basketRepository.save(basket);
 
@@ -102,13 +102,13 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasket.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
+        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
 
     }
 
     @Test
-    @DisplayName("Successfully replaces an item in the basket")
-    public void successfullyReplacesAnItemInTheBasket() throws Exception {
+    @DisplayName("Add item successfully replaces an item in the basket")
+    public void addItemSuccessfullyReplacesAnItemInTheBasket() throws Exception {
         BasketItem item = new BasketItem();
         item.setItemUri(ITEM_URI_OLD);
         BasketData basketData = new BasketData();
@@ -128,13 +128,13 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasket.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
+        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
 
     }
 
     @Test
-    @DisplayName("Fails to add item to basket that fails validation")
-    public void failsToAddItemToBasketIfFailsValidation() throws Exception {
+    @DisplayName("Add item fails to add item to basket that fails validation")
+    public void addItemFailsToAddItemToBasketIfFailsValidation() throws Exception {
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
@@ -147,8 +147,8 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Successfully creates checkout when basket contains a valid certificate uri")
-    public void successfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
+    @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
+    public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         BasketItem basketItem = new BasketItem();
@@ -161,7 +161,7 @@ class BasketControllerIntegrationTest {
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         ResultCaptor<Checkout> resultCaptor = new ResultCaptor<>();
-        doAnswer(resultCaptor).when(checkoutService).createCheckout(any(Certificate.class));
+        doAnswer(resultCaptor).when(checkoutService).createCheckout(any(Certificate.class), any(String.class));
 
         mockMvc.perform(post("/basket/checkout")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -170,13 +170,14 @@ class BasketControllerIntegrationTest {
 
         final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(resultCaptor.getResult().getId());
         assertTrue(retrievedCheckout.isPresent());
+        assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
         final Item item = retrievedCheckout.get().getData().getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
     }
 
     @Test
-    @DisplayName("Fails to create checkout and returns 409 conflict, when basket is empty")
-    public void failsToCreateCheckoutIfBasketIsEmpty() throws Exception {
+    @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket is empty")
+    public void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
@@ -190,8 +191,8 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Fails to create checkout and returns 409, when basket does not exist")
-    public void failsToCreateCheckoutIfBasketDoesNotExist() throws Exception {
+    @DisplayName("Checkout Basket fails to create checkout and returns 409, when basket does not exist")
+    public void checkoutBasketFailsToCreateCheckoutIfBasketDoesNotExist() throws Exception {
 
         mockMvc.perform(post("/basket/checkout")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -202,8 +203,8 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Fails to create checkout and returns 400, when there is a failure getting the item")
-    public void failsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
+    @DisplayName("Checkout Basket fails to create checkout and returns 400, when there is a failure getting the item")
+    public void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         BasketItem basketItem = new BasketItem();
@@ -220,5 +221,19 @@ class BasketControllerIntegrationTest {
 
         assertEquals(0, checkoutRepository.count());
     }
-}
 
+    @Test
+    @DisplayName("Check out basket returns 403 if body is present")
+    public void checkoutBasketReturnsBadRequestIfBodyIsPresent() throws Exception {
+
+        mockMvc.perform(post("/basket/checkout")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"gibberish\":\"gibberish\"}"))
+                .andExpect(status().isBadRequest());
+
+        assertEquals(0, checkoutRepository.count());
+    }
+
+}
