@@ -81,8 +81,8 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasket.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
-        assertEquals(retrievedBasket.get().getData().getItems().size(), 1);
+        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+        assertEquals(1, retrievedBasket.get().getData().getItems().size());
     }
 
     @Test
@@ -102,7 +102,7 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasket.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
+        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
 
     }
 
@@ -128,7 +128,7 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(retrievedBasket.get().getData().getItems().get(0).getItemUri(), ITEM_URI);
+        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
 
     }
 

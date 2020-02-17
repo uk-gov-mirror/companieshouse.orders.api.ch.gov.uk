@@ -13,7 +13,7 @@ public class CheckoutData {
 
     private DeliveryDetails deliveryDetails = new DeliveryDetails();
 
-    private List<Item> items = new ArrayList<Item>();
+    private List<Item> items = new ArrayList<>();
 
     private String kind;
 
