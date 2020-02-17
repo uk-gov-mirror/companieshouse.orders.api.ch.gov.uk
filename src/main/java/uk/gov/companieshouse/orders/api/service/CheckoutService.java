@@ -5,7 +5,6 @@ import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
-import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import java.time.LocalDateTime;
 

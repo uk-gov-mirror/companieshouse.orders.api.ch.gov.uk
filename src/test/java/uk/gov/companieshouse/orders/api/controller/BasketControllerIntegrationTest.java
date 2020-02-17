@@ -170,7 +170,7 @@ class BasketControllerIntegrationTest {
 
         final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(resultCaptor.getResult().getId());
         assertTrue(retrievedCheckout.isPresent());
-        assertEquals(retrievedCheckout.get().getUserId(), ERIC_IDENTITY_VALUE);
+        assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
         final Item item = retrievedCheckout.get().getData().getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
     }
