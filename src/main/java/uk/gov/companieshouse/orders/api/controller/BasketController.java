@@ -89,7 +89,7 @@ public class BasketController {
         trace("Entering checkoutBasket", requestId);
 
         if(json!=null) {
-            return ResponseEntity.status(BAD_REQUEST).body(null);
+            return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "The body must be empty"));
         }
 
         final Basket retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request))
