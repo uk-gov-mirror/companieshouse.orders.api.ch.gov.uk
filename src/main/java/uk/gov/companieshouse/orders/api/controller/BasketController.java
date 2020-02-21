@@ -119,12 +119,11 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(checkout);
     }
 
-    @PatchMapping(path = "${uk.gov.companieshouse.orders.api.basket.payment}/{id}",
-            consumes = "application/merge-patch+json")
+    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
-        trace("ENTERING updateCertificateItem(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
+        trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
         return ResponseEntity.ok("");
     }
 
