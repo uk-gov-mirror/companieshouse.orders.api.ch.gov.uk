@@ -31,6 +31,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
@@ -236,4 +237,13 @@ class BasketControllerIntegrationTest {
         assertEquals(0, checkoutRepository.count());
     }
 
+    @Test
+    @DisplayName("Patch basket payment details returns OK")
+    public void patchBasketPaymentDetailsReturnsOK() throws Exception {
+        mockMvc.perform(patch("/basket/payment/1234")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 }

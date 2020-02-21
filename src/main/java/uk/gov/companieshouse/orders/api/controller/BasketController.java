@@ -2,6 +2,8 @@ package uk.gov.companieshouse.orders.api.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -113,7 +115,12 @@ public class BasketController {
         Checkout checkout = checkoutService.createCheckout(item, EricHeaderHelper.getIdentity(request));
         trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        return ResponseEntity.status(HttpStatus.OK).body(checkout);
+    }
+
+    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
+    public ResponseEntity<?> patchBasketPaymentDetails(final @PathVariable String id) {
+        return ResponseEntity.ok(null);
     }
 
     /**
