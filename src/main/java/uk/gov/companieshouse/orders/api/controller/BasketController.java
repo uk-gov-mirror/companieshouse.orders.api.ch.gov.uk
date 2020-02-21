@@ -2,6 +2,8 @@ package uk.gov.companieshouse.orders.api.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -10,6 +12,7 @@ import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
+import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.model.ApiError;
@@ -113,7 +116,15 @@ public class BasketController {
         Checkout checkout = checkoutService.createCheckout(item, EricHeaderHelper.getIdentity(request));
         trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        return ResponseEntity.status(HttpStatus.OK).body(checkout);
+    }
+
+    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
+    public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
+                                                            final @PathVariable String id,
+                                                            final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
+        trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
+        return ResponseEntity.ok("");
     }
 
     /**

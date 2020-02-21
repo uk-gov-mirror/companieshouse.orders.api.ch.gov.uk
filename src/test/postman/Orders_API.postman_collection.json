@@ -99,6 +99,65 @@
 					],
 					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Update basket payment details",
+					"item": [
+						{
+							"name": "Update basket payment details",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "b7689c29-3b53-4386-a18c-419ccc5f5486",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "X-Request-ID",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"paid_at\": \"2020-02-21T09:29:27.907\",\n    \"payment_reference\": \"1234\",\n    \"status\": \"paid\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/payment/5e4ba64068f0760f8ff5487f",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"payment",
+										"5e4ba64068f0760f8ff5487f"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -109,7 +168,7 @@
 		"oauth2": [
 			{
 				"key": "accessToken",
-				"value": "ypFJGPtGbQrsfJeu4CJnBt5uStpWPlZwW1QnMq6PAf2rWGvOAfTrgjxG0d_1wfeE9FZQY2Q7cH3-2-bal6lRkw",
+				"value": "ik80a25WfxmX_FIolAiyOjUJbamxnNfz8Dfsza5Un5clMIYF1stVLVavr1siijkQQdr3NY_Ze2W7ydqG7bpWiQ",
 				"type": "string"
 			},
 			{
