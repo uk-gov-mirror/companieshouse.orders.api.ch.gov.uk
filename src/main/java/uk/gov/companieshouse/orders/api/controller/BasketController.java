@@ -12,6 +12,7 @@ import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
+import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.model.ApiError;
@@ -118,9 +119,13 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(checkout);
     }
 
-    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
-    public ResponseEntity<?> patchBasketPaymentDetails(final @PathVariable String id) {
-        return ResponseEntity.ok(null);
+    @PatchMapping(path = "${uk.gov.companieshouse.orders.api.basket.payment}/{id}",
+            consumes = "application/merge-patch+json")
+    public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
+                                                            final @PathVariable String id,
+                                                            final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
+        trace("ENTERING updateCertificateItem(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
+        return ResponseEntity.ok("");
     }
 
     /**

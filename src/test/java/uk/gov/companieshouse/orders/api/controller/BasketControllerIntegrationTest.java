@@ -243,7 +243,8 @@ class BasketControllerIntegrationTest {
         mockMvc.perform(patch("/basket/payment/1234")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType("application/merge-patch+json")
+                .content("{}"))
                 .andExpect(status().isOk());
     }
 }
