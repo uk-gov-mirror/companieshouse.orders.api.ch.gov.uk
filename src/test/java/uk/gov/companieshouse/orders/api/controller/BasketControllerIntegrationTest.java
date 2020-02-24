@@ -253,4 +253,30 @@ class BasketControllerIntegrationTest {
                 .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @DisplayName("Patch basket payment details clears basket")
+    public void patchBasketPaymentDetailsClearsBasket() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        basketRepository.save(basket);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus("status");
+
+        mockMvc.perform(patch("/basket/payment/1234")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertEquals(0, retrievedBasket.get().getData().getItems().size());
+    }
 }

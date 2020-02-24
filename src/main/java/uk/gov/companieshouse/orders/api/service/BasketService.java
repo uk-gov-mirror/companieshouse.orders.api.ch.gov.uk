@@ -31,4 +31,8 @@ public class BasketService {
     public Optional<Basket> getBasketById(String id) {
         return repository.findById(id);
     }
+
+    public Basket clearBasket(String id) {
+        return repository.clearBasketDataById(id);
+    }
 }

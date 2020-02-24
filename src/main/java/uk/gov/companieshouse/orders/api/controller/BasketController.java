@@ -122,8 +122,11 @@ public class BasketController {
     @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
+                                                            HttpServletRequest request,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
+        Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
+        trace("Cleared basket: "+basket, requestId);
         return ResponseEntity.ok("");
     }
 
