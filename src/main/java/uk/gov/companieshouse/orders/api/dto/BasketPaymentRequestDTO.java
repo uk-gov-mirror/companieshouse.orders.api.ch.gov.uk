@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.orders.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 
 public class BasketPaymentRequestDTO {
 
@@ -11,7 +12,7 @@ public class BasketPaymentRequestDTO {
     private String paymentReference;
 
     @JsonProperty("status")
-    private String status;
+    private PaymentStatus status;
 
     public String getPaidAt() {
         return paidAt;
@@ -29,11 +30,11 @@ public class BasketPaymentRequestDTO {
         this.paymentReference = paymentReference;
     }
 
-    public String getStatus() {
+    public PaymentStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(PaymentStatus status) {
         this.status = status;
     }
 }
