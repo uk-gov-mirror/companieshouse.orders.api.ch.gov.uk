@@ -2,19 +2,24 @@ package uk.gov.companieshouse.orders.api.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
+import uk.gov.companieshouse.orders.api.mapper.DeliveryDetailsMapper;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.model.BasketData;
 import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
@@ -41,17 +46,20 @@ public class BasketController {
     private static final String LOG_MESSAGE_DATA_KEY = "message";
 
     private final BasketMapper mapper;
+    private final DeliveryDetailsMapper deliveryDetailsMapper;
     private final BasketService basketService;
     private final CheckoutService checkoutService;
     private final CheckoutBasketValidator checkoutBasketValidator;
     private final ApiClientService apiClientService;
 
     public BasketController(final BasketMapper mapper,
+                            final DeliveryDetailsMapper deliveryDetailsMapper,
                             final BasketService basketService,
                             final CheckoutService checkoutService,
                             final CheckoutBasketValidator checkoutBasketValidator,
                             final ApiClientService apiClientService){
         this.mapper = mapper;
+        this.deliveryDetailsMapper = deliveryDetailsMapper;
         this.basketService = basketService;
         this.checkoutService = checkoutService;
         this.checkoutBasketValidator = checkoutBasketValidator;
@@ -80,6 +88,30 @@ public class BasketController {
         final AddToBasketResponseDTO addToBasketResponseDTO = mapper.basketToAddToBasketDTO(returnedBasket);
         trace("EXITING addItemToBasket() with " + addToBasketRequestDTO, requestId);
         return ResponseEntity.status(HttpStatus.OK).body(addToBasketResponseDTO);
+    }
+
+    @PatchMapping("${uk.gov.companieshouse.orders.api.basket}")
+    public ResponseEntity<BasketData> addDeliveryDetailsToBasket(final @Valid @RequestBody AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO,
+                                                                 HttpServletRequest request,
+                                                                 final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
+        trace("ENTERING addDeliveryDetailToBasket(" + addDeliveryDetailsRequestDTO + ")", requestId);
+
+        final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
+
+        DeliveryDetails mappedDeliveryDetails = deliveryDetailsMapper.addToDeliveryDetailsRequestDTOToDeliveryDetails(addDeliveryDetailsRequestDTO);
+
+        Basket returnedBasket;
+        if(retrievedBasket.isPresent()) {
+            retrievedBasket.get().getData().setDeliveryDetails(mappedDeliveryDetails);
+            returnedBasket = basketService.saveBasket(retrievedBasket.get());
+        } else {
+            Basket basket = new Basket();
+            basket.setId(EricHeaderHelper.getIdentity((request)));
+            basket.getData().setDeliveryDetails(mappedDeliveryDetails);
+            returnedBasket = basketService.saveBasket(basket);
+        }
+        trace("EXITING addDeliveryDetailToBasket() with " + addDeliveryDetailsRequestDTO, requestId);
+        return ResponseEntity.status(HttpStatus.OK).body(returnedBasket.getData());
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkout}")
