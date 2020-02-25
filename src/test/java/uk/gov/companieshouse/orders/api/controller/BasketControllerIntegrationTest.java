@@ -278,7 +278,7 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(0, retrievedBasket.get().getData().getItems().size());
+        assertTrue(retrievedBasket.get().getData().getItems().isEmpty());
     }
 
     @Test
@@ -304,6 +304,6 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(1, retrievedBasket.get().getData().getItems().size());
+        assertFalse(retrievedBasket.get().getData().getItems().isEmpty());
     }
 }
