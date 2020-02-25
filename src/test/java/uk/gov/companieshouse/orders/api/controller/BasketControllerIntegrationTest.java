@@ -19,6 +19,7 @@ import uk.gov.companieshouse.orders.api.model.BasketItem;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
@@ -244,7 +245,7 @@ class BasketControllerIntegrationTest {
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus("status");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
         mockMvc.perform(patch("/basket/payment/1234")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -255,8 +256,8 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details clears basket")
-    public void patchBasketPaymentDetailsClearsBasket() throws Exception {
+    @DisplayName("Patch basket payment details clears basket is status is paid")
+    public void patchBasketPaymentDetailsClearsBasketStatusPaid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         BasketItem basketItem = new BasketItem();
@@ -267,7 +268,7 @@ class BasketControllerIntegrationTest {
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus("status");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
         mockMvc.perform(patch("/basket/payment/1234")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -278,5 +279,31 @@ class BasketControllerIntegrationTest {
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         assertEquals(0, retrievedBasket.get().getData().getItems().size());
+    }
+
+    @Test
+    @DisplayName("Patch basket payment details does not clear basket is status is not paid")
+    public void patchBasketPaymentDetailsDoesNotClearBasketStatusNotPaid() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        basketRepository.save(basket);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
+
+        mockMvc.perform(patch("/basket/payment/1234")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertEquals(1, retrievedBasket.get().getData().getItems().size());
     }
 }

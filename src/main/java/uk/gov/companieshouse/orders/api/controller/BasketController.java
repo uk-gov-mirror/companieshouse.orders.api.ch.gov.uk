@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.companieshouse.api.model.latefilingpenalty.Payment;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
@@ -19,6 +20,7 @@ import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
@@ -125,8 +127,10 @@ public class BasketController {
                                                             HttpServletRequest request,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
-        Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
-        trace("Cleared basket: "+basket, requestId);
+        if(basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
+            Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
+            trace("Cleared basket: " + basket, requestId);
+        }
         return ResponseEntity.ok("");
     }
 
