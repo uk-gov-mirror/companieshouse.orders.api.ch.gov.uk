@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.query.Update;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
 
+import java.time.LocalDateTime;
+
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 
@@ -23,6 +25,7 @@ public class BasketRepositoryImpl implements BasketRepositoryCustom {
 
         Update update = new Update();
         update.set("data", new BasketData());
+        update.set("updated_at", LocalDateTime.now());
 
         return mongoTemplate.findAndModify(query, update, Basket.class);
     }

@@ -26,9 +26,12 @@ import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.util.ResultCaptor;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -253,6 +256,7 @@ class BasketControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
                 .andExpect(status().isOk());
+
     }
 
     @Test
@@ -305,5 +309,50 @@ class BasketControllerIntegrationTest {
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         assertFalse(retrievedBasket.get().getData().getItems().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Patch basket payment details updates updated_at field")
+    public void patchBasketPaymentDetailsUpdatesUpdatedAt() throws Exception {
+        final LocalDateTime intervalStart = LocalDateTime.now();
+
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        basket.setCreatedAt(intervalStart);
+        basket.setUpdatedAt(intervalStart);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        basketRepository.save(basket);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        mockMvc.perform(patch("/basket/payment/1234")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        final LocalDateTime intervalEnd = LocalDateTime.now();
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get(), intervalStart, intervalEnd);
+    }
+
+    private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
+                                                                 final LocalDateTime intervalStart,
+                                                                 final LocalDateTime intervalEnd) {
+
+        assertThat(itemUpdated.getUpdatedAt().isAfter(itemUpdated.getCreatedAt()) ||
+                itemUpdated.getUpdatedAt().isEqual(itemUpdated.getCreatedAt()), is(true));
+
+        assertThat(itemUpdated.getUpdatedAt().isAfter(intervalStart) ||
+                itemUpdated.getUpdatedAt().isEqual(intervalStart), is(true));
+        assertThat(itemUpdated.getUpdatedAt().isBefore(intervalEnd) ||
+                itemUpdated.getUpdatedAt().isEqual(intervalEnd), is(true));
     }
 }
