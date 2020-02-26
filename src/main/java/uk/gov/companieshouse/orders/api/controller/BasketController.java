@@ -2,17 +2,13 @@ package uk.gov.companieshouse.orders.api.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.CheckoutDataDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.model.ApiError;
@@ -20,6 +16,8 @@ import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
+import uk.gov.companieshouse.orders.api.mapper.CheckoutDataMapper;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
@@ -28,13 +26,10 @@ import uk.gov.companieshouse.orders.api.validator.CheckoutBasketValidator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 
 @RestController
@@ -44,22 +39,45 @@ public class BasketController {
     private static final String REQUEST_ID_HEADER_NAME = "X-Request-ID";
     private static final String LOG_MESSAGE_DATA_KEY = "message";
 
-    private final BasketMapper mapper;
+    private final BasketMapper basketMapper;
+    private final CheckoutDataMapper checkoutDataMapper;
     private final BasketService basketService;
     private final CheckoutService checkoutService;
     private final CheckoutBasketValidator checkoutBasketValidator;
     private final ApiClientService apiClientService;
 
     public BasketController(final BasketMapper mapper,
+                            final CheckoutDataMapper checkoutDataMapper,
                             final BasketService basketService,
                             final CheckoutService checkoutService,
                             final CheckoutBasketValidator checkoutBasketValidator,
                             final ApiClientService apiClientService){
-        this.mapper = mapper;
+        this.basketMapper = mapper;
+        this.checkoutDataMapper = checkoutDataMapper;
         this.basketService = basketService;
         this.checkoutService = checkoutService;
         this.checkoutBasketValidator = checkoutBasketValidator;
         this.apiClientService = apiClientService;
+    }
+
+    @GetMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{checkoutId}")
+    public ResponseEntity<Object> getPaymentDetails(final @PathVariable String checkoutId,
+                                      final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
+        trace("Getting checkout item details", requestId);
+
+        Optional<Checkout> checkout = this.checkoutService.getCheckoutById(checkoutId);
+        if(checkout.isPresent()) {
+            CheckoutData checkoutData = checkout.get().getData();
+
+            CheckoutDataDTO checkoutDataDTO = checkoutDataMapper.checkoutDataToCheckoutDataDTO(checkoutData);
+            trace("Successfully returned payment details for checkoutId "+checkoutId, requestId);
+            return ResponseEntity.status(OK).body(checkoutDataDTO);
+        }
+        else {
+            final List<String> errors = new ArrayList<>();
+            errors.add("Checkout resource not found");
+            return ResponseEntity.status(NOT_FOUND).body(new ApiError(NOT_FOUND, errors));
+        }
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
@@ -70,7 +88,7 @@ public class BasketController {
 
         final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
-        Basket mappedBasket = mapper.addToBasketRequestDTOToBasket(addToBasketRequestDTO);
+        Basket mappedBasket = basketMapper.addToBasketRequestDTOToBasket(addToBasketRequestDTO);
 
         Basket returnedBasket;
         if(retrievedBasket.isPresent()) {
@@ -81,7 +99,7 @@ public class BasketController {
             returnedBasket = basketService.saveBasket(mappedBasket);
         }
 
-        final AddToBasketResponseDTO addToBasketResponseDTO = mapper.basketToAddToBasketDTO(returnedBasket);
+        final AddToBasketResponseDTO addToBasketResponseDTO = basketMapper.basketToAddToBasketDTO(returnedBasket);
         trace("EXITING addItemToBasket() with " + addToBasketRequestDTO, requestId);
         return ResponseEntity.status(HttpStatus.OK).body(addToBasketResponseDTO);
     }

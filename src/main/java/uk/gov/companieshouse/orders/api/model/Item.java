@@ -2,6 +2,7 @@ package uk.gov.companieshouse.orders.api.model;
 
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.List;
 import java.util.Map;
 
 public class Item {
@@ -34,6 +35,8 @@ public class Item {
     private Boolean isPostalDelivery;
 
     private Integer quantity;
+
+    private List<String> classOfPayment;
 
     private String itemUri;
 
@@ -148,6 +151,10 @@ public class Item {
     public void setLinks(Links links) {
         this.links = links;
     }
+
+    public List<String> getClassOfPayment() { return classOfPayment; }
+
+    public void setClassOfPayment(List<String> classOfPayment) { this.classOfPayment = classOfPayment; }
 
     public String getItemUri() {
         return itemUri;

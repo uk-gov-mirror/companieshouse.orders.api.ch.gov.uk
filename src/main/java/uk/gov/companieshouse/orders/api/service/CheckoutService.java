@@ -1,11 +1,13 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class CheckoutService {
@@ -26,4 +28,7 @@ public class CheckoutService {
         return checkoutRepository.save(checkout);
     }
 
+    public Optional<Checkout> getCheckoutById(String checkoutId) {
+        return checkoutRepository.findById(checkoutId);
+    }
 }
