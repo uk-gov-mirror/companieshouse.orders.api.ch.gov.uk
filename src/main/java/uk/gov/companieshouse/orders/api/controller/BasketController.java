@@ -22,6 +22,7 @@ import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
@@ -161,8 +162,13 @@ public class BasketController {
     @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
+                                                            HttpServletRequest request,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
+        if(basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
+            Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
+            trace("Cleared basket: " + basket, requestId);
+        }
         return ResponseEntity.ok("");
     }
 
