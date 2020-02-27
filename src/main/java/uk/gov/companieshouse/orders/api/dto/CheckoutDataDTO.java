@@ -3,7 +3,6 @@ package uk.gov.companieshouse.orders.api.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.gson.Gson;
-import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.Links;
 
@@ -23,13 +22,16 @@ public class CheckoutDataDTO {
     private String etag;
 
     @JsonProperty("items")
-    private List<Item> items = new ArrayList<>();
+    private List<ItemDTO> items = new ArrayList<>();
 
     @JsonProperty("kind")
     private String kind;
 
     @JsonProperty("links")
     private Links links;
+
+    @JsonProperty("status")
+    private String status;
 
     public String getPaymentReference() {
         return paymentReference;
@@ -55,11 +57,11 @@ public class CheckoutDataDTO {
         this.etag = etag;
     }
 
-    public List<Item> getItems() {
+    public List<ItemDTO> getItems() {
         return items;
     }
 
-    public void setItems(List<Item> items) {
+    public void setItems(List<ItemDTO> items) {
         this.items = items;
     }
 
@@ -77,6 +79,14 @@ public class CheckoutDataDTO {
 
     public void setLinks(Links links) {
         this.links = links;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override
