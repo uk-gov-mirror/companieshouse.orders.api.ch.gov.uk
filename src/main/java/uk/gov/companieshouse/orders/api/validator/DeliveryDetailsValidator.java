@@ -18,24 +18,6 @@ public class DeliveryDetailsValidator {
         if(addDeliveryDetailsRequestDTO.getPostalCode().isEmpty() && addDeliveryDetailsRequestDTO.getRegion().isEmpty()) {
             errors.add("Post code or Region is required");
         }
-        if(addDeliveryDetailsRequestDTO.getAddressLine1().isEmpty()) {
-            errors.add("Address line 1 is a required field");
-        }
-        if(addDeliveryDetailsRequestDTO.getCountry().isEmpty()) {
-            errors.add("Country is a required field");
-        }
-        if(addDeliveryDetailsRequestDTO.getForename().isEmpty()) {
-            errors.add("Forename is a required field");
-        }
-        if(addDeliveryDetailsRequestDTO.getLocality().isEmpty()) {
-            errors.add("Locality is a required field");
-        }
-        if(addDeliveryDetailsRequestDTO.getPremises().isEmpty()) {
-            errors.add("Premises is a required field");
-        }
-        if(addDeliveryDetailsRequestDTO.getSurname().isEmpty()) {
-            errors.add("Surname is a required field");
-        }
         return errors;
     }
 }

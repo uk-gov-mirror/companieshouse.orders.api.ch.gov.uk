@@ -3,26 +3,26 @@ package uk.gov.companieshouse.orders.api.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
 public class DeliveryDetailsDTO {
 
-    @NotNull
+    @NotBlank
     @JsonProperty("address_line_1")
     private String addressLine1;
 
     @JsonProperty("address_line_2")
     private String addressLine2;
 
-    @NotNull
+    @NotBlank
     @JsonProperty("country")
     private String country;
 
-    @NotNull
+    @NotBlank
     @JsonProperty("forename")
     private String forename;
 
-    @NotNull
+    @NotBlank
     @JsonProperty("locality")
     private String locality;
 
@@ -32,14 +32,14 @@ public class DeliveryDetailsDTO {
     @JsonProperty("postal_code")
     private String postalCode;
 
-    @NotNull
+    @NotBlank
     @JsonProperty("premises")
     private String premises;
 
     @JsonProperty("region")
     private String region;
 
-    @NotNull
+    @NotBlank
     @JsonProperty("surname")
     private String surname;
 

@@ -300,6 +300,43 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Add delivery details to the basket, if the basket does not exist")
+    public void addDeliveryDetailsToBasketIfTheBasketDoesNotExist() throws Exception {
+
+        AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
+        addDeliveryDetailsRequestDTO.setAddressLine1(ADDRESS_LINE_1);
+        addDeliveryDetailsRequestDTO.setAddressLine2(ADDRESS_LINE_2);
+        addDeliveryDetailsRequestDTO.setCountry(COUNTRY);
+        addDeliveryDetailsRequestDTO.setForename(FORENAME);
+        addDeliveryDetailsRequestDTO.setLocality(LOCALITY);
+        addDeliveryDetailsRequestDTO.setPoBox(PO_BOX);
+        addDeliveryDetailsRequestDTO.setPostalCode(POSTAL_CODE);
+        addDeliveryDetailsRequestDTO.setPremises(PREMISES);
+        addDeliveryDetailsRequestDTO.setRegion(REGION);
+        addDeliveryDetailsRequestDTO.setSurname(SURNAME);
+
+        mockMvc.perform(patch("/basket")
+            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+            .andExpect(status().isOk());
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
+        assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
+        assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
+        assertEquals(COUNTRY, getDeliveryDetails.getCountry());
+        assertEquals(FORENAME, getDeliveryDetails.getForename());
+        assertEquals(LOCALITY, getDeliveryDetails.getLocality());
+        assertEquals(PO_BOX, getDeliveryDetails.getPoBox());
+        assertEquals(POSTAL_CODE, getDeliveryDetails.getPostalCode());
+        assertEquals(PREMISES, getDeliveryDetails.getPremises());
+        assertEquals(REGION, getDeliveryDetails.getRegion());
+        assertEquals(SURNAME, getDeliveryDetails.getSurname());
+    }
+
+    @Test
     @DisplayName("Add delivery details fails due to failed validation")
     public void addDeliveryDetailsFailsDueToFailedValidation() throws Exception {
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();

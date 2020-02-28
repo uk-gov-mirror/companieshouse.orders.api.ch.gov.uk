@@ -158,6 +158,148 @@
 					],
 					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Delivery details to basket",
+					"item": [
+						{
+							"name": "Add delivery details to basket",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "X-Request-ID",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"postal code\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }"
+								},
+								"url": {
+									"raw": "{{base_url}}/basket",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket"
+									]
+								},
+								"description": "Adds delivery details to basket"
+							},
+							"response": []
+						},
+						{
+							"name": "Missing Post code and region",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "X-Request-ID",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"\",\n        \"premises\": \"premises\",\n        \"region\": \"\",\n        \"surname\": \"surname\"\n    }"
+								},
+								"url": {
+									"raw": "{{base_url}}/basket",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket"
+									]
+								},
+								"description": "Adds delivery details to basket"
+							},
+							"response": []
+						},
+						{
+							"name": "Missing Post code",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "X-Request-ID",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }"
+								},
+								"url": {
+									"raw": "{{base_url}}/basket",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket"
+									]
+								},
+								"description": "Adds delivery details to basket"
+							},
+							"response": []
+						},
+						{
+							"name": "Missing required address line 1",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "X-Request-ID",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n        \"address_line_1\": \"\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"postal code\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }"
+								},
+								"url": {
+									"raw": "{{base_url}}/basket",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket"
+									]
+								},
+								"description": "Adds delivery details to basket"
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
 				}
 			],
 			"protocolProfileBehavior": {}
