@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.orders.api.service;
 
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Item;

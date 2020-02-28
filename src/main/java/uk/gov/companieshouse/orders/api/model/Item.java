@@ -36,8 +36,6 @@ public class Item {
 
     private Integer quantity;
 
-    private List<String> classOfPayment;
-
     private String itemUri;
 
     public String getId() {
@@ -151,10 +149,6 @@ public class Item {
     public void setLinks(Links links) {
         this.links = links;
     }
-
-    public List<String> getClassOfPayment() { return classOfPayment; }
-
-    public void setClassOfPayment(List<String> classOfPayment) { this.classOfPayment = classOfPayment; }
 
     public String getItemUri() {
         return itemUri;
