@@ -13,13 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
-import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
-import uk.gov.companieshouse.orders.api.model.Certificate;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.Item;
-import uk.gov.companieshouse.orders.api.model.PaymentStatus;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
@@ -48,6 +42,7 @@ class BasketControllerIntegrationTest {
     private static final String ITEM_URI = "/orderable/certificates/12345678";
     private static final String ITEM_URI_OLD = "/orderable/certificates/11111111";
     private static final String COMPANY_NUMBER = "00006400";
+    private static final String CHECKOUT_ID = "1234";
 
     @Autowired
     private MockMvc mockMvc;
@@ -245,12 +240,16 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Patch basket payment details returns OK")
     public void patchBasketPaymentDetailsReturnsOK() throws Exception {
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/1234")
+        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -268,12 +267,16 @@ class BasketControllerIntegrationTest {
         basket.getData().getItems().add(basketItem);
         basketRepository.save(basket);
 
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/1234")
+        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -299,7 +302,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
-        mockMvc.perform(patch("/basket/payment/1234")
+        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -324,12 +327,16 @@ class BasketControllerIntegrationTest {
         basket.getData().getItems().add(basketItem);
         basketRepository.save(basket);
 
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/1234")
+        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
