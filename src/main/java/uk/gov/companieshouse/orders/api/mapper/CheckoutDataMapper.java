@@ -8,7 +8,6 @@ import uk.gov.companieshouse.orders.api.dto.ItemDTO;
 import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
-import uk.gov.companieshouse.orders.api.model.Links;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +40,6 @@ public interface CheckoutDataMapper {
         itemDTO.setAmount(totalCost);
 
         List<String> availablePaymentMethods = new ArrayList<>();
-        availablePaymentMethods.add(AVAILABLE_PAYMENT_METHOD_ACCOUNT);
         availablePaymentMethods.add(AVAILABLE_PAYMENT_METHOD_CREDIT_CARD);
         itemDTO.setAvailablePaymentMethods(availablePaymentMethods);
 
@@ -49,6 +47,6 @@ public interface CheckoutDataMapper {
         itemDTO.setResourceKind(ITEM_RESOURCE_TYPE);
 
         checkoutDataDTO.setKind(CHECKOUT_RESOURCE_TYPE);
-        checkoutDataDTO.setStatus("pending");
+        checkoutDataDTO.setStatus(PAYMENT_STATUS);
     }
 }

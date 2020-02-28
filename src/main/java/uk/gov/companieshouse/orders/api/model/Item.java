@@ -37,8 +37,6 @@ public class Item {
 
     private Integer quantity;
 
-    private List<String> classOfPayment;
-
     private String itemUri;
 
     private LocalDateTime satisfiedAt;
@@ -160,10 +158,6 @@ public class Item {
     public void setLinks(ItemLinks links) {
         this.links = links;
     }
-
-    public List<String> getClassOfPayment() { return classOfPayment; }
-
-    public void setClassOfPayment(List<String> classOfPayment) { this.classOfPayment = classOfPayment; }
 
     public String getItemUri() {
         return itemUri;
