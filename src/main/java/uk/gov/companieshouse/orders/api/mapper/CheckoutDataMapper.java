@@ -8,6 +8,7 @@ import uk.gov.companieshouse.orders.api.dto.ItemDTO;
 import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,6 @@ public interface CheckoutDataMapper {
     static final String AVAILABLE_PAYMENT_METHOD_ACCOUNT = "account";
     static final String ITEM_RESOURCE_TYPE = "cost#cost";
     static final String CHECKOUT_RESOURCE_TYPE = "payment-details#payment-details";
-    static final String PAYMENT_STATUS = "pending";
     static final String LINK_TYPE_SELF_URL_PREFIX = "/basket/payment/";
 
     CheckoutData checkoutDataDTOToCheckoutData(CheckoutDataDTO checkoutDataDTO);
@@ -47,6 +47,6 @@ public interface CheckoutDataMapper {
         itemDTO.setResourceKind(ITEM_RESOURCE_TYPE);
 
         checkoutDataDTO.setKind(CHECKOUT_RESOURCE_TYPE);
-        checkoutDataDTO.setStatus(PAYMENT_STATUS);
+        checkoutDataDTO.setStatus(PaymentStatus.PENDING.toString());
     }
 }
