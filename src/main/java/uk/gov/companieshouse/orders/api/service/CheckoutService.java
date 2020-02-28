@@ -6,6 +6,7 @@ import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class CheckoutService {
@@ -24,6 +25,10 @@ public class CheckoutService {
         checkout.setUpdatedAt(now);
         checkout.getData().getItems().add(item);
         return checkoutRepository.save(checkout);
+    }
+
+    public Optional<Checkout> getCheckoutById(String id) {
+        return checkoutRepository.findById(id);
     }
 
 }

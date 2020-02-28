@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.controller;
 
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,14 +16,11 @@ import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
-import uk.gov.companieshouse.orders.api.model.ApiError;
-import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.Item;
-import uk.gov.companieshouse.orders.api.model.PaymentStatus;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
+import uk.gov.companieshouse.orders.api.service.OrderService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 import uk.gov.companieshouse.orders.api.validator.CheckoutBasketValidator;
 
@@ -49,17 +47,20 @@ public class BasketController {
     private final CheckoutService checkoutService;
     private final CheckoutBasketValidator checkoutBasketValidator;
     private final ApiClientService apiClientService;
+    private final OrderService orderService;
 
     public BasketController(final BasketMapper mapper,
                             final BasketService basketService,
                             final CheckoutService checkoutService,
                             final CheckoutBasketValidator checkoutBasketValidator,
-                            final ApiClientService apiClientService){
+                            final ApiClientService apiClientService,
+                            final OrderService orderService){
         this.mapper = mapper;
         this.basketService = basketService;
         this.checkoutService = checkoutService;
         this.checkoutBasketValidator = checkoutBasketValidator;
         this.apiClientService = apiClientService;
+        this.orderService = orderService;
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
@@ -127,10 +128,26 @@ public class BasketController {
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
         if(basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
-            Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
-            trace("Cleared basket: " + basket, requestId);
+            processSuccessfulPayment(request, requestId, id);
         }
         return ResponseEntity.ok("");
+    }
+
+    /**
+     * Performs the actions required to process a successful payment.
+     * @param request the request
+     * @param requestId the request ID
+     * @param checkoutId the checkout ID
+     */
+    private void processSuccessfulPayment(final HttpServletRequest request,
+                                          final String requestId,
+                                          final String checkoutId) {
+        final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
+                .orElseThrow(ResourceNotFoundException::new);
+        final Order order = orderService.createOrder(checkout);
+        trace("Created order: " + order, requestId);
+        final Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
+        trace("Cleared basket: " + basket, requestId);
     }
 
     /**
