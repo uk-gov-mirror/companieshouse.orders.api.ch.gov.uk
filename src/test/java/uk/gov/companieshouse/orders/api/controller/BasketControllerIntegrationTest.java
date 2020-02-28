@@ -14,16 +14,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
-import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
-import uk.gov.companieshouse.orders.api.model.Certificate;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
-import uk.gov.companieshouse.orders.api.model.Item;
-import uk.gov.companieshouse.orders.api.model.PaymentStatus;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
+import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.util.ResultCaptor;
@@ -32,21 +26,16 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -79,6 +68,9 @@ class BasketControllerIntegrationTest {
 
     @Autowired
     private CheckoutRepository checkoutRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @MockBean
     private ApiClientService apiClientService;
@@ -466,6 +458,54 @@ class BasketControllerIntegrationTest {
         verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get(), intervalStart, intervalEnd);
     }
 
+    @Test
+    @DisplayName("PAID patch basket payment request creates order")
+    public void paidPatchBasketPaymentDetailsCreatesOrder() throws Exception {
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        final LocalDateTime intervalStart = LocalDateTime.now();
+
+        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        final LocalDateTime intervalEnd = LocalDateTime.now();
+
+        assertOrderCreatedCorrectly(CHECKOUT_ID, intervalStart, intervalEnd);
+    }
+
+    @Test
+    @DisplayName("FAILED patch basket payment request does not create an order")
+    public void failedPatchBasketPaymentDetailsCreatesNoOrder() throws Exception {
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
+
+        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        assertOrderNotCreated(CHECKOUT_ID);
+    }
+
     private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
                                                                  final LocalDateTime intervalStart,
                                                                  final LocalDateTime intervalEnd) {
@@ -478,4 +518,53 @@ class BasketControllerIntegrationTest {
         assertThat(itemUpdated.getUpdatedAt().isBefore(intervalEnd) ||
                 itemUpdated.getUpdatedAt().isEqual(intervalEnd), is(true));
     }
+
+    /**
+     * Verifies that the order created at and updated at timestamps are within the expected interval
+     * for item creation.
+     * @param orderCreated the order created
+     * @param intervalStart roughly the start of the test
+     * @param intervalEnd roughly the end of the test
+     */
+    private void verifyCreationTimestampsWithinExecutionInterval(final Order orderCreated,
+                                                                 final LocalDateTime intervalStart,
+                                                                 final LocalDateTime intervalEnd) {
+        assertThat(orderCreated.getCreatedAt().isAfter(intervalStart) ||
+                orderCreated.getCreatedAt().isEqual(intervalStart), is(true));
+        assertThat(orderCreated.getCreatedAt().isBefore(intervalEnd) ||
+                orderCreated.getCreatedAt().isEqual(intervalEnd), is(true));
+        assertThat(orderCreated.getUpdatedAt().isAfter(intervalStart) ||
+                orderCreated.getUpdatedAt().isEqual(intervalStart), is(true));
+        assertThat(orderCreated.getUpdatedAt().isBefore(intervalEnd) ||
+                orderCreated.getUpdatedAt().isEqual(intervalEnd), is(true));
+    }
+
+    /**
+     * TODO start here then move to non-integration test?
+     * Verifies that the order assumed to have been created by a PAID patch payment details request can be retrieved
+     * from the database using its expected ID value.
+     * @param expectedOrderId the expected ID of the newly created order
+     * @param intervalStart roughly the start of the test
+     * @param intervalEnd roughly the end of the test
+     */
+    private void assertOrderCreatedCorrectly(final String expectedOrderId,
+                                             final LocalDateTime intervalStart,
+                                             final LocalDateTime intervalEnd) {
+        final Optional<Order> retrievedOrder = orderRepository.findById(expectedOrderId);
+        assertThat(retrievedOrder.isPresent(), is(true));
+        assertThat(retrievedOrder.get().getId(), is(expectedOrderId));
+
+        verifyCreationTimestampsWithinExecutionInterval(retrievedOrder.get(), intervalStart, intervalEnd);
+    }
+
+    /**
+     * Verifies that the item that could have been created by the create item POST request cannot in fact be retrieved
+     * from the database.
+     * @param expectedOrderId the expected ID of the newly created order
+     */
+    private void assertOrderNotCreated(final String expectedOrderId) {
+        final Optional<Order> retrievedOrder = orderRepository.findById(expectedOrderId);
+        assertThat(retrievedOrder.isPresent(), is(false));
+    }
+
 }
