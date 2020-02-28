@@ -11,9 +11,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.model.BasketData;
+import uk.gov.companieshouse.orders.api.model.BasketItem;
+import uk.gov.companieshouse.orders.api.model.Certificate;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
+import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
@@ -24,16 +32,21 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -41,7 +54,18 @@ class BasketControllerIntegrationTest {
 
     private static final String ITEM_URI = "/orderable/certificates/12345678";
     private static final String ITEM_URI_OLD = "/orderable/certificates/11111111";
+
     private static final String COMPANY_NUMBER = "00006400";
+    private static final String ADDRESS_LINE_1 = "address line 1";
+    private static final String ADDRESS_LINE_2 = "address line 2";
+    private static final String COUNTRY = "country";
+    private static final String FORENAME = "forename";
+    private static final String LOCALITY = "locality";
+    private static final String PO_BOX = "po box";
+    private static final String POSTAL_CODE = "postal code";
+    private static final String PREMISES = "premises";
+    private static final String REGION = "region";
+    private static final String SURNAME = "surname";
     private static final String CHECKOUT_ID = "1234";
 
     @Autowired
@@ -235,6 +259,99 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         assertEquals(0, checkoutRepository.count());
+    }
+
+    @Test
+    @DisplayName("Add delivery details to the basket, if the basket exists")
+    public void addDeliveryDetailsToBasketIfTheBasketExists() throws Exception {
+        Basket basket = new Basket();
+        basketRepository.save(basket);
+
+        AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
+        addDeliveryDetailsRequestDTO.setAddressLine1(ADDRESS_LINE_1);
+        addDeliveryDetailsRequestDTO.setAddressLine2(ADDRESS_LINE_2);
+        addDeliveryDetailsRequestDTO.setCountry(COUNTRY);
+        addDeliveryDetailsRequestDTO.setForename(FORENAME);
+        addDeliveryDetailsRequestDTO.setLocality(LOCALITY);
+        addDeliveryDetailsRequestDTO.setPoBox(PO_BOX);
+        addDeliveryDetailsRequestDTO.setPostalCode(POSTAL_CODE);
+        addDeliveryDetailsRequestDTO.setPremises(PREMISES);
+        addDeliveryDetailsRequestDTO.setRegion(REGION);
+        addDeliveryDetailsRequestDTO.setSurname(SURNAME);
+
+        mockMvc.perform(patch("/basket")
+            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+            .andExpect(status().isOk());
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
+        assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
+        assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
+        assertEquals(COUNTRY, getDeliveryDetails.getCountry());
+        assertEquals(FORENAME, getDeliveryDetails.getForename());
+        assertEquals(LOCALITY, getDeliveryDetails.getLocality());
+        assertEquals(PO_BOX, getDeliveryDetails.getPoBox());
+        assertEquals(POSTAL_CODE, getDeliveryDetails.getPostalCode());
+        assertEquals(PREMISES, getDeliveryDetails.getPremises());
+        assertEquals(REGION, getDeliveryDetails.getRegion());
+        assertEquals(SURNAME, getDeliveryDetails.getSurname());
+    }
+
+    @Test
+    @DisplayName("Add delivery details to the basket, if the basket does not exist")
+    public void addDeliveryDetailsToBasketIfTheBasketDoesNotExist() throws Exception {
+
+        AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
+        addDeliveryDetailsRequestDTO.setAddressLine1(ADDRESS_LINE_1);
+        addDeliveryDetailsRequestDTO.setAddressLine2(ADDRESS_LINE_2);
+        addDeliveryDetailsRequestDTO.setCountry(COUNTRY);
+        addDeliveryDetailsRequestDTO.setForename(FORENAME);
+        addDeliveryDetailsRequestDTO.setLocality(LOCALITY);
+        addDeliveryDetailsRequestDTO.setPoBox(PO_BOX);
+        addDeliveryDetailsRequestDTO.setPostalCode(POSTAL_CODE);
+        addDeliveryDetailsRequestDTO.setPremises(PREMISES);
+        addDeliveryDetailsRequestDTO.setRegion(REGION);
+        addDeliveryDetailsRequestDTO.setSurname(SURNAME);
+
+        mockMvc.perform(patch("/basket")
+            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+            .andExpect(status().isOk());
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
+        assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
+        assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
+        assertEquals(COUNTRY, getDeliveryDetails.getCountry());
+        assertEquals(FORENAME, getDeliveryDetails.getForename());
+        assertEquals(LOCALITY, getDeliveryDetails.getLocality());
+        assertEquals(PO_BOX, getDeliveryDetails.getPoBox());
+        assertEquals(POSTAL_CODE, getDeliveryDetails.getPostalCode());
+        assertEquals(PREMISES, getDeliveryDetails.getPremises());
+        assertEquals(REGION, getDeliveryDetails.getRegion());
+        assertEquals(SURNAME, getDeliveryDetails.getSurname());
+    }
+
+    @Test
+    @DisplayName("Add delivery details fails due to failed validation")
+    public void addDeliveryDetailsFailsDueToFailedValidation() throws Exception {
+        AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
+        addDeliveryDetailsRequestDTO.setAddressLine1("");
+        addDeliveryDetailsRequestDTO.setAddressLine2(ADDRESS_LINE_2);
+        addDeliveryDetailsRequestDTO.setCountry("");
+        addDeliveryDetailsRequestDTO.setForename(FORENAME);
+
+        mockMvc.perform(patch("/basket")
+            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
