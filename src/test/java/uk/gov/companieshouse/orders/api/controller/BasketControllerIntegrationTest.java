@@ -530,7 +530,6 @@ class BasketControllerIntegrationTest {
         assertOrderNotCreated(UNKNOWN_CHECKOUT_ID);
     }
 
-
     private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
                                                                  final LocalDateTime intervalStart,
                                                                  final LocalDateTime intervalEnd) {
