@@ -23,6 +23,10 @@ public class CheckoutData {
 
     private PaymentStatus status;
 
+    private String reference;
+
+    private ActionedBy checkedOutBy;
+
     public String getPaymentReference() {
         return paymentReference;
     }
@@ -93,5 +97,21 @@ public class CheckoutData {
 
     public void setStatus(PaymentStatus status) {
         this.status = status;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
+
+    public ActionedBy getCheckedOutBy() {
+        return checkedOutBy;
+    }
+
+    public void setCheckedOutBy(ActionedBy checkedOutBy) {
+        this.checkedOutBy = checkedOutBy;
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.companieshouse.orders.api.model.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
@@ -41,6 +42,7 @@ public class CheckoutToOrderMapperTest {
     private static final String KIND = "certificate";
     private static final boolean POSTAL_DELIVERY = true;
     private static final String CUSTOMER_REFERENCE = "Certificate ordered by NJ.";
+    private static final String ORDER_REFERENCE = "Order reference";
     private static final String COMPANY_NAME = "Phillips & Daughters";
     private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
     private static final String CONTACT_NUMBER = "+44 1234 123456";
@@ -65,6 +67,7 @@ public class CheckoutToOrderMapperTest {
     private static final RegisteredOfficeAddressDetails REGISTERED_OFFICE_ADDRESS_DETAILS;
     private static final DeliveryDetails DELIVERY_DETAILS;
     private static final Links LINKS;
+    private static final ActionedBy ACTIONED_BY;
 
     static {
         DIRECTOR_OR_SECRETARY_DETAILS = new DirectorOrSecretaryDetails();
@@ -107,6 +110,10 @@ public class CheckoutToOrderMapperTest {
 
         LINKS = new Links();
         LINKS.setSelf("Self");
+
+        ACTIONED_BY = new ActionedBy();
+        ACTIONED_BY.setId("1234");
+        ACTIONED_BY.setEmail("1234@nowhere.com");
     }
 
     @Configuration
@@ -118,6 +125,7 @@ public class CheckoutToOrderMapperTest {
 
     @Test
     void testCheckoutToOrderMapping() {
+        final LocalDateTime time = LocalDateTime.now();
         final Checkout checkout = new Checkout();
         checkout.setId(ID);
         checkout.setUserId(USER_ID);
@@ -129,6 +137,9 @@ public class CheckoutToOrderMapperTest {
         data.setPaymentReference("1234");
         data.setTotalBasketCost("100");
         data.setStatus(PAID);
+        data.setReference(ORDER_REFERENCE);
+        data.setPaidAt(time);
+        data.setCheckedOutBy(ACTIONED_BY);
         final Item item = new Item();
         item.setCompanyName(COMPANY_NAME);
         item.setCompanyNumber(COMPANY_NUMBER);
@@ -161,6 +172,9 @@ public class CheckoutToOrderMapperTest {
         assertThat(order.getData().getPaymentReference(), is(checkout.getData().getPaymentReference()));
         assertThat(order.getData().getTotalBasketCost(), is(checkout.getData().getTotalBasketCost()));
         assertThat(order.getData().getStatus(), is(checkout.getData().getStatus()));
+        assertThat(order.getData().getReference(), is(checkout.getData().getReference()));
+        assertThat(order.getData().getOrderedAt(), is(checkout.getData().getPaidAt()));
+        assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));
     }
 
 }

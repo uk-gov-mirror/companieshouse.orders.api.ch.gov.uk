@@ -540,7 +540,6 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * TODO start here then move to non-integration test?
      * Verifies that the order assumed to have been created by a PAID patch payment details request can be retrieved
      * from the database using its expected ID value.
      * @param expectedOrderId the expected ID of the newly created order
