@@ -21,6 +21,8 @@ public class CheckoutData {
 
     private String totalBasketCost;
 
+    private PaymentStatus status;
+
     public String getPaymentReference() {
         return paymentReference;
     }
@@ -83,5 +85,13 @@ public class CheckoutData {
 
     public void setTotalBasketCost(String totalBasketCost) {
         this.totalBasketCost = totalBasketCost;
+    }
+
+    public PaymentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
     }
 }

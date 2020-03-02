@@ -2,14 +2,11 @@ package uk.gov.companieshouse.orders.api.model;
 
 import com.google.gson.Gson;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class OrderData {
     private String paymentReference;
-
-    private LocalDateTime paidAt;
 
     private String etag;
 
@@ -23,20 +20,14 @@ public class OrderData {
 
     private String totalBasketCost;
 
+    private PaymentStatus status;
+
     public String getPaymentReference() {
         return paymentReference;
     }
 
     public void setPaymentReference(String paymentReference) {
         this.paymentReference = paymentReference;
-    }
-
-    public LocalDateTime getPaidAt() {
-        return paidAt;
-    }
-
-    public void setPaidAt(LocalDateTime paidAt) {
-        this.paidAt = paidAt;
     }
 
     public String getEtag() {
@@ -89,4 +80,12 @@ public class OrderData {
 
     @Override
     public String toString() { return new Gson().toJson(this); }
+
+    public PaymentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
+    }
 }
