@@ -56,6 +56,7 @@ class BasketControllerIntegrationTest {
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
     private static final String CHECKOUT_ID = "1234";
+    private static final String UNKNOWN_CHECKOUT_ID = "5555";
 
     @Autowired
     private MockMvc mockMvc;
@@ -505,6 +506,30 @@ class BasketControllerIntegrationTest {
 
         assertOrderNotCreated(CHECKOUT_ID);
     }
+
+    @Test
+    @DisplayName("PAID patch basket payment request does not create order for unknown checkout ID")
+    public void paidPatchBasketPaymentDetailsDoesNotCreateUnknownOrder() throws Exception {
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        mockMvc.perform(patch("/basket/payment/" + UNKNOWN_CHECKOUT_ID)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isNotFound());
+
+        assertOrderNotCreated(CHECKOUT_ID);
+        assertOrderNotCreated(UNKNOWN_CHECKOUT_ID);
+    }
+
 
     private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
                                                                  final LocalDateTime intervalStart,
