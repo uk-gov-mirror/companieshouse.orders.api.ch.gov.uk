@@ -6,6 +6,8 @@ import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 
+import java.time.LocalDateTime;
+
 @Service
 public class OrderService {
 
@@ -24,8 +26,18 @@ public class OrderService {
      */
     public Order createOrder(final Checkout checkout) {
         final Order mappedOrder = mapper.checkoutToOrder(checkout);
-        // TODO timestamps
+        setCreationDateTimes(mappedOrder);
         return repository.save(mappedOrder);
+    }
+
+    /**
+     * Sets the created at and updated at date time 'timestamps' to now.
+     * @param order the order to be 'timestamped'
+     */
+    void setCreationDateTimes(final Order order) {
+        final LocalDateTime now = LocalDateTime.now();
+        order.setCreatedAt(now);
+        order.setUpdatedAt(now);
     }
 
 }
