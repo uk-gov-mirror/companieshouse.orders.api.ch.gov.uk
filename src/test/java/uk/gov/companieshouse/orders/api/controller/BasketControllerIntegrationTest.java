@@ -83,6 +83,7 @@ class BasketControllerIntegrationTest {
     void tearDown() {
         basketRepository.findById(ERIC_IDENTITY_VALUE).ifPresent(basketRepository::delete);
         checkoutRepository.deleteAll();
+        orderRepository.deleteAll();
     }
 
     @Test
