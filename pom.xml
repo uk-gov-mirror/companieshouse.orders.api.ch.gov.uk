@@ -96,11 +96,6 @@
 			<artifactId>json</artifactId>
 			<version>${json-org.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>${commons-io.version}</version>
-		</dependency>
 
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
@@ -138,6 +133,11 @@
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>api-sdk-manager-java-library</artifactId>
 			<version>${api-sdk-manager-java-library.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.exception.ForbiddenException;
+import uk.gov.companieshouse.orders.api.kafka.OrdersAvroSerializer;
+import uk.gov.companieshouse.orders.api.kafka.OrdersMessageProducer;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
@@ -22,11 +24,22 @@ public class OrderService {
     private final CheckoutToOrderMapper mapper;
     private final OrderRepository repository;
 
-    public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository) {
+    private OrdersAvroSerializer ordersAvroSerializer;
+    private OrdersMessageProducer ordersMessageProducer;
+    private static final String ORDER_RECEIVED_TOPIC = "order-received";
+
+    public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository,
+                        OrdersAvroSerializer serializer, OrdersMessageProducer producer) {
         this.mapper = mapper;
         this.repository = repository;
+        this.ordersAvroSerializer = serializer;
+        this.ordersMessageProducer = producer;
     }
 
+    public void sendOrderReceivedMessage(String orderId) throws Exception{
+        byte[] message = ordersAvroSerializer.serialize(orderId);
+        ordersMessageProducer.sendMessage(message, ORDER_RECEIVED_TOPIC);
+    }
     /**
      * Used to create an order from a checkout object once payment has been successful.
      * @param checkout the user's checkout object
@@ -57,5 +70,4 @@ public class OrderService {
         order.setCreatedAt(now);
         order.setUpdatedAt(now);
     }
-
 }

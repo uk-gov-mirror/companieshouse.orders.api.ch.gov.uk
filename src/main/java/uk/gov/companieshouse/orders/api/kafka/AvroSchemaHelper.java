@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.orders.api.avro;
+package uk.gov.companieshouse.orders.api.kafka;
 
 import org.apache.avro.Schema;
 import org.json.JSONObject;
