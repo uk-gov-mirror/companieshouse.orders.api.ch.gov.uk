@@ -555,7 +555,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
 
         assertOrderCreatedCorrectly(CHECKOUT_ID, preexistingOrderCreationTime, preexistingOrderCreationTime);
     }

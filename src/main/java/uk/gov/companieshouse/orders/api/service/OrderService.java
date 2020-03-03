@@ -3,6 +3,7 @@ package uk.gov.companieshouse.orders.api.service;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.api.exception.ForbiddenException;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
@@ -36,11 +37,13 @@ public class OrderService {
         setCreationDateTimes(mappedOrder);
 
         final Optional<Order> order = repository.findById(mappedOrder.getId());
-        if (order.isPresent()) {
-            final Order preexistingOrder = order.get();
-            LOGGER.error("Order ID " + preexistingOrder.getId() + " already exists. Will not update.");
-            return preexistingOrder;
-        }
+        order.ifPresent(
+            o -> {
+                   final String message = "Order ID " + o.getId() + " already exists. Will not update.";
+                   LOGGER.error(message);
+                   throw new ForbiddenException(message);
+            }
+        );
 
         return repository.save(mappedOrder);
     }
