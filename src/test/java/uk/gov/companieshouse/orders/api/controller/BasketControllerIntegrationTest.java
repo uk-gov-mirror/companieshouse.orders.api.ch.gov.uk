@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
@@ -27,14 +28,17 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
@@ -346,16 +350,25 @@ class BasketControllerIntegrationTest {
         DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
         deliveryDetailsDTO.setAddressLine1("");
         deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
-        deliveryDetailsDTO.setCountry("");
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setSurname(SURNAME);
         deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
+        final ApiError expectedValidationError =
+                new ApiError(BAD_REQUEST,
+                        asList("delivery_details.address_line_1: must not be blank"));
+
         mockMvc.perform(patch("/basket")
-            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
-            .andExpect(status().isBadRequest());
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
+                .andDo(MockMvcResultHandlers.print());
     }
 
     @Test
