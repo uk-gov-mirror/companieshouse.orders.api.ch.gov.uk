@@ -6,6 +6,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 public class AddDeliveryDetailsRequestDTO {
+
     @Valid
     @NotNull
     @JsonProperty("delivery_details")

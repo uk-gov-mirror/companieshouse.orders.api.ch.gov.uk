@@ -9,9 +9,11 @@ import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 
 @Mapper(componentModel = "spring")
 public interface DeliveryDetailsMapper {
+
     default DeliveryDetails addToDeliveryDetailsRequestDTOToDeliveryDetails(AddDeliveryDetailsRequestDTO source) {
         return addToDeliveryDetailsRequestDTOToDeliveryDetails(source.getDeliveryDetails());
     }
+
     DeliveryDetails addToDeliveryDetailsRequestDTOToDeliveryDetails(DeliveryDetailsDTO addDeliveryDetailsRequestDTO);
 
     AddDeliveryDetailsResponseDTO deliveryDetailsToAddToDeliveryDetailsDTO(DeliveryDetails deliveryDetails);
