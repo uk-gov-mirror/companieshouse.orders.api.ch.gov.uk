@@ -1,15 +1,22 @@
 package uk.gov.companieshouse.orders.api.service;
 
 import org.springframework.stereotype.Service;
+import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 
 @Service
 public class OrderService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
 
     private final CheckoutToOrderMapper mapper;
     private final OrderRepository repository;
@@ -27,6 +34,14 @@ public class OrderService {
     public Order createOrder(final Checkout checkout) {
         final Order mappedOrder = mapper.checkoutToOrder(checkout);
         setCreationDateTimes(mappedOrder);
+
+        final Optional<Order> order = repository.findById(mappedOrder.getId());
+        if (order.isPresent()) {
+            final Order preexistingOrder = order.get();
+            LOGGER.error("Order ID " + preexistingOrder.getId() + " already exists. Will not update.");
+            return preexistingOrder;
+        }
+
         return repository.save(mappedOrder);
     }
 

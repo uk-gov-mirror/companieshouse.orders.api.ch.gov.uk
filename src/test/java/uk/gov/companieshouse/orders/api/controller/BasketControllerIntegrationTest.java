@@ -531,6 +531,35 @@ class BasketControllerIntegrationTest {
         assertOrderNotCreated(UNKNOWN_CHECKOUT_ID);
     }
 
+    @Test
+    @DisplayName("Duplicate PAID patch basket payment request does NOT recreate order")
+    public void duplicatePaidPatchBasketPaymentDetailsDoesNotRecreateOrder() throws Exception {
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
+        final LocalDateTime preexistingOrderCreationTime = LocalDateTime.now();
+        final Order preexistingOrder = new Order();
+        preexistingOrder.setId(CHECKOUT_ID);
+        preexistingOrder.setCreatedAt(preexistingOrderCreationTime);
+        preexistingOrder.setUpdatedAt(preexistingOrderCreationTime);
+        orderRepository.save(preexistingOrder);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        assertOrderCreatedCorrectly(CHECKOUT_ID, preexistingOrderCreationTime, preexistingOrderCreationTime);
+    }
+
     private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
                                                                  final LocalDateTime intervalStart,
                                                                  final LocalDateTime intervalEnd) {
