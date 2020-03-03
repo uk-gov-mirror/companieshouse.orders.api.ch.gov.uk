@@ -1,11 +1,17 @@
 package uk.gov.companieshouse.orders.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 public class DeliveryDetails {
 
+    @Field("address_line_1")
+    @JsonProperty("address_line_1")
     private String addressLine1;
 
+    @Field("address_line_2")
+    @JsonProperty("address_line_2")
     private String addressLine2;
 
     private String country;
