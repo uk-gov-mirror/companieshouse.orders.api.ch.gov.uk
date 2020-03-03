@@ -23,8 +23,6 @@ public abstract class AbstractOrderData {
 
     private String totalBasketCost;
 
-    private PaymentStatus status;
-
     private String reference;
 
 
@@ -84,17 +82,6 @@ public abstract class AbstractOrderData {
         this.totalBasketCost = totalBasketCost;
     }
 
-    @Override
-    public String toString() { return new Gson().toJson(this); }
-
-    public PaymentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(PaymentStatus status) {
-        this.status = status;
-    }
-
     public String getReference() {
         return reference;
     }
@@ -103,4 +90,6 @@ public abstract class AbstractOrderData {
         this.reference = reference;
     }
 
+    @Override
+    public String toString() { return new Gson().toJson(this); }
 }

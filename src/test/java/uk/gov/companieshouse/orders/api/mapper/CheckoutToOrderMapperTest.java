@@ -171,7 +171,6 @@ public class CheckoutToOrderMapperTest {
         assertThat(order.getData().getLinks(), is(checkout.getData().getLinks()));
         assertThat(order.getData().getPaymentReference(), is(checkout.getData().getPaymentReference()));
         assertThat(order.getData().getTotalBasketCost(), is(checkout.getData().getTotalBasketCost()));
-        assertThat(order.getData().getStatus(), is(checkout.getData().getStatus()));
         assertThat(order.getData().getReference(), is(checkout.getData().getReference()));
         assertThat(order.getData().getOrderedAt(), is(checkout.getData().getPaidAt()));
         assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));

@@ -8,6 +8,8 @@ public class CheckoutData extends AbstractOrderData {
 
     private ActionedBy checkedOutBy;
 
+    private PaymentStatus status;
+
     public LocalDateTime getPaidAt() {
         return paidAt;
     }
@@ -22,5 +24,13 @@ public class CheckoutData extends AbstractOrderData {
 
     public void setCheckedOutBy(ActionedBy checkedOutBy) {
         this.checkedOutBy = checkedOutBy;
+    }
+
+    public PaymentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
     }
 }
