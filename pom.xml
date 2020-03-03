@@ -27,6 +27,7 @@
 		<private-api-sdk-java.version>2.0.20</private-api-sdk-java.version>
 		<api-sdk-manager-java-library.version>1.0.2</api-sdk-manager-java-library.version>
 		<api-sdk-java.version>4.1.48</api-sdk-java.version>
+		<guava.version>28.1-jre</guava.version>
 	</properties>
 
 	<dependencies>
@@ -114,6 +115,11 @@
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>api-sdk-manager-java-library</artifactId>
 			<version>${api-sdk-manager-java-library.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
 		</dependency>
 	</dependencies>
 
