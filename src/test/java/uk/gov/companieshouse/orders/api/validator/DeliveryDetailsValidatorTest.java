@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
 
 import java.util.List;
 
@@ -32,19 +33,21 @@ class DeliveryDetailsValidatorTest {
     @DisplayName("Postcode or region is mandatory")
     void postcodeOrRegionIsMandatory() {
         final AddDeliveryDetailsRequestDTO dto = new AddDeliveryDetailsRequestDTO();
-        dto.setAddressLine1(ADDRESS_LINE_1);
-        dto.setAddressLine2(ADDRESS_LINE_2);
-        dto.setCountry(COUNTRY);
-        dto.setForename(FORENAME);
-        dto.setLocality(LOCALITY);
-        dto.setPoBox(PO_BOX);
-        dto.setPostalCode("");
-        dto.setPremises(PREMISES);
-        dto.setRegion("");
-        dto.setSurname(SURNAME);
+        DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
+        deliveryDetailsDTO.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
+        deliveryDetailsDTO.setPoBox(PO_BOX);
+        deliveryDetailsDTO.setPostalCode("");
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setRegion("");
+        deliveryDetailsDTO.setSurname(SURNAME);
+        dto.setDeliveryDetails(deliveryDetailsDTO);
 
         final List<String> errors = deliveryDetailsValidator.getValidationErrors(dto);
 
-        assertThat(errors, contains("Post code or Region is required"));
+        assertThat(errors, contains("Postcode or Region is required"));
     }
 }

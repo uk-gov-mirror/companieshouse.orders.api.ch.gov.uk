@@ -9,6 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsResponseDTO;
+import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
 import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 
 import static org.junit.Assert.assertEquals;
@@ -39,16 +40,18 @@ public class DeliveryDetailsMapperTest {
     public void testDeliveryDetailsDTOToDeliveryDetails(){
 
         final AddDeliveryDetailsRequestDTO dto = new AddDeliveryDetailsRequestDTO();
-        dto.setAddressLine1(ADDRESS_LINE_1);
-        dto.setAddressLine2(ADDRESS_LINE_2);
-        dto.setCountry(COUNTRY);
-        dto.setForename(FORENAME);
-        dto.setLocality(LOCALITY);
-        dto.setPoBox(PO_BOX);
-        dto.setPostalCode(POSTAL_CODE);
-        dto.setPremises(PREMISES);
-        dto.setRegion(REGION);
-        dto.setSurname(SURNAME);
+        DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
+        deliveryDetailsDTO.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
+        deliveryDetailsDTO.setPoBox(PO_BOX);
+        deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setRegion(REGION);
+        deliveryDetailsDTO.setSurname(SURNAME);
+        dto.setDeliveryDetails(deliveryDetailsDTO);
 
         DeliveryDetails deliveryDetails = deliveryDetailsMapper.addToDeliveryDetailsRequestDTOToDeliveryDetails(dto);
 
