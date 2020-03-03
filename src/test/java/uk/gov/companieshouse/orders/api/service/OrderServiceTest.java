@@ -1,0 +1,47 @@
+package uk.gov.companieshouse.orders.api.service;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.repository.OrderRepository;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.when;
+
+/**
+ * Unit tests the {@link OrderService} class.
+ */
+@ExtendWith(MockitoExtension.class)
+class OrderServiceTest {
+
+    @InjectMocks
+    private OrderService serviceUnderTest;
+
+    @Mock
+    private Checkout checkout;
+
+    @Mock
+    private Order order;
+
+    @Mock
+    private CheckoutToOrderMapper mapper;
+
+    @Mock
+    private OrderRepository repository;
+
+    @Test
+    void createOrderCreatesOrder() {
+        // Given
+        when(mapper.checkoutToOrder(checkout)).thenReturn(order);
+        when(repository.save(order)).thenReturn(order);
+
+        // When and then
+        assertThat(serviceUnderTest.createOrder(checkout), is(order));
+    }
+}
