@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.validator;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 
@@ -17,8 +18,8 @@ public class DeliveryDetailsValidator {
         String postalCode = addDeliveryDetailsRequestDTO.getDeliveryDetails().getPostalCode();
         String region = addDeliveryDetailsRequestDTO.getDeliveryDetails().getRegion();
 
-        if((postalCode == null || postalCode.isEmpty()) && (region==null || region.isEmpty())) {
-            errors.add("Post code or Region is required");
+        if(StringUtils.isBlank(postalCode) && StringUtils.isBlank(region)) {
+            errors.add("Postcode or Region is required");
         }
 
         return errors;

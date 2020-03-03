@@ -48,6 +48,6 @@ class DeliveryDetailsValidatorTest {
 
         final List<String> errors = deliveryDetailsValidator.getValidationErrors(dto);
 
-        assertThat(errors, contains("Post code or Region is required"));
+        assertThat(errors, contains("Postcode or Region is required"));
     }
 }
