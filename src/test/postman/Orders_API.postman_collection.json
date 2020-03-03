@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "28a8b35f-b236-430c-8ab7-bfe3303550c9",
+		"_postman_id": "d4d1d4cd-d3e3-46f9-a805-b11d4dadbeee",
 		"name": "Orders API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -181,7 +181,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"postal code\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }"
+									"raw": "{\n    \"delivery_details\": {\n    \t\"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"postal code\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/basket",
@@ -215,7 +215,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"\",\n        \"premises\": \"premises\",\n        \"region\": \"\",\n        \"surname\": \"surname\"\n    }"
+									"raw": "{\n\t\"delivery_details\": {\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"\",\n        \"premises\": \"premises\",\n        \"region\": \"\",\n        \"surname\": \"surname\"\n    }\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/basket",
@@ -249,7 +249,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }"
+									"raw": "{\n\t\"delivery_details\": {\n        \"address_line_1\": \"address line 1\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/basket",
@@ -283,7 +283,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n        \"address_line_1\": \"\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"postal code\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }"
+									"raw": "{\n\t\"delivery_details\": {\n        \"address_line_1\": \"\",\n        \"address_line_2\": \"address line 2\",\n        \"country\": \"country\",\n        \"forename\": \"forename\",\n        \"locality\": \"locality\",\n        \"po_box\": \"po box\",\n        \"postal_code\": \"postal code\",\n        \"premises\": \"premises\",\n        \"region\": \"region\",\n        \"surname\": \"surname\"\n    }\n}"
 								},
 								"url": {
 									"raw": "{{base_url}}/basket",
@@ -299,6 +299,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				}
 			],
@@ -310,7 +311,7 @@
 		"oauth2": [
 			{
 				"key": "accessToken",
-				"value": "ik80a25WfxmX_FIolAiyOjUJbamxnNfz8Dfsza5Un5clMIYF1stVLVavr1siijkQQdr3NY_Ze2W7ydqG7bpWiQ",
+				"value": "n1fwWk6oYj3W1r4yV6Wf8zQeieDN9-RBFnbM35xfKYuCbDegNHP91htLQuEVIMwlKM5Kzq2QYVpq0blIOymaDg",
 				"type": "string"
 			},
 			{

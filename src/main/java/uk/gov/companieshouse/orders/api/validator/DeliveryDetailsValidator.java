@@ -15,7 +15,10 @@ public class DeliveryDetailsValidator {
     public List<String> getValidationErrors(final AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO) {
         List<String> errors = new ArrayList<>();
 
-        if(addDeliveryDetailsRequestDTO.getPostalCode().isEmpty() && addDeliveryDetailsRequestDTO.getRegion().isEmpty()) {
+        String postalCode = addDeliveryDetailsRequestDTO.getDeliveryDetails().getPostalCode();
+        String region = addDeliveryDetailsRequestDTO.getDeliveryDetails().getRegion();
+        if( (postalCode == null || postalCode.isEmpty()) &&
+                (region==null || region.isEmpty())) {
             errors.add("Post code or Region is required");
         }
         return errors;

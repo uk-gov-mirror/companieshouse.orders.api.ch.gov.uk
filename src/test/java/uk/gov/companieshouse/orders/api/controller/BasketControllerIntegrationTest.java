@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
 import uk.gov.companieshouse.orders.api.model.BasketItem;
@@ -267,16 +268,18 @@ class BasketControllerIntegrationTest {
         basketRepository.save(basket);
 
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
-        addDeliveryDetailsRequestDTO.setAddressLine1(ADDRESS_LINE_1);
-        addDeliveryDetailsRequestDTO.setAddressLine2(ADDRESS_LINE_2);
-        addDeliveryDetailsRequestDTO.setCountry(COUNTRY);
-        addDeliveryDetailsRequestDTO.setForename(FORENAME);
-        addDeliveryDetailsRequestDTO.setLocality(LOCALITY);
-        addDeliveryDetailsRequestDTO.setPoBox(PO_BOX);
-        addDeliveryDetailsRequestDTO.setPostalCode(POSTAL_CODE);
-        addDeliveryDetailsRequestDTO.setPremises(PREMISES);
-        addDeliveryDetailsRequestDTO.setRegion(REGION);
-        addDeliveryDetailsRequestDTO.setSurname(SURNAME);
+        DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
+        deliveryDetailsDTO.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
+        deliveryDetailsDTO.setPoBox(PO_BOX);
+        deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setRegion(REGION);
+        deliveryDetailsDTO.setSurname(SURNAME);
+        addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
         mockMvc.perform(patch("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -304,16 +307,18 @@ class BasketControllerIntegrationTest {
     public void addDeliveryDetailsToBasketIfTheBasketDoesNotExist() throws Exception {
 
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
-        addDeliveryDetailsRequestDTO.setAddressLine1(ADDRESS_LINE_1);
-        addDeliveryDetailsRequestDTO.setAddressLine2(ADDRESS_LINE_2);
-        addDeliveryDetailsRequestDTO.setCountry(COUNTRY);
-        addDeliveryDetailsRequestDTO.setForename(FORENAME);
-        addDeliveryDetailsRequestDTO.setLocality(LOCALITY);
-        addDeliveryDetailsRequestDTO.setPoBox(PO_BOX);
-        addDeliveryDetailsRequestDTO.setPostalCode(POSTAL_CODE);
-        addDeliveryDetailsRequestDTO.setPremises(PREMISES);
-        addDeliveryDetailsRequestDTO.setRegion(REGION);
-        addDeliveryDetailsRequestDTO.setSurname(SURNAME);
+        DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
+        deliveryDetailsDTO.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
+        deliveryDetailsDTO.setPoBox(PO_BOX);
+        deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setRegion(REGION);
+        deliveryDetailsDTO.setSurname(SURNAME);
+        addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
         mockMvc.perform(patch("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -340,10 +345,12 @@ class BasketControllerIntegrationTest {
     @DisplayName("Add delivery details fails due to failed validation")
     public void addDeliveryDetailsFailsDueToFailedValidation() throws Exception {
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
-        addDeliveryDetailsRequestDTO.setAddressLine1("");
-        addDeliveryDetailsRequestDTO.setAddressLine2(ADDRESS_LINE_2);
-        addDeliveryDetailsRequestDTO.setCountry("");
-        addDeliveryDetailsRequestDTO.setForename(FORENAME);
+        DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
+        deliveryDetailsDTO.setAddressLine1("");
+        deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetailsDTO.setCountry("");
+        deliveryDetailsDTO.setForename(FORENAME);
+        addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
         mockMvc.perform(patch("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
