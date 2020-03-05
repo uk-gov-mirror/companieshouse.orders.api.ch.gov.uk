@@ -84,13 +84,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{base_url}}/basket/checkout",
+									"raw": "{{base_url}}/basket/checkouts",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"basket",
-										"checkout"
+										"checkouts"
 									]
 								}
 							},

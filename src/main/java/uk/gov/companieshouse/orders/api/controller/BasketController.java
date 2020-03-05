@@ -125,7 +125,7 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(returnedBasket.getData());
     }
 
-    @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkout}")
+    @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}")
     public ResponseEntity<?> checkoutBasket(@RequestBody(required = false) String json,
                                             HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
