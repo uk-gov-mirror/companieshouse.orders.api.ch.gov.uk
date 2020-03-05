@@ -36,10 +36,11 @@ public class OrderService {
         this.ordersMessageProducer = producer;
     }
 
-    public void sendOrderReceivedMessage(String orderId) throws Exception{
+    public void sendOrderReceivedMessage(String orderId) throws Exception {
         byte[] message = ordersAvroSerializer.serialize(orderId);
         ordersMessageProducer.sendMessage(message, ORDER_RECEIVED_TOPIC);
     }
+
     /**
      * Used to create an order from a checkout object once payment has been successful.
      * @param checkout the user's checkout object
@@ -57,6 +58,13 @@ public class OrderService {
                    throw new ForbiddenException(message);
             }
         );
+
+        try {
+            LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId());
+            sendOrderReceivedMessage(mappedOrder.getId());
+        } catch (Exception e) {
+            LOGGER.error("Kafka 'order-received' message could not be sent for order - " + mappedOrder.getId());
+        }
 
         return repository.save(mappedOrder);
     }
