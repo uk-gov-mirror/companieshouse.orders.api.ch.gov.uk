@@ -159,7 +159,7 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(checkout);
     }
 
-    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
+    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}/{id}/payment")
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
                                                             HttpServletRequest request,

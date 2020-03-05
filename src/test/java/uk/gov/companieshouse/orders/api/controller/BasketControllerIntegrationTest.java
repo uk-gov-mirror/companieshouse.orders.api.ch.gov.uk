@@ -383,7 +383,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -410,7 +410,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -436,7 +436,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -470,7 +470,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -497,7 +497,7 @@ class BasketControllerIntegrationTest {
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -521,7 +521,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -543,7 +543,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + UNKNOWN_CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + UNKNOWN_CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -573,7 +573,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
