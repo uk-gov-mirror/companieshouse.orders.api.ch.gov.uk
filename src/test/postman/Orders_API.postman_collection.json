@@ -142,14 +142,15 @@
 									}
 								},
 								"url": {
-									"raw": "{{base_url}}/basket/payment/5e4ba64068f0760f8ff5487f",
+									"raw": "{{base_url}}/basket/checkouts/5e5d288a628ef271e2fa40d8/payment",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"basket",
-										"payment",
-										"5e4ba64068f0760f8ff5487f"
+										"checkouts",
+										"5e5d288a628ef271e2fa40d8",
+										"payment"
 									]
 								}
 							},
