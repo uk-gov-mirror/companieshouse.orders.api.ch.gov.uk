@@ -185,6 +185,10 @@ class BasketControllerIntegrationTest {
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setForename(FORENAME);
+        options.setSurname(SURNAME);
+        certificate.setItemOptions(options);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         ResultCaptor<Checkout> resultCaptor = new ResultCaptor<>();
@@ -200,6 +204,9 @@ class BasketControllerIntegrationTest {
         assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
         final Item item = retrievedCheckout.get().getData().getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        final CertificateItemOptions retrievedOptions = item.getItemOptions();
+        assertEquals(FORENAME, retrievedOptions.getForename());
+        assertEquals(SURNAME, retrievedOptions.getSurname());
     }
 
     @Test

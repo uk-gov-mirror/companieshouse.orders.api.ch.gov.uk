@@ -46,6 +46,8 @@ public class ApiToCertificateMapperTest {
 
     private static final IncludeAddressRecordsTypeApi INCLUDE_ADDRESS_RECORDS_TYPE = IncludeAddressRecordsTypeApi.CURRENT;
     private static final boolean INCLUDE_DATES = true;
+    private static final String FORENAME = "John";
+    private static final String SURNAME = "Smith";
 
     private static final CertificateItemOptionsApi ITEM_OPTIONS;
     private static final DirectorOrSecretaryDetailsApi DIRECTOR_OR_SECRETARY_DETAILS;
@@ -86,11 +88,13 @@ public class ApiToCertificateMapperTest {
         ITEM_OPTIONS.setDeliveryMethod(DeliveryMethodApi.POSTAL);
         ITEM_OPTIONS.setDeliveryTimescale(DeliveryTimescaleApi.STANDARD);
         ITEM_OPTIONS.setDirectorDetails(DIRECTOR_OR_SECRETARY_DETAILS);
+        ITEM_OPTIONS.setForename(FORENAME);
         ITEM_OPTIONS.setIncludeCompanyObjectsInformation(INCLUDE_COMPANY_OBJECTS_INFORMATION);
         ITEM_OPTIONS.setIncludeEmailCopy(INCLUDE_EMAIL_COPY);
         ITEM_OPTIONS.setIncludeGoodStandingInformation(INCLUDE_GOOD_STANDING_INFORMATION);
         ITEM_OPTIONS.setRegisteredOfficeAddressDetails(REGISTERED_OFFICE_ADDRESS_DETAILS);
         ITEM_OPTIONS.setSecretaryDetails(DIRECTOR_OR_SECRETARY_DETAILS);
+        ITEM_OPTIONS.setSurname(SURNAME);
     }
 
     @Test
@@ -143,11 +147,13 @@ public class ApiToCertificateMapperTest {
         assertThat(options1.getDeliveryMethod().getJsonName(), is(options2.getDeliveryMethod().getJsonName()));
         assertThat(options1.getDeliveryTimescale().getJsonName(), is(options2.getDeliveryTimescale().getJsonName()));
         assertDetailsSame(options1.getDirectorDetails(), options2.getDirectorDetails());
+        assertThat(options1.getForename(), is(options2.getForename()));
         assertThat(options1.getIncludeCompanyObjectsInformation(), is(options2.getIncludeCompanyObjectsInformation()));
         assertThat(options1.getIncludeEmailCopy(), is(options2.getIncludeEmailCopy()));
         assertThat(options1.getIncludeGoodStandingInformation(), is(options2.getIncludeGoodStandingInformation()));
         assertAddressDetailsSame(options1.getRegisteredOfficeAddressDetails(), options2.getRegisteredOfficeAddressDetails());
         assertDetailsSame(options1.getSecretaryDetails(), options2.getSecretaryDetails());
+        assertThat(options1.getSurname(), is(options2.getSurname()));
     }
 
     private void assertDetailsSame(final DirectorOrSecretaryDetailsApi details1,
