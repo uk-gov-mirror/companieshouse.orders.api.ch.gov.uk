@@ -10,6 +10,8 @@ public class CheckoutData extends AbstractOrderData {
 
     private PaymentStatus status;
 
+    private CheckoutLinks links;
+
     public LocalDateTime getPaidAt() {
         return paidAt;
     }
@@ -32,5 +34,13 @@ public class CheckoutData extends AbstractOrderData {
 
     public void setStatus(PaymentStatus status) {
         this.status = status;
+    }
+
+    public CheckoutLinks getLinks() {
+        return links;
+    }
+
+    public void setLinks(CheckoutLinks links) {
+        this.links = links;
     }
 }

@@ -49,10 +49,13 @@ public class ApiToCertificateMapperTest {
     private static final String FORENAME = "John";
     private static final String SURNAME = "Smith";
 
+    private static final String LINKS_SELF = "links/self";
+
     private static final CertificateItemOptionsApi ITEM_OPTIONS;
     private static final DirectorOrSecretaryDetailsApi DIRECTOR_OR_SECRETARY_DETAILS;
     private static final RegisteredOfficeAddressDetailsApi REGISTERED_OFFICE_ADDRESS_DETAILS;
     private static final ItemCostsApi ITEM_COSTS;
+    private static final LinksApi LINKS_API;
 
     @Configuration
     @ComponentScan(basePackageClasses = ApiToCertificateMapperTest.class)
@@ -95,6 +98,10 @@ public class ApiToCertificateMapperTest {
         ITEM_OPTIONS.setRegisteredOfficeAddressDetails(REGISTERED_OFFICE_ADDRESS_DETAILS);
         ITEM_OPTIONS.setSecretaryDetails(DIRECTOR_OR_SECRETARY_DETAILS);
         ITEM_OPTIONS.setSurname(SURNAME);
+
+        LINKS_API = new LinksApi();
+        LINKS_API.setSelf(LINKS_SELF);
+
     }
 
     @Test
@@ -112,6 +119,7 @@ public class ApiToCertificateMapperTest {
         certificateApi.setKind(KIND);
         certificateApi.setPostalDelivery(POSTAL_DELIVERY);
         certificateApi.setItemOptions(ITEM_OPTIONS);
+        certificateApi.setLinks(LINKS_API);
 
         final Certificate certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
 
@@ -127,6 +135,8 @@ public class ApiToCertificateMapperTest {
         assertThat(certificateApi.getKind(), is(certificate.getKind()));
         assertThat(certificateApi.isPostalDelivery(), is(certificate.isPostalDelivery()));
         assertThat(certificateApi.getEtag(), is(certificate.getEtag()));
+        assertThat(certificateApi.getLinks().getSelf(), is(certificate.getItemUri()));
+        assertThat(certificateApi.getLinks().getSelf(), is(certificate.getLinks().getSelf()));
 
         assertItemCosts(certificateApi.getItemCosts(), certificate.getItemCosts());
         assertItemOptionsSame(certificateApi.getItemOptions(), certificate.getItemOptions());

@@ -15,6 +15,7 @@ import uk.gov.companieshouse.orders.api.exception.ServiceException;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.ItemStatus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -62,6 +63,7 @@ public class ApiClientServiceTest {
 
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
         assertEquals(VALID_CERTIFICATE_URI, item.getItemUri());
+        assertEquals(ItemStatus.UNKNOWN, item.getStatus());
     }
 
     @Test

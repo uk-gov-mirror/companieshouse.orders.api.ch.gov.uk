@@ -8,6 +8,7 @@ import uk.gov.companieshouse.orders.api.client.ApiClient;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
 import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.ItemStatus;
 
 @Service
 public class ApiClientService {
@@ -26,6 +27,7 @@ public class ApiClientService {
             CertificateApi certificateApi = apiClient.getInternalApiClient().privateItemResourceHandler().getCertificate(itemUri).execute().getData();
             Item certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
             certificate.setItemUri(itemUri);
+            certificate.setStatus(ItemStatus.UNKNOWN);
             return certificate;
         } else {
             throw new ServiceException("Unrecognised uri pattern for "+itemUri);
