@@ -104,6 +104,7 @@ public class CheckoutServiceTest {
         verify(linksGeneratorService, times(1)).generateCheckoutLinks(any(String.class));
         assertEquals(LINKS_SELF, argCaptor.getValue().getData().getLinks().getSelf());
         assertEquals(LINKS_PAYMENT, argCaptor.getValue().getData().getLinks().getPayment());
+        assertEquals(ETAG, argCaptor.getValue().getData().getEtag());
     }
 
     private void verifyCreationTimestampsWithinExecutionInterval(final Checkout itemCreated,
