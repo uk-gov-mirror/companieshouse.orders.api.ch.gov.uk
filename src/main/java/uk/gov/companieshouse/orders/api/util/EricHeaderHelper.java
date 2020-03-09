@@ -8,6 +8,7 @@ public class EricHeaderHelper {
 
     public static final String ERIC_IDENTITY = "ERIC-Identity";
     public static final String ERIC_IDENTITY_TYPE = "ERIC-Identity-Type";
+    public static final String ERIC_AUTHORISED_USER = "eric-authorised-user";
 
     private EricHeaderHelper() { }
 
@@ -17,6 +18,10 @@ public class EricHeaderHelper {
 
     public static String getIdentityType(HttpServletRequest request) {
         return getHeader(request, ERIC_IDENTITY_TYPE);
+    }
+
+    public static String getAuthorisedUser(HttpServletRequest request) {
+        return getHeader(request, ERIC_AUTHORISED_USER);
     }
 
     private static String getHeader(HttpServletRequest request, String headerName) {

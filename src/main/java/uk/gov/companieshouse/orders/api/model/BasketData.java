@@ -14,7 +14,7 @@ public class BasketData {
 
     private String kind;
 
-    private Links links;
+    private BasketLinks links;
 
     private String totalBasketCost;
 
@@ -51,11 +51,11 @@ public class BasketData {
         this.kind = kind;
     }
 
-    public Links getLinks() {
+    public BasketLinks getLinks() {
         return links;
     }
 
-    public void setLinks(Links links) {
+    public void setLinks(BasketLinks links) {
         this.links = links;
     }
 

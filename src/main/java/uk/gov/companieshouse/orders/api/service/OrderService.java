@@ -21,10 +21,12 @@ public class OrderService {
 
     private final CheckoutToOrderMapper mapper;
     private final OrderRepository repository;
+    private final LinksGeneratorService linksGeneratorService;
 
-    public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository) {
+    public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository, final LinksGeneratorService linksGeneratorService) {
         this.mapper = mapper;
         this.repository = repository;
+        this.linksGeneratorService = linksGeneratorService;
     }
 
     /**
@@ -35,6 +37,7 @@ public class OrderService {
     public Order createOrder(final Checkout checkout) {
         final Order mappedOrder = mapper.checkoutToOrder(checkout);
         setCreationDateTimes(mappedOrder);
+        mappedOrder.getData().setLinks(linksGeneratorService.generateOrderLinks(mappedOrder.getId()));
 
         final Optional<Order> order = repository.findById(mappedOrder.getId());
         order.ifPresent(

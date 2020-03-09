@@ -19,8 +19,6 @@ public abstract class AbstractOrderData {
 
     private String kind;
 
-    private Links links;
-
     private String totalOrderCost;
 
     private String reference;
@@ -64,14 +62,6 @@ public abstract class AbstractOrderData {
 
     public void setKind(String kind) {
         this.kind = kind;
-    }
-
-    public Links getLinks() {
-        return links;
-    }
-
-    public void setLinks(Links links) {
-        this.links = links;
     }
 
     public String getTotalOrderCost() {
