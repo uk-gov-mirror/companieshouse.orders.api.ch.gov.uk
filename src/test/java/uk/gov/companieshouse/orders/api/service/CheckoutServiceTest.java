@@ -32,6 +32,13 @@ public class CheckoutServiceTest {
     @Mock
     CheckoutRepository checkoutRepository;
 
+    // TODO - verify these fields in test
+    @Mock
+    EtagGeneratorService etagGeneratorService;
+
+    @Mock
+    LinksGeneratorService linksGeneratorService;
+
     @Captor
     ArgumentCaptor<Checkout> argCaptor;
 

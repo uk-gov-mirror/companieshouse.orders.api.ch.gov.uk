@@ -135,7 +135,7 @@ public class CheckoutToOrderMapperTest {
         data.setKind(KIND);
         data.setLinks(LINKS);
         data.setPaymentReference("1234");
-        data.setTotalBasketCost("100");
+        data.setTotalOrderCost("100");
         data.setStatus(PAID);
         data.setReference(ORDER_REFERENCE);
         data.setPaidAt(time);
@@ -170,7 +170,7 @@ public class CheckoutToOrderMapperTest {
         assertThat(order.getData().getKind(), is(checkout.getData().getKind()));
         assertThat(order.getData().getLinks(), is(checkout.getData().getLinks()));
         assertThat(order.getData().getPaymentReference(), is(checkout.getData().getPaymentReference()));
-        assertThat(order.getData().getTotalBasketCost(), is(checkout.getData().getTotalBasketCost()));
+        assertThat(order.getData().getTotalOrderCost(), is(checkout.getData().getTotalOrderCost()));
         assertThat(order.getData().getReference(), is(checkout.getData().getReference()));
         assertThat(order.getData().getOrderedAt(), is(checkout.getData().getPaidAt()));
         assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));

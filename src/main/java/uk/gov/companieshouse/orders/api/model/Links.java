@@ -6,6 +6,7 @@ public class Links {
     
     private String self;
 
+    private String payment;
 
     public String getSelf() {
         return self;
@@ -13,6 +14,14 @@ public class Links {
 
     public void setSelf(String self) {
         this.self = self;
+    }
+
+    public String getPayment() {
+        return payment;
+    }
+
+    public void setPayment(String payment) {
+        this.payment = payment;
     }
 
     @Override
