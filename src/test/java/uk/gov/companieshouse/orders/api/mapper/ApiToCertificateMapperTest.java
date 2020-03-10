@@ -130,64 +130,64 @@ public class ApiToCertificateMapperTest {
         final Certificate certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
 
         assertEquals(certificateApi.getId(), certificate.getId());
-        assertThat(certificateApi.getId(), is(certificate.getId()));
-        assertThat(certificateApi.getCompanyName(), is(certificate.getCompanyName()));
-        assertThat(certificateApi.getCompanyNumber(), is(certificate.getCompanyNumber()));
-        assertThat(certificateApi.getCustomerReference(), is(certificate.getCustomerReference()));
-        assertThat(certificateApi.getQuantity(), is(certificate.getQuantity()));
-        assertThat(certificateApi.getDescription(), is(certificate.getDescription()));
-        assertThat(certificateApi.getDescriptionIdentifier(), is(certificate.getDescriptionIdentifier()));
-        assertThat(certificateApi.getDescriptionValues(), is(certificate.getDescriptionValues()));
-        assertThat(certificateApi.getKind(), is(certificate.getKind()));
-        assertThat(certificateApi.isPostalDelivery(), is(certificate.isPostalDelivery()));
-        assertThat(certificateApi.getEtag(), is(certificate.getEtag()));
-        assertThat(certificateApi.getLinks().getSelf(), is(certificate.getItemUri()));
-        assertThat(certificateApi.getLinks().getSelf(), is(certificate.getLinks().getSelf()));
+        assertThat(certificate.getId(), is(certificateApi.getId()));
+        assertThat(certificate.getCompanyName(), is(certificateApi.getCompanyName()));
+        assertThat(certificate.getCompanyNumber(), is(certificateApi.getCompanyNumber()));
+        assertThat(certificate.getCustomerReference(), is(certificateApi.getCustomerReference()));
+        assertThat(certificate.getQuantity(), is(certificateApi.getQuantity()));
+        assertThat(certificate.getDescription(), is(certificateApi.getDescription()));
+        assertThat(certificate.getDescriptionIdentifier(), is(certificateApi.getDescriptionIdentifier()));
+        assertThat(certificate.getDescriptionValues(), is(certificateApi.getDescriptionValues()));
+        assertThat(certificate.getKind(), is(certificateApi.getKind()));
+        assertThat(certificate.isPostalDelivery(), is(certificateApi.isPostalDelivery()));
+        assertThat(certificate.getEtag(), is(certificateApi.getEtag()));
+        assertThat(certificate.getItemUri(), is(certificateApi.getLinks().getSelf()));
+        assertThat(certificate.getLinks().getSelf(), is(certificateApi.getLinks().getSelf()));
 
         assertItemCosts(certificateApi.getItemCosts().get(0), certificate.getItemCosts().get(0));
         assertItemOptionsSame(certificateApi.getItemOptions(), certificate.getItemOptions());
-        assertThat(certificateApi.getPostageCost(), is(certificate.getPostageCost()));
-        assertThat(certificateApi.getTotalItemCost(), is(certificate.getTotalItemCost()));
+        assertThat(certificate.getPostageCost(), is(certificateApi.getPostageCost()));
+        assertThat(certificate.getTotalItemCost(), is(certificateApi.getTotalItemCost()));
     }
 
     private void assertItemCosts(final ItemCostsApi itemCostsApi, final ItemCosts itemCosts) {
-        assertThat(itemCostsApi.getDiscountApplied(), is(itemCosts.getDiscountApplied()));
-        assertThat(itemCostsApi.getItemCost(), is(itemCosts.getItemCost()));
-        assertThat(itemCostsApi.getCalculatedCost(), is(itemCosts.getCalculatedCost()));
-        assertThat(itemCostsApi.getProductType().getJsonName(), is(itemCosts.getProductType().getJsonName()));
+        assertThat(itemCosts.getDiscountApplied(), is(itemCostsApi.getDiscountApplied()));
+        assertThat(itemCosts.getItemCost(), is(itemCostsApi.getItemCost()));
+        assertThat(itemCosts.getCalculatedCost(), is(itemCostsApi.getCalculatedCost()));
+        assertThat(itemCosts.getProductType().getJsonName(), is(itemCostsApi.getProductType().getJsonName()));
     }
 
-    private void assertItemOptionsSame(final CertificateItemOptionsApi options1,
-                                       final CertificateItemOptions options2) {
-        assertThat(options1.getCertificateType().getJsonName(), is(options2.getCertificateType().getJsonName()));
-        assertThat(options1.getCollectionLocation().getJsonName(), is(options2.getCollectionLocation().getJsonName()));
-        assertThat(options1.getContactNumber(), is(options2.getContactNumber()));
-        assertThat(options1.getDeliveryMethod().getJsonName(), is(options2.getDeliveryMethod().getJsonName()));
-        assertThat(options1.getDeliveryTimescale().getJsonName(), is(options2.getDeliveryTimescale().getJsonName()));
-        assertDetailsSame(options1.getDirectorDetails(), options2.getDirectorDetails());
-        assertThat(options1.getForename(), is(options2.getForename()));
-        assertThat(options1.getIncludeCompanyObjectsInformation(), is(options2.getIncludeCompanyObjectsInformation()));
-        assertThat(options1.getIncludeEmailCopy(), is(options2.getIncludeEmailCopy()));
-        assertThat(options1.getIncludeGoodStandingInformation(), is(options2.getIncludeGoodStandingInformation()));
-        assertAddressDetailsSame(options1.getRegisteredOfficeAddressDetails(), options2.getRegisteredOfficeAddressDetails());
-        assertDetailsSame(options1.getSecretaryDetails(), options2.getSecretaryDetails());
-        assertThat(options1.getSurname(), is(options2.getSurname()));
+    private void assertItemOptionsSame(final CertificateItemOptionsApi source,
+                                       final CertificateItemOptions target) {
+        assertThat(target.getCertificateType().getJsonName(), is(source.getCertificateType().getJsonName()));
+        assertThat(target.getCollectionLocation().getJsonName(), is(source.getCollectionLocation().getJsonName()));
+        assertThat(target.getContactNumber(), is(source.getContactNumber()));
+        assertThat(target.getDeliveryMethod().getJsonName(), is(source.getDeliveryMethod().getJsonName()));
+        assertThat(target.getDeliveryTimescale().getJsonName(), is(source.getDeliveryTimescale().getJsonName()));
+        assertDetailsSame(source.getDirectorDetails(), target.getDirectorDetails());
+        assertThat(target.getForename(), is(source.getForename()));
+        assertThat(target.getIncludeCompanyObjectsInformation(), is(source.getIncludeCompanyObjectsInformation()));
+        assertThat(target.getIncludeEmailCopy(), is(source.getIncludeEmailCopy()));
+        assertThat(target.getIncludeGoodStandingInformation(), is(source.getIncludeGoodStandingInformation()));
+        assertAddressDetailsSame(source.getRegisteredOfficeAddressDetails(), target.getRegisteredOfficeAddressDetails());
+        assertDetailsSame(source.getSecretaryDetails(), target.getSecretaryDetails());
+        assertThat(target.getSurname(), is(source.getSurname()));
     }
 
-    private void assertDetailsSame(final DirectorOrSecretaryDetailsApi details1,
-                                   final DirectorOrSecretaryDetails details2) {
-        assertThat(details1.getIncludeAddress(), is(details2.getIncludeAddress()));
-        assertThat(details1.getIncludeAppointmentDate(), is(details2.getIncludeAppointmentDate()));
-        assertThat(details1.getIncludeBasicInformation(), is(details2.getIncludeBasicInformation()));
-        assertThat(details1.getIncludeCountryOfResidence(), is(details2.getIncludeCountryOfResidence()));
-        assertThat(details1.getIncludeDobType().getJsonName(), is(details2.getIncludeDobType().getJsonName()));
-        assertThat(details1.getIncludeNationality(), is(details2.getIncludeNationality()));
-        assertThat(details1.getIncludeOccupation(), is(details2.getIncludeOccupation()));
+    private void assertDetailsSame(final DirectorOrSecretaryDetailsApi source,
+                                   final DirectorOrSecretaryDetails target) {
+        assertThat(target.getIncludeAddress(), is(source.getIncludeAddress()));
+        assertThat(target.getIncludeAppointmentDate(), is(source.getIncludeAppointmentDate()));
+        assertThat(target.getIncludeBasicInformation(), is(source.getIncludeBasicInformation()));
+        assertThat(target.getIncludeCountryOfResidence(), is(source.getIncludeCountryOfResidence()));
+        assertThat(target.getIncludeDobType().getJsonName(), is(source.getIncludeDobType().getJsonName()));
+        assertThat(target.getIncludeNationality(), is(source.getIncludeNationality()));
+        assertThat(target.getIncludeOccupation(), is(source.getIncludeOccupation()));
     }
 
-    private void assertAddressDetailsSame(final RegisteredOfficeAddressDetailsApi details1,
-                                          final RegisteredOfficeAddressDetails details2) {
-        assertThat(details1.getIncludeAddressRecordsType().getJsonName(), is(details2.getIncludeAddressRecordsType().getJsonName()));
-        assertThat(details1.getIncludeDates(), is(details2.getIncludeDates()));
+    private void assertAddressDetailsSame(final RegisteredOfficeAddressDetailsApi source,
+                                          final RegisteredOfficeAddressDetails target) {
+        assertThat(target.getIncludeAddressRecordsType().getJsonName(), is(source.getIncludeAddressRecordsType().getJsonName()));
+        assertThat(target.getIncludeDates(), is(source.getIncludeDates()));
     }
 }
