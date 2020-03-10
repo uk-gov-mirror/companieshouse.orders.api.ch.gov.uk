@@ -52,6 +52,8 @@ public class ApiToCertificateMapperTest {
     private static final String SURNAME = "Smith";
 
     private static final String LINKS_SELF = "links/self";
+    private static final String POSTAGE_COST = "0";
+    private static final String TOTAL_ITEM_COST = "100";
 
     private static final CertificateItemOptionsApi ITEM_OPTIONS;
     private static final DirectorOrSecretaryDetailsApi DIRECTOR_OR_SECRETARY_DETAILS;
@@ -122,6 +124,8 @@ public class ApiToCertificateMapperTest {
         certificateApi.setPostalDelivery(POSTAL_DELIVERY);
         certificateApi.setItemOptions(ITEM_OPTIONS);
         certificateApi.setLinks(LINKS_API);
+        certificateApi.setPostageCost(POSTAGE_COST);
+        certificateApi.setTotalItemCost(TOTAL_ITEM_COST);
 
         final Certificate certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
 
@@ -142,6 +146,8 @@ public class ApiToCertificateMapperTest {
 
         assertItemCosts(certificateApi.getItemCosts().get(0), certificate.getItemCosts().get(0));
         assertItemOptionsSame(certificateApi.getItemOptions(), certificate.getItemOptions());
+        assertThat(certificateApi.getPostageCost(), is(certificate.getPostageCost()));
+        assertThat(certificateApi.getTotalItemCost(), is(certificate.getTotalItemCost()));
     }
 
     private void assertItemCosts(final ItemCostsApi itemCostsApi, final ItemCosts itemCosts) {

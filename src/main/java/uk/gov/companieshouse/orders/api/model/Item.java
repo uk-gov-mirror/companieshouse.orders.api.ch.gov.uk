@@ -43,6 +43,10 @@ public class Item {
 
     private ItemStatus status;
 
+    private String postageCost;
+
+    private String totalItemCost;
+
     public String getId() {
         return id;
     }
@@ -177,5 +181,21 @@ public class Item {
 
     public void setStatus(ItemStatus status) {
         this.status = status;
+    }
+
+    public String getPostageCost() {
+        return postageCost;
+    }
+
+    public void setPostageCost(String postageCost) {
+        this.postageCost = postageCost;
+    }
+
+    public String getTotalItemCost() {
+        return totalItemCost;
+    }
+
+    public void setTotalItemCost(String totalItemCost) {
+        this.totalItemCost = totalItemCost;
     }
 }
