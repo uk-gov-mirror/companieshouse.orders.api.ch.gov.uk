@@ -3,6 +3,7 @@ package uk.gov.companieshouse.orders.api.model;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 public class Item {
@@ -22,7 +23,7 @@ public class Item {
 
     private Map<String, String> descriptionValues;
 
-    private ItemCosts itemCosts;
+    private List<ItemCosts> itemCosts;
 
     private CertificateItemOptions itemOptions;
 
@@ -98,11 +99,11 @@ public class Item {
         this.descriptionValues = descriptionValues;
     }
 
-    public ItemCosts getItemCosts() {
+    public List<ItemCosts> getItemCosts() {
         return itemCosts;
     }
 
-    public void setItemCosts(ItemCosts itemCosts) {
+    public void setItemCosts(List<ItemCosts> itemCosts) {
         this.itemCosts = itemCosts;
     }
 

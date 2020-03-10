@@ -12,10 +12,12 @@ import uk.gov.companieshouse.orders.api.model.*;
 
 import java.util.Map;
 
+import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFICATE;
 
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(ApiToCertificateMapperTest.Config.class)
@@ -67,9 +69,9 @@ public class ApiToCertificateMapperTest {
     static {
         ITEM_COSTS = new ItemCostsApi();
         ITEM_COSTS.setDiscountApplied("1");
-        ITEM_COSTS.setIndividualItemCost("2");
-        ITEM_COSTS.setPostageCost("3");
-        ITEM_COSTS.setTotalCost("4");
+        ITEM_COSTS.setItemCost("2");
+        ITEM_COSTS.setCalculatedCost("3");
+        ITEM_COSTS.setProductType(CERTIFICATE);
 
         DIRECTOR_OR_SECRETARY_DETAILS = new DirectorOrSecretaryDetailsApi();
         DIRECTOR_OR_SECRETARY_DETAILS.setIncludeAddress(INCLUDE_ADDRESS);
@@ -115,7 +117,7 @@ public class ApiToCertificateMapperTest {
         certificateApi.setDescription(DESCRIPTION);
         certificateApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
         certificateApi.setDescriptionValues(DESCRIPTION_VALUES);
-        certificateApi.setItemCosts(ITEM_COSTS);
+        certificateApi.setItemCosts(singletonList(ITEM_COSTS));
         certificateApi.setKind(KIND);
         certificateApi.setPostalDelivery(POSTAL_DELIVERY);
         certificateApi.setItemOptions(ITEM_OPTIONS);
@@ -138,15 +140,15 @@ public class ApiToCertificateMapperTest {
         assertThat(certificateApi.getLinks().getSelf(), is(certificate.getItemUri()));
         assertThat(certificateApi.getLinks().getSelf(), is(certificate.getLinks().getSelf()));
 
-        assertItemCosts(certificateApi.getItemCosts(), certificate.getItemCosts());
+        assertItemCosts(certificateApi.getItemCosts().get(0), certificate.getItemCosts().get(0));
         assertItemOptionsSame(certificateApi.getItemOptions(), certificate.getItemOptions());
     }
 
     private void assertItemCosts(final ItemCostsApi itemCostsApi, final ItemCosts itemCosts) {
         assertThat(itemCostsApi.getDiscountApplied(), is(itemCosts.getDiscountApplied()));
-        assertThat(itemCostsApi.getIndividualItemCost(), is(itemCosts.getIndividualItemCost()));
-        assertThat(itemCostsApi.getPostageCost(), is(itemCosts.getPostageCost()));
-        assertThat(itemCostsApi.getTotalCost(), is(itemCosts.getTotalCost()));
+        assertThat(itemCostsApi.getItemCost(), is(itemCosts.getItemCost()));
+        assertThat(itemCostsApi.getCalculatedCost(), is(itemCosts.getCalculatedCost()));
+        assertThat(itemCostsApi.getProductType().getJsonName(), is(itemCosts.getProductType().getJsonName()));
     }
 
     private void assertItemOptionsSame(final CertificateItemOptionsApi options1,
