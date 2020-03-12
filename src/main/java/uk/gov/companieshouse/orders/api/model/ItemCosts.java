@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.orders.api.model;
 
+import java.util.Objects;
+
 public class ItemCosts {
 
     private String discountApplied;
@@ -50,5 +52,21 @@ public class ItemCosts {
 
     public void setProductType(ProductType productType) {
         this.productType = productType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ItemCosts)) return false;
+        ItemCosts itemCosts = (ItemCosts) o;
+        return Objects.equals(discountApplied, itemCosts.discountApplied) &&
+                Objects.equals(itemCost, itemCosts.itemCost) &&
+                Objects.equals(calculatedCost, itemCosts.calculatedCost) &&
+                productType == itemCosts.productType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(discountApplied, itemCost, calculatedCost, productType);
     }
 }
