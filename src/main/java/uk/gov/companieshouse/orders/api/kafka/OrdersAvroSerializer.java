@@ -4,33 +4,39 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
+
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 
 @Service
 public class OrdersAvroSerializer extends AvroSerializer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
     private static final String CONTEXT_PATH = "/subjects/%s/versions/latest";
     private static final String REGISTRY_URL_ENV_VARIABLE = "SCHEMA_REGISTRY_URL";
-    private static final String ORDER_RECEIVED_SCHEMA = "order-received";
-    private static final String MESSAGE_PROPERTY_ORDER_URI = "order_uri";
-    @Value("${uk.gov.companieshouse.orders.api.order}")
-    private String ORDER_ENDPOINT_URL;
 
-    public byte[] serialize(String orderId) throws IOException {
-        Schema schema = getSchema(ORDER_RECEIVED_SCHEMA);
+    private AvroSchemaHelper avroSchemaHelper;
+
+    public OrdersAvroSerializer(AvroSchemaHelper schemaHelper) {
+        avroSchemaHelper = schemaHelper;
+    }
+
+    public byte[] serialize(String schemaName, String key, String message) throws IOException {
+        LOGGER.trace("Serializng message of type " + schemaName);
+        Schema schema = getSchema(schemaName);
         GenericRecord orderReceivedData = new GenericData.Record(schema);
-        orderReceivedData.put(MESSAGE_PROPERTY_ORDER_URI, ORDER_ENDPOINT_URL + "/" + orderId);
+        orderReceivedData.put(key, message);
 
         return super.serialize(schema, orderReceivedData);
     }
 
-    private Schema getSchema(String schemaName) throws MalformedURLException, IOException {
+    Schema getSchema(String schemaName) throws IOException {
         String host = System.getenv(REGISTRY_URL_ENV_VARIABLE);
         String url = host + String.format(CONTEXT_PATH, schemaName);
-        Schema schema = AvroSchemaHelper.getSchema(url);
+        Schema schema = avroSchemaHelper.getSchema(url);
 
         return schema;
     }

@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
@@ -26,7 +27,12 @@ public class OrderService {
 
     private OrdersAvroSerializer ordersAvroSerializer;
     private OrdersMessageProducer ordersMessageProducer;
+
     private static final String ORDER_RECEIVED_TOPIC = "order-received";
+    private static final String ORDER_RECEIVED_SCHEMA = "order-received";
+    private static final String MESSAGE_PROPERTY_ORDER_URI = "order_uri";
+    @Value("${uk.gov.companieshouse.orders.api.order}")
+    private String ORDER_ENDPOINT_URL;
 
     public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository,
                         OrdersAvroSerializer serializer, OrdersMessageProducer producer) {
@@ -34,11 +40,6 @@ public class OrderService {
         this.repository = repository;
         this.ordersAvroSerializer = serializer;
         this.ordersMessageProducer = producer;
-    }
-
-    public void sendOrderReceivedMessage(String orderId) throws Exception {
-        byte[] message = ordersAvroSerializer.serialize(orderId);
-        ordersMessageProducer.sendMessage(message, ORDER_RECEIVED_TOPIC);
     }
 
     /**
@@ -67,6 +68,17 @@ public class OrderService {
         }
 
         return repository.save(mappedOrder);
+    }
+
+    /**
+     * Sends a message to Kafka topic 'order-received'
+     * @param orderId order id
+     * @throws Exception
+     */
+    private void sendOrderReceivedMessage(String orderId) throws Exception {
+        String orderURI = ORDER_ENDPOINT_URL + "/" + orderId;
+        byte[] message = ordersAvroSerializer.serialize(ORDER_RECEIVED_SCHEMA, MESSAGE_PROPERTY_ORDER_URI, orderURI);
+        ordersMessageProducer.sendMessage(message, ORDER_RECEIVED_TOPIC);
     }
 
     /**

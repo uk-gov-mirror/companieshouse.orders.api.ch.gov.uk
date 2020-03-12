@@ -2,6 +2,7 @@ package uk.gov.companieshouse.orders.api.kafka;
 
 import org.apache.avro.Schema;
 import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+@Service
 public class AvroSchemaHelper {
 	
 	/**
@@ -21,7 +23,7 @@ public class AvroSchemaHelper {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public static Schema getSchema(String url) throws IOException {
+	public Schema getSchema(String url) throws IOException {
 		HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 		
 		if(connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -41,7 +43,7 @@ public class AvroSchemaHelper {
 		return null;
 	}
 
-	private static Schema convertResponseToSchema(StringBuilder response) {
+	private Schema convertResponseToSchema(StringBuilder response) {
 		if(response != null && response.length() > 0) {
 			String schemaString = response.toString();
 			JSONObject schemaJson = new JSONObject(schemaString);

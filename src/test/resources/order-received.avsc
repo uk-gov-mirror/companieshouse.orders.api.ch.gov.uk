@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "OrderReceived",
+  "namespace": "uk.gov.companieshouse.orders",
+  "fields": [
+    {
+      "name": "order_uri",
+      "type": "string"
+    }
+  ]
+}

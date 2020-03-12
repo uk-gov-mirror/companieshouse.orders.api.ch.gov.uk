@@ -6,6 +6,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -14,9 +15,11 @@ import java.net.MalformedURLException;
 
 @Service
 public class AvroSerializer {
-	
+	@Autowired
+	AvroSchemaHelper avroSchemaHelper;
+
 	public byte[] serialize(String schemaName, GenericRecord documentData) throws MalformedURLException, IOException {
-		Schema schema = AvroSchemaHelper.getSchema(schemaName);
+		Schema schema = avroSchemaHelper.getSchema(schemaName);
 		return serialize(schema, documentData);
 	}
 		
