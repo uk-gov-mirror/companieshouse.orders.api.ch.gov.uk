@@ -40,6 +40,8 @@ public class CheckoutToOrderMapperTest {
     private static final String DESCRIPTION_IDENTIFIER = "Description Identifier";
     private static final Map<String, String> DESCRIPTION_VALUES = singletonMap("key1", "value1");
     private static final ItemCosts ITEM_COSTS = new ItemCosts("1", "2", "3", CERTIFICATE);
+    private static final String POSTAGE_COST = "0";
+    private static final String TOTAL_ITEM_COST = "100";
     private static final String KIND = "certificate";
     private static final boolean POSTAL_DELIVERY = true;
     private static final String CUSTOMER_REFERENCE = "Certificate ordered by NJ.";
@@ -150,6 +152,8 @@ public class CheckoutToOrderMapperTest {
         item.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
         item.setDescriptionValues(DESCRIPTION_VALUES);
         item.setItemCosts(singletonList(ITEM_COSTS));
+        item.setPostageCost(POSTAGE_COST);
+        item.setTotalItemCost(TOTAL_ITEM_COST);
         item.setKind(KIND);
         item.setPostalDelivery(POSTAL_DELIVERY);
         item.setItemOptions(ITEM_OPTIONS);
