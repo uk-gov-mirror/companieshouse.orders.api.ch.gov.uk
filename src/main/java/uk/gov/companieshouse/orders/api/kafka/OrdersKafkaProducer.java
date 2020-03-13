@@ -40,8 +40,8 @@ public class OrdersKafkaProducer implements InitializingBean {
         if (brokerAddresses != null && !brokerAddresses.isEmpty()) {
             config.setBrokerAddresses(brokerAddresses.split(","));
         } else {
-            throw new ProducerConfigException("Broker addresses for kafka broker missing, check if environment variable KAFKA_BROKER_ADDR is configured. " +
-                    "Hint: this may mean 'spring.embedded.kafka.brokers property' is not configured for integration tests.");
+            throw new ProducerConfigException("Broker addresses for kafka broker missing, check if the property 'kafka.broker.addresses' is configured. " +
+                    "Hint: For integration test this may be due to 'spring.embedded.kafka.brokers' property not being set.");
         }
 
         config.setRoundRobinPartitioner(true);
