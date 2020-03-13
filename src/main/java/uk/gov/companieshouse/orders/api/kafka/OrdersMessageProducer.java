@@ -24,6 +24,13 @@ public class OrdersMessageProducer implements InitializingBean {
     @Value("${kafka.broker.addresses}")
     private String brokerAddresses;
 
+    /**
+     * Sends serialized message to kafka topic
+     * @param data serialized message
+     * @param topic kafka topic
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     public void sendMessage(byte[] data, String topic) throws ExecutionException, InterruptedException {
         LOGGER.trace("Sending message to CH Kafka topic " + topic);
         Message message = new Message();

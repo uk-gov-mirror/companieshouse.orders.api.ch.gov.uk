@@ -16,10 +16,10 @@ import java.net.URL;
 public class AvroSchemaHelper {
 	
 	/**
-	 * Retrieve the Avro schema from the Confluent schema registry
+	 * Retrieves Avro schema from schema registry
 	 * 
-	 * @param url
-	 * @return schema
+	 * @param url registry url
+	 * @return schema requested avro schema
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */

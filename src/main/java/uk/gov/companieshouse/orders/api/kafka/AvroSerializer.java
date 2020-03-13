@@ -15,19 +15,18 @@ import java.net.MalformedURLException;
 
 @Service
 public class AvroSerializer {
-	@Autowired
-	AvroSchemaHelper avroSchemaHelper;
-
-	public byte[] serialize(String schemaName, GenericRecord documentData) throws MalformedURLException, IOException {
-		Schema schema = avroSchemaHelper.getSchema(schemaName);
-		return serialize(schema, documentData);
-	}
-		
-	public byte[] serialize(Schema schema, GenericRecord documentData) throws MalformedURLException, IOException {
+	/**
+	 * Avro serializer to serialize kafka message
+	 * @param schema avro schema
+	 * @param documentData data to serialize
+	 * @return serilaized object
+	 * @throws IOException
+	 */
+	public byte[] serialize(Schema schema, GenericRecord documentData) throws IOException {
 		DatumWriter<GenericRecord> datumWriter = new GenericDatumWriter<GenericRecord>(schema);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
-		
+
 		datumWriter.write(documentData, encoder);
 		encoder.flush();
 		byte[] serializedAvro = out.toByteArray();

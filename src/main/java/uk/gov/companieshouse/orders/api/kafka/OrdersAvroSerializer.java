@@ -24,6 +24,14 @@ public class OrdersAvroSerializer extends AvroSerializer {
         avroSchemaHelper = schemaHelper;
     }
 
+    /**
+     * Orders avro serializer
+     * @param schemaName schema to use for serializing
+     * @param key message property name
+     * @param message message property value
+     * @return serialized message
+     * @throws IOException
+     */
     public byte[] serialize(String schemaName, String key, String message) throws IOException {
         LOGGER.trace("Serializng message of type " + schemaName);
         Schema schema = getSchema(schemaName);
@@ -33,7 +41,13 @@ public class OrdersAvroSerializer extends AvroSerializer {
         return super.serialize(schema, orderReceivedData);
     }
 
-    Schema getSchema(String schemaName) throws IOException {
+    /**
+     * Fetches schema by name from registry
+     * @param schemaName schema name
+     * @return schema
+     * @throws IOException
+     */
+    public Schema getSchema(String schemaName) throws IOException {
         String host = System.getenv(REGISTRY_URL_ENV_VARIABLE);
         String url = host + String.format(CONTEXT_PATH, schemaName);
         Schema schema = avroSchemaHelper.getSchema(url);
