@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.OrderReceived;
 import uk.gov.companieshouse.orders.api.exception.ForbiddenException;
-import uk.gov.companieshouse.orders.api.kafka.OrdersAvroSerializer;
-import uk.gov.companieshouse.orders.api.kafka.OrdersMessageProducer;
+import uk.gov.companieshouse.orders.api.kafka.OrderReceivedMessageProducer;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
@@ -25,20 +25,15 @@ public class OrderService {
     private final CheckoutToOrderMapper mapper;
     private final OrderRepository repository;
 
-    private OrdersAvroSerializer ordersAvroSerializer;
-    private OrdersMessageProducer ordersMessageProducer;
+    private OrderReceivedMessageProducer ordersMessageProducer;
 
-    private static final String ORDER_RECEIVED_TOPIC = "order-received";
-    private static final String ORDER_RECEIVED_SCHEMA = "order-received";
-    private static final String MESSAGE_PROPERTY_ORDER_URI = "order_uri";
     @Value("${uk.gov.companieshouse.orders.api.order}")
     private String ORDER_ENDPOINT_URL;
 
     public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository,
-                        OrdersAvroSerializer serializer, OrdersMessageProducer producer) {
+                        OrderReceivedMessageProducer producer) {
         this.mapper = mapper;
         this.repository = repository;
-        this.ordersAvroSerializer = serializer;
         this.ordersMessageProducer = producer;
     }
 
@@ -77,8 +72,9 @@ public class OrderService {
      */
     private void sendOrderReceivedMessage(String orderId) throws Exception {
         String orderURI = ORDER_ENDPOINT_URL + "/" + orderId;
-        byte[] message = ordersAvroSerializer.serialize(ORDER_RECEIVED_SCHEMA, MESSAGE_PROPERTY_ORDER_URI, orderURI);
-        ordersMessageProducer.sendMessage(message, ORDER_RECEIVED_TOPIC);
+        OrderReceived orderReceived = new OrderReceived();
+        orderReceived.setOrderUri(orderURI);
+        ordersMessageProducer.sendMessage(orderReceived);
     }
 
     /**

@@ -11,32 +11,25 @@ import uk.gov.companieshouse.kafka.producer.ProducerConfig;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
-import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 
 @Service
-public class OrdersMessageProducer implements InitializingBean {
+public class OrdersKafkaProducer implements InitializingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
-    private static String KAFKA_BROKER_ADDR = "KAFKA_BROKER_ADDR";
     private static CHKafkaProducer chKafkaProducer;
     @Value("${kafka.broker.addresses}")
     private String brokerAddresses;
 
     /**
-     * Sends serialized message to kafka topic
-     * @param data serialized message
-     * @param topic kafka topic
+     * Sends message to Kafka topic
+     * @param message message
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void sendMessage(byte[] data, String topic) throws ExecutionException, InterruptedException {
-        LOGGER.trace("Sending message to CH Kafka topic " + topic);
-        Message message = new Message();
-        message.setValue(data);
-        message.setTopic(topic);
-        message.setTimestamp((new Date()).getTime());
+    public void sendMessage(final Message message) throws ExecutionException, InterruptedException {
+        LOGGER.trace("Sending message to kafka");
         chKafkaProducer.send(message);
     }
 

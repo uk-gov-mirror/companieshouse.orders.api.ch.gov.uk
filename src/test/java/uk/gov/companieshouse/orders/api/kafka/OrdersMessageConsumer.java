@@ -3,6 +3,7 @@ package uk.gov.companieshouse.orders.api.kafka;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.test.context.TestPropertySource;
 import uk.gov.companieshouse.kafka.consumer.CHKafkaConsumerGroup;
 import uk.gov.companieshouse.kafka.consumer.ConsumerConfig;
 import uk.gov.companieshouse.kafka.message.Message;
@@ -24,7 +25,7 @@ public class OrdersMessageConsumer implements InitializingBean {
     private String kafkaBrokerAddresses;
 
     public void connect() {
-        LOGGER.trace("Connecting to Kafka consumer group");
+        LOGGER.trace("Connecting to Kafka consumer group '" + consumerGroup + "'");
         consumerGroup.connect();
     }
 
