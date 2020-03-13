@@ -8,6 +8,8 @@ public class OrderData extends AbstractOrderData {
 
     private ActionedBy orderedBy;
 
+    private OrderLinks links;
+
     public LocalDateTime getOrderedAt() {
         return orderedAt;
     }
@@ -22,5 +24,13 @@ public class OrderData extends AbstractOrderData {
 
     public void setOrderedBy(ActionedBy orderedBy) {
         this.orderedBy = orderedBy;
+    }
+
+    public OrderLinks getLinks() {
+        return links;
+    }
+
+    public void setLinks(OrderLinks links) {
+        this.links = links;
     }
 }

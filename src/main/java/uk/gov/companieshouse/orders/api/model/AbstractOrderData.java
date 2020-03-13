@@ -19,9 +19,7 @@ public abstract class AbstractOrderData {
 
     private String kind;
 
-    private Links links;
-
-    private String totalBasketCost;
+    private String totalOrderCost;
 
     private String reference;
 
@@ -66,20 +64,12 @@ public abstract class AbstractOrderData {
         this.kind = kind;
     }
 
-    public Links getLinks() {
-        return links;
+    public String getTotalOrderCost() {
+        return totalOrderCost;
     }
 
-    public void setLinks(Links links) {
-        this.links = links;
-    }
-
-    public String getTotalBasketCost() {
-        return totalBasketCost;
-    }
-
-    public void setTotalBasketCost(String totalBasketCost) {
-        this.totalBasketCost = totalBasketCost;
+    public void setTotalOrderCost(String totalOrderCost) {
+        this.totalOrderCost = totalOrderCost;
     }
 
     public String getReference() {

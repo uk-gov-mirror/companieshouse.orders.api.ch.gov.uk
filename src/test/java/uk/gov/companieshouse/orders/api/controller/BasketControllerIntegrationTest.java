@@ -10,12 +10,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.ApiError;
+import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.model.BasketData;
+import uk.gov.companieshouse.orders.api.model.BasketItem;
+import uk.gov.companieshouse.orders.api.model.Certificate;
+import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
+import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
@@ -27,15 +39,22 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
@@ -43,6 +62,7 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@EmbeddedKafka
 class BasketControllerIntegrationTest {
 
     private static final String ITEM_URI = "/orderable/certificates/12345678";
@@ -181,14 +201,19 @@ class BasketControllerIntegrationTest {
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setForename(FORENAME);
+        options.setSurname(SURNAME);
+        certificate.setItemOptions(options);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         ResultCaptor<Checkout> resultCaptor = new ResultCaptor<>();
-        doAnswer(resultCaptor).when(checkoutService).createCheckout(any(Certificate.class), any(String.class));
+        doAnswer(resultCaptor).when(checkoutService).createCheckout(any(Certificate.class), any(String.class), any(String.class));
 
-        mockMvc.perform(post("/basket/checkout")
+        mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
                 .andExpect(status().isOk());
 
         final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(resultCaptor.getResult().getId());
@@ -196,6 +221,9 @@ class BasketControllerIntegrationTest {
         assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
         final Item item = retrievedCheckout.get().getData().getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        final CertificateItemOptions retrievedOptions = item.getItemOptions();
+        assertEquals(FORENAME, retrievedOptions.getForename());
+        assertEquals(SURNAME, retrievedOptions.getSurname());
     }
 
     @Test
@@ -205,7 +233,7 @@ class BasketControllerIntegrationTest {
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
 
-        mockMvc.perform(post("/basket/checkout")
+        mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
                 .andExpect(status().isConflict());
@@ -217,7 +245,7 @@ class BasketControllerIntegrationTest {
     @DisplayName("Checkout Basket fails to create checkout and returns 409, when basket does not exist")
     public void checkoutBasketFailsToCreateCheckoutIfBasketDoesNotExist() throws Exception {
 
-        mockMvc.perform(post("/basket/checkout")
+        mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
                 .andExpect(status().isConflict());
@@ -237,7 +265,7 @@ class BasketControllerIntegrationTest {
 
         when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
 
-        mockMvc.perform(post("/basket/checkout")
+        mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
                 .andExpect(status().isBadRequest());
@@ -249,7 +277,7 @@ class BasketControllerIntegrationTest {
     @DisplayName("Check out basket returns 403 if body is present")
     public void checkoutBasketReturnsBadRequestIfBodyIsPresent() throws Exception {
 
-        mockMvc.perform(post("/basket/checkout")
+        mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -346,16 +374,25 @@ class BasketControllerIntegrationTest {
         DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
         deliveryDetailsDTO.setAddressLine1("");
         deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
-        deliveryDetailsDTO.setCountry("");
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setSurname(SURNAME);
         deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
+        final ApiError expectedValidationError =
+                new ApiError(BAD_REQUEST,
+                        asList("delivery_details.address_line_1: must not be blank"));
+
         mockMvc.perform(patch("/basket")
-            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
-            .andExpect(status().isBadRequest());
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
+                .andDo(MockMvcResultHandlers.print());
     }
 
     @Test
@@ -370,7 +407,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -397,7 +434,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -423,7 +460,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -457,7 +494,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -484,7 +521,7 @@ class BasketControllerIntegrationTest {
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -508,7 +545,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -530,7 +567,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + UNKNOWN_CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + UNKNOWN_CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -560,7 +597,7 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        mockMvc.perform(patch("/basket/payment/" + CHECKOUT_ID)
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)

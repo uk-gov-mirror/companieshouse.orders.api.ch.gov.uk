@@ -24,17 +24,19 @@ public class OrderService {
 
     private final CheckoutToOrderMapper mapper;
     private final OrderRepository repository;
+    private final LinksGeneratorService linksGeneratorService;
 
     private OrderReceivedMessageProducer ordersMessageProducer;
 
-    @Value("${uk.gov.companieshouse.orders.api.order}")
+    @Value("${uk.gov.companieshouse.orders.api.orders}")
     private String ORDER_ENDPOINT_URL;
 
     public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository,
-                        OrderReceivedMessageProducer producer) {
+                        OrderReceivedMessageProducer producer, final LinksGeneratorService linksGeneratorService) {
         this.mapper = mapper;
         this.repository = repository;
         this.ordersMessageProducer = producer;
+        this.linksGeneratorService = linksGeneratorService;
     }
 
     /**
@@ -45,6 +47,7 @@ public class OrderService {
     public Order createOrder(final Checkout checkout) {
         final Order mappedOrder = mapper.checkoutToOrder(checkout);
         setCreationDateTimes(mappedOrder);
+        mappedOrder.getData().setLinks(linksGeneratorService.generateOrderLinks(mappedOrder.getId()));
 
         final Optional<Order> order = repository.findById(mappedOrder.getId());
         order.ifPresent(

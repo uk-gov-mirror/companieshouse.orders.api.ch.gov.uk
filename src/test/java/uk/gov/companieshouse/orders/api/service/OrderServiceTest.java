@@ -12,6 +12,8 @@ import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -20,6 +22,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
+    private static final String ORDER_ID = "0001";
+
     @InjectMocks
     private OrderService serviceUnderTest;
 
@@ -27,21 +31,25 @@ class OrderServiceTest {
     private Checkout checkout;
 
     @Mock
-    private Order order;
-
-    @Mock
     private CheckoutToOrderMapper mapper;
 
     @Mock
     private OrderRepository repository;
 
+    @Mock
+    private LinksGeneratorService linksGeneratorService;
+
     @Test
     void createOrderCreatesOrder() {
         // Given
+        final Order order = new Order();
+        order.setId(ORDER_ID);
         when(mapper.checkoutToOrder(checkout)).thenReturn(order);
         when(repository.save(order)).thenReturn(order);
 
         // When and then
         assertThat(serviceUnderTest.createOrder(checkout), is(order));
+        verify(linksGeneratorService, times(1)).generateOrderLinks(ORDER_ID);
+
     }
 }

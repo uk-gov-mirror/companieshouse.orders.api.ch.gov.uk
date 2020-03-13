@@ -18,7 +18,13 @@ import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.mapper.DeliveryDetailsMapper;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.ApiError;
+import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
+import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
@@ -125,7 +131,7 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(returnedBasket.getData());
     }
 
-    @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkout}")
+    @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}")
     public ResponseEntity<?> checkoutBasket(@RequestBody(required = false) String json,
                                             HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
@@ -153,13 +159,15 @@ public class BasketController {
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "Failed to retrieve item"));
         }
 
-        Checkout checkout = checkoutService.createCheckout(item, EricHeaderHelper.getIdentity(request));
+        Checkout checkout = checkoutService.createCheckout(item,
+                EricHeaderHelper.getIdentity(request),
+                EricHeaderHelper.getAuthorisedUser(request));
         trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(checkout);
+        return ResponseEntity.status(HttpStatus.OK).body(checkout.getData());
     }
 
-    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.payment}/{id}")
+    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}/{id}/payment")
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
                                                             HttpServletRequest request,

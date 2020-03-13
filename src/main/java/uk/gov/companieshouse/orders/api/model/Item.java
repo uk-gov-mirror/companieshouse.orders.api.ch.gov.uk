@@ -2,6 +2,7 @@ package uk.gov.companieshouse.orders.api.model;
 
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 public class Item {
@@ -29,13 +30,17 @@ public class Item {
 
     private String kind;
 
-    private Links links;
+    private ItemLinks links;
 
     private Boolean isPostalDelivery;
 
     private Integer quantity;
 
     private String itemUri;
+
+    private LocalDateTime satisfiedAt;
+
+    private ItemStatus status;
 
     public String getId() {
         return id;
@@ -141,11 +146,11 @@ public class Item {
         this.quantity = quantity;
     }
 
-    public Links getLinks() {
+    public ItemLinks getLinks() {
         return links;
     }
 
-    public void setLinks(Links links) {
+    public void setLinks(ItemLinks links) {
         this.links = links;
     }
 
@@ -155,5 +160,21 @@ public class Item {
 
     public void setItemUri(String itemUri) {
         this.itemUri = itemUri;
+    }
+
+    public LocalDateTime getSatisfiedAt() {
+        return satisfiedAt;
+    }
+
+    public void setSatisfiedAt(LocalDateTime satisfiedAt) {
+        this.satisfiedAt = satisfiedAt;
+    }
+
+    public ItemStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ItemStatus status) {
+        this.status = status;
     }
 }
