@@ -20,7 +20,7 @@ public class OrdersMessageConsumer implements InitializingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
     private static final String ORDER_RECEIVED_TOPIC = "order-received";
     private static final String GROUP_NAME = "order-received-consumers";
-    private static CHKafkaConsumerGroup consumerGroup;
+    private CHKafkaConsumerGroup consumerGroup;
     @Value("${kafka.broker.addresses}")
     private String kafkaBrokerAddresses;
 

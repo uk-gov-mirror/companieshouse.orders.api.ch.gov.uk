@@ -18,7 +18,7 @@ import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_
 @Service
 public class OrdersKafkaProducer implements InitializingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
-    private static CHKafkaProducer chKafkaProducer;
+    private CHKafkaProducer chKafkaProducer;
     @Value("${kafka.broker.addresses}")
     private String brokerAddresses;
 
