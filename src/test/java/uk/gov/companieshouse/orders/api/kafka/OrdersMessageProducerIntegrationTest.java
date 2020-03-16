@@ -1,12 +1,16 @@
 package uk.gov.companieshouse.orders.api.kafka;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import uk.gov.companieshouse.kafka.message.Message;
+import uk.gov.companieshouse.kafka.producer.CHKafkaProducer;
+import uk.gov.companieshouse.kafka.serialization.AvroSerializer;
+import uk.gov.companieshouse.kafka.serialization.SerializerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
 
 import java.util.List;
@@ -29,6 +33,9 @@ public class OrdersMessageProducerIntegrationTest {
     @Autowired
     OrdersMessageConsumer testOrdersMessageConsumer;
 
+    @Autowired
+    SerializerFactory serializerFactory;
+
     @Test
     void testSendOrderReceivedMessageToKafkaTopic() throws Exception {
         // Given an order is generated
@@ -38,9 +45,17 @@ public class OrdersMessageProducerIntegrationTest {
         // When order-received message is sent to kafka topic
         List<Message> messages = sendAndConsumeMessage(orderReceived);
 
-        // Then we have successfully consumed some messages.
+        // Then we have successfully consumed a message.
         assertThat(messages.isEmpty(), is(false));
-        assertEquals(new String(messages.get(0).getValue()), ORDER_URI_SERIALIZED);
+        byte[] consumedMessageSerialized = messages.get(0).getValue();
+        String deserializedConsumedMessage = new String(consumedMessageSerialized);
+
+        // And it matches the serialized order-received object
+        AvroSerializer<OrderReceived> serializer = serializerFactory.getGenericRecordSerializer(OrderReceived.class);
+        byte[] orderReceivedSerialized = serializer.toBinary(orderReceived);
+        String deserializedOrderReceived = new String(orderReceivedSerialized);
+
+        assertEquals(deserializedConsumedMessage, deserializedOrderReceived);
     }
 
     private List<Message> sendAndConsumeMessage(final OrderReceived orderReceived) throws Exception {
