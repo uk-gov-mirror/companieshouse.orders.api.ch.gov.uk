@@ -12,6 +12,7 @@ import uk.gov.companieshouse.orders.OrderReceived;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.hamcrest.Matchers.is;
 
 @SpringBootTest
@@ -20,6 +21,7 @@ import static org.hamcrest.Matchers.is;
 @TestPropertySource(properties="uk.gov.companieshouse.orders.api.order=/order")
 public class OrdersMessageProducerIntegrationTest {
     private static final String ORDER_URI = "/order/ORDER-12345";
+    private static final String ORDER_URI_SERIALIZED = "$/order/ORDER-12345";
 
     @Autowired
     OrderReceivedMessageProducer ordersMessageProducerUnderTest;
@@ -38,6 +40,7 @@ public class OrdersMessageProducerIntegrationTest {
 
         // Then we have successfully consumed some messages.
         assertThat(messages.isEmpty(), is(false));
+        assertEquals(new String(messages.get(0).getValue()), ORDER_URI_SERIALIZED);
     }
 
     private List<Message> sendAndConsumeMessage(final OrderReceived orderReceived) throws Exception {
