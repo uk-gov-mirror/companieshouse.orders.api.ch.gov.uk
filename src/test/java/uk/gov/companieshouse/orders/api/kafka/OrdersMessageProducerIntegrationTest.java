@@ -1,22 +1,14 @@
 package uk.gov.companieshouse.orders.api.kafka;
 
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import uk.gov.companieshouse.kafka.message.Message;
-import uk.gov.companieshouse.kafka.serialization.SerializerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,11 +27,6 @@ public class OrdersMessageProducerIntegrationTest {
     @Autowired
     OrdersMessageConsumer testOrdersMessageConsumer;
 
-    @Before
-    public void init() throws IOException {
-        MockitoAnnotations.initMocks(this);
-    }
-
     @Test
     void testSendOrderReceivedMessageToKafkaTopic() throws Exception {
         // Given an order is generated
@@ -49,7 +36,7 @@ public class OrdersMessageProducerIntegrationTest {
         // When order-received message is sent to kafka topic
         List<Message> messages = sendAndConsumeMessage(orderReceived);
 
-        // Then it is available to be consumed by a kafka consumer
+        // Then we have successfully consumed some messages.
         assertThat(messages.isEmpty(), is(false));
     }
 
