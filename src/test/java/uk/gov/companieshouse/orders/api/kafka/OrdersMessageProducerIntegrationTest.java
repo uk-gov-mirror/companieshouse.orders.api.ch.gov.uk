@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 @TestPropertySource(properties="uk.gov.companieshouse.orders.api.order=/order")
 public class OrdersMessageProducerIntegrationTest {
     private static final String ORDER_URI = "/order/ORDER-12345";
-    private static final String ORDER_URI_SERIALIZED = "$/order/ORDER-12345";
 
     @Autowired
     OrderReceivedMessageProducer ordersMessageProducerUnderTest;
