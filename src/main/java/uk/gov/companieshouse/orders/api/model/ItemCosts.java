@@ -1,23 +1,25 @@
 package uk.gov.companieshouse.orders.api.model;
 
+import java.util.Objects;
+
 public class ItemCosts {
 
     private String discountApplied;
 
-    private String individualItemCost;
+    private String itemCost;
 
-    private String postageCost;
+    private String calculatedCost;
 
-    private String totalCost;
+    private ProductType productType;
 
     public ItemCosts() {
     }
 
-    public ItemCosts(String discountApplied, String individualItemCost, String postageCost, String totalCost) {
+    public ItemCosts(String discountApplied, String itemCost, String calculatedCost, ProductType productType) {
         this.discountApplied = discountApplied;
-        this.individualItemCost = individualItemCost;
-        this.postageCost = postageCost;
-        this.totalCost = totalCost;
+        this.itemCost = itemCost;
+        this.calculatedCost = calculatedCost;
+        this.productType = productType;
     }
 
     public String getDiscountApplied() {
@@ -28,27 +30,43 @@ public class ItemCosts {
         this.discountApplied = discountApplied;
     }
 
-    public String getIndividualItemCost() {
-        return individualItemCost;
+    public String getItemCost() {
+        return itemCost;
     }
 
-    public void setIndividualItemCost(String individualItemCost) {
-        this.individualItemCost = individualItemCost;
+    public void setItemCost(String itemCost) {
+        this.itemCost = itemCost;
     }
 
-    public String getPostageCost() {
-        return postageCost;
+    public String getCalculatedCost() {
+        return calculatedCost;
     }
 
-    public void setPostageCost(String postageCost) {
-        this.postageCost = postageCost;
+    public void setCalculatedCost(String calculatedCost) {
+        this.calculatedCost = calculatedCost;
     }
 
-    public String getTotalCost() {
-        return totalCost;
+    public ProductType getProductType() {
+        return productType;
     }
 
-    public void setTotalCost(String totalCost) {
-        this.totalCost = totalCost;
+    public void setProductType(ProductType productType) {
+        this.productType = productType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ItemCosts)) return false;
+        ItemCosts itemCosts = (ItemCosts) o;
+        return Objects.equals(discountApplied, itemCosts.discountApplied) &&
+                Objects.equals(itemCost, itemCosts.itemCost) &&
+                Objects.equals(calculatedCost, itemCosts.calculatedCost) &&
+                productType == itemCosts.productType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(discountApplied, itemCost, calculatedCost, productType);
     }
 }

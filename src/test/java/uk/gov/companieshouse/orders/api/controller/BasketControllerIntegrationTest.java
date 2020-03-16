@@ -16,17 +16,7 @@ import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
-import uk.gov.companieshouse.orders.api.model.ApiError;
-import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
-import uk.gov.companieshouse.orders.api.model.Certificate;
-import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
-import uk.gov.companieshouse.orders.api.model.Item;
-import uk.gov.companieshouse.orders.api.model.Order;
-import uk.gov.companieshouse.orders.api.model.PaymentStatus;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
@@ -35,10 +25,10 @@ import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.util.ResultCaptor;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -52,6 +42,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
+import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
@@ -79,6 +71,13 @@ class BasketControllerIntegrationTest {
     private static final String SURNAME = "surname";
     private static final String CHECKOUT_ID = "1234";
     private static final String UNKNOWN_CHECKOUT_ID = "5555";
+
+    private static final List<ItemCosts> ITEM_COSTS =
+             asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
+                    new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY),
+                    new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY));
+    private static final String POSTAGE_COST = "0";
+    private static final String TOTAL_ITEM_COST = "70";
 
     @Autowired
     private MockMvc mockMvc;
@@ -283,6 +282,50 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         assertEquals(0, checkoutRepository.count());
+    }
+
+    @Test
+    @DisplayName("Checkout basket successfully creates checkout with costs from Certificates API")
+    public void checkoutBasketCheckoutContainsCosts() throws Exception {
+        final Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        basketRepository.save(basket);
+
+        final Certificate certificate = new Certificate();
+        certificate.setItemCosts(ITEM_COSTS);
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setTotalItemCost(TOTAL_ITEM_COST);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        final CheckoutData expectedResponseBody = new CheckoutData();
+        final Item item = new Item();
+        item.setItemCosts(ITEM_COSTS);
+        item.setPostageCost(POSTAGE_COST);
+        item.setTotalItemCost(TOTAL_ITEM_COST);
+        expectedResponseBody.setItems(singletonList(item));
+
+        final ResultCaptor<Checkout> resultCaptor = new ResultCaptor<>();
+        doAnswer(resultCaptor)
+                .when(checkoutService)
+                .createCheckout(any(Certificate.class), any(String.class), any(String.class));
+
+        mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(expectedResponseBody)));
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(resultCaptor.getResult().getId());
+        assertTrue(retrievedCheckout.isPresent());
+        final Item retrievedItem = retrievedCheckout.get().getData().getItems().get(0);
+        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
+        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
+        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
+
     }
 
     @Test
@@ -505,7 +548,6 @@ class BasketControllerIntegrationTest {
         verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get(), intervalStart, intervalEnd);
     }
 
-    @Test
     @DisplayName("PAID patch basket payment request creates order")
     public void paidPatchBasketPaymentDetailsCreatesOrder() throws Exception {
         final Checkout checkout = new Checkout();
@@ -529,6 +571,41 @@ class BasketControllerIntegrationTest {
         final LocalDateTime intervalEnd = LocalDateTime.now();
 
         assertOrderCreatedCorrectly(CHECKOUT_ID, intervalStart, intervalEnd);
+    }
+
+    @Test
+    @DisplayName("PAID patch basket payment request creates order with costs from the checkout")
+    public void paidPatchBasketPaymentDetailsOrderContainsCosts() throws Exception {
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        final Item item = new Item();
+        item.setItemCosts(ITEM_COSTS);
+        item.setPostageCost(POSTAGE_COST);
+        item.setTotalItemCost(TOTAL_ITEM_COST);
+        checkout.getData().setItems(singletonList(item));
+        checkoutRepository.save(checkout);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        final LocalDateTime intervalStart = LocalDateTime.now();
+
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        final LocalDateTime intervalEnd = LocalDateTime.now();
+
+        final Order orderRetrieved = assertOrderCreatedCorrectly(CHECKOUT_ID, intervalStart, intervalEnd);
+        final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
+        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
+        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
+        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
     }
 
     @Test
@@ -644,15 +721,17 @@ class BasketControllerIntegrationTest {
      * @param expectedOrderId the expected ID of the newly created order
      * @param intervalStart roughly the start of the test
      * @param intervalEnd roughly the end of the test
+     * @return the order retrieved from the database for further assertions
      */
-    private void assertOrderCreatedCorrectly(final String expectedOrderId,
-                                             final LocalDateTime intervalStart,
-                                             final LocalDateTime intervalEnd) {
+    private Order assertOrderCreatedCorrectly(final String expectedOrderId,
+                                              final LocalDateTime intervalStart,
+                                              final LocalDateTime intervalEnd) {
         final Optional<Order> retrievedOrder = orderRepository.findById(expectedOrderId);
         assertThat(retrievedOrder.isPresent(), is(true));
-        assertThat(retrievedOrder.get().getId(), is(expectedOrderId));
-
-        verifyCreationTimestampsWithinExecutionInterval(retrievedOrder.get(), intervalStart, intervalEnd);
+        final Order order = retrievedOrder.get();
+        assertThat(order.getId(), is(expectedOrderId));
+        verifyCreationTimestampsWithinExecutionInterval(order, intervalStart, intervalEnd);
+        return order;
     }
 
     /**
