@@ -35,10 +35,6 @@ public interface CheckoutDataMapper {
         classOfPayment.add(CLASS_OF_PAYMENT_ORDERABLE_ITEM);
         itemDTO.setClassOfPayment(classOfPayment);
 
-        ItemCosts itemCosts = item.getItemCosts();
-        String totalCost = itemCosts.getTotalCost();
-        itemDTO.setAmount(totalCost);
-
         List<String> availablePaymentMethods = new ArrayList<>();
         availablePaymentMethods.add(AVAILABLE_PAYMENT_METHOD_CREDIT_CARD);
         itemDTO.setAvailablePaymentMethods(availablePaymentMethods);
