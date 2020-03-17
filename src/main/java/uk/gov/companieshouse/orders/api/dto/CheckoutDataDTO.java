@@ -3,9 +3,13 @@ package uk.gov.companieshouse.orders.api.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.gson.Gson;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
+import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @JsonPropertyOrder(alphabetic = true)
 public class CheckoutDataDTO {
@@ -20,6 +24,23 @@ public class CheckoutDataDTO {
 
     @JsonProperty("links")
     private CheckoutLinksDTO links;
+
+    @JsonProperty("payment_reference")
+    private String paymentReference;
+
+    @JsonProperty("etag")
+    private String etag;
+
+    @JsonProperty("delivery_details")
+    private DeliveryDetails deliveryDetails = new DeliveryDetails();
+
+    private List<Item> items = new ArrayList<>();
+
+    private String kind;
+
+    private String totalOrderCost;
+
+    private String reference;
 
     public LocalDateTime getPaidAt() {
         return paidAt;
