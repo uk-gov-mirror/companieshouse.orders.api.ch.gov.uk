@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
@@ -53,6 +54,7 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@EmbeddedKafka
 class BasketControllerIntegrationTest {
 
     private static final String ITEM_URI = "/orderable/certificates/12345678";
