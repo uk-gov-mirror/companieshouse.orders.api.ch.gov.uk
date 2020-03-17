@@ -2,6 +2,7 @@ package uk.gov.companieshouse.orders.api.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.companieshouse.kafka.exceptions.SerializationException;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
@@ -14,6 +15,7 @@ import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 
@@ -29,7 +31,7 @@ public class OrderService {
     private OrderReceivedMessageProducer ordersMessageProducer;
 
     @Value("${uk.gov.companieshouse.orders.api.orders}")
-    private String ORDER_ENDPOINT_URL;
+    private String orderEndpointU;
 
     public OrderService(final CheckoutToOrderMapper mapper, final OrderRepository repository,
                         OrderReceivedMessageProducer producer, final LinksGeneratorService linksGeneratorService) {
@@ -71,10 +73,13 @@ public class OrderService {
     /**
      * Sends a message to Kafka topic 'order-received'
      * @param orderId order id
-     * @throws Exception
+     * @throws InterruptedException
+     * @throws ExecutionException
+     * @throws SerializationException
      */
-    private void sendOrderReceivedMessage(String orderId) throws Exception {
-        String orderURI = ORDER_ENDPOINT_URL + "/" + orderId;
+    private void sendOrderReceivedMessage(String orderId)
+            throws InterruptedException, ExecutionException, SerializationException {
+        String orderURI = orderEndpointU + "/" + orderId;
         OrderReceived orderReceived = new OrderReceived();
         orderReceived.setOrderUri(orderURI);
         ordersMessageProducer.sendMessage(orderReceived);
