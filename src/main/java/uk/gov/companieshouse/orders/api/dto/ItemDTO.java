@@ -1,12 +1,10 @@
 package uk.gov.companieshouse.orders.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.List;
 import java.util.Map;
 
-@JsonPropertyOrder(alphabetic = true)
 public class ItemDTO {
 
     @JsonProperty("amount")
@@ -48,29 +46,17 @@ public class ItemDTO {
         return descriptionIdentifier;
     }
 
-    public String getAmount() { return amount; }
-
-    public void setAmount(String amount) { this.amount = amount; }
-
-    public List<String> getAvailablePaymentMethods() { return availablePaymentMethods; }
-
-    public void setAvailablePaymentMethods(List<String> availablePaymentMethods) { this.availablePaymentMethods = availablePaymentMethods; }
-
-    public List<String> getClassOfPayment() { return classOfPayment; }
-
-    public void setClassOfPayment(List<String> classOfPayment) { this.classOfPayment = classOfPayment; }
-
-    public String getResourceKind() { return resourceKind; }
-
-    public void setResourceKind(String resourceKind) { this.resourceKind = resourceKind; }
-
-    public void setDescriptionIdentifier(String descriptionIdentifier) { this.descriptionIdentifier = descriptionIdentifier; }
+    public void setDescriptionIdentifier(String descriptionIdentifier) {
+        this.descriptionIdentifier = descriptionIdentifier;
+    }
 
     public Map<String, String> getDescriptionValues() {
         return descriptionValues;
     }
 
-    public void setDescriptionValues(Map<String, String> descriptionValues) { this.descriptionValues = descriptionValues; }
+    public void setDescriptionValues(Map<String, String> descriptionValues) {
+        this.descriptionValues = descriptionValues;
+    }
 
     public String getKind() {
         return kind;
@@ -80,11 +66,43 @@ public class ItemDTO {
         this.kind = kind;
     }
 
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+
+    public List<String> getAvailablePaymentMethods() {
+        return availablePaymentMethods;
+    }
+
+    public void setAvailablePaymentMethods(List<String> availablePaymentMethods) {
+        this.availablePaymentMethods = availablePaymentMethods;
+    }
+
+    public List<String> getClassOfPayment() {
+        return classOfPayment;
+    }
+
+    public void setClassOfPayment(List<String> classOfPayment) {
+        this.classOfPayment = classOfPayment;
+    }
+
     public String getProductType() {
         return productType;
     }
 
     public void setProductType(String productType) {
         this.productType = productType;
+    }
+
+    public String getResourceKind() {
+        return resourceKind;
+    }
+
+    public void setResourceKind(String resourceKind) {
+        this.resourceKind = resourceKind;
     }
 }

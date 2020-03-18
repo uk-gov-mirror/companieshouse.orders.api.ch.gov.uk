@@ -6,13 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
-import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.CheckoutDataDTO;
+import uk.gov.companieshouse.orders.api.dto.*;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
+import uk.gov.companieshouse.orders.api.mapper.CheckoutToPaymentDetailsMapper;
 import uk.gov.companieshouse.orders.api.mapper.DeliveryDetailsMapper;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.model.Basket;
@@ -21,7 +18,6 @@ import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
-import uk.gov.companieshouse.orders.api.mapper.CheckoutDataMapper;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
@@ -50,7 +46,7 @@ public class BasketController {
 
     private final BasketMapper basketMapper;
     private final DeliveryDetailsMapper deliveryDetailsMapper;
-    private final CheckoutDataMapper checkoutDataMapper;
+    private final CheckoutToPaymentDetailsMapper checkoutToPaymentDetailsMapper;
     private final BasketService basketService;
     private final CheckoutService checkoutService;
     private final CheckoutBasketValidator checkoutBasketValidator;
@@ -60,7 +56,7 @@ public class BasketController {
 
     public BasketController(final BasketMapper mapper,
                             final DeliveryDetailsMapper deliveryDetailsMapper,
-                            final CheckoutDataMapper checkoutDataMapper,
+                            final CheckoutToPaymentDetailsMapper checkoutDataMapper,
                             final BasketService basketService,
                             final CheckoutService checkoutService,
                             final CheckoutBasketValidator checkoutBasketValidator,
@@ -69,7 +65,7 @@ public class BasketController {
                             final OrderService orderService){
         this.deliveryDetailsMapper = deliveryDetailsMapper;
         this.basketMapper = mapper;
-        this.checkoutDataMapper = checkoutDataMapper;
+        this.checkoutToPaymentDetailsMapper = checkoutDataMapper;
         this.basketService = basketService;
         this.checkoutService = checkoutService;
         this.checkoutBasketValidator = checkoutBasketValidator;
@@ -83,19 +79,21 @@ public class BasketController {
                                       final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
         trace("Getting checkout item details", requestId);
 
-        Optional<Checkout> checkout = this.checkoutService.getCheckoutById(checkoutId);
-        if(checkout.isPresent()) {
-            CheckoutData checkoutData = checkout.get().getData();
+        final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
+                .orElseThrow(ResourceNotFoundException::new);
+        //if(checkout.isPresent()) {
+            CheckoutData checkoutData = checkout.getData();
 
-            CheckoutDataDTO checkoutDataDTO = checkoutDataMapper.checkoutDataToCheckoutDataDTO(checkoutData);
+            PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
+            checkoutToPaymentDetailsMapper.updateDTOWithPaymentDetails(checkoutData, paymentDetailsDTO);
             trace("Successfully returned payment details for checkoutId "+checkoutId, requestId);
-            return ResponseEntity.status(OK).body(checkoutDataDTO);
-        }
+            return ResponseEntity.status(OK).body(paymentDetailsDTO);
+        /*}
         else {
             final List<String> errors = new ArrayList<>();
             errors.add("Checkout resource not found");
             return ResponseEntity.status(NOT_FOUND).body(new ApiError(NOT_FOUND, errors));
-        }
+        }*/
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
