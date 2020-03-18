@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import uk.gov.companieshouse.kafka.serialization.SerializerFactory;
 import uk.gov.companieshouse.orders.api.interceptor.LoggingInterceptor;
 
 @Configuration
@@ -29,4 +30,8 @@ public class ApplicationConfig implements WebMvcConfigurer {
                 .findAndRegisterModules();
     }
 
+    @Bean
+    SerializerFactory serializerFactory() {
+        return new SerializerFactory();
+    }
 }
