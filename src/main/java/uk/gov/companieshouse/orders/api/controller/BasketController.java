@@ -43,13 +43,12 @@ import java.util.Optional;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.LOG_MESSAGE_DATA_KEY;
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.REQUEST_ID_HEADER_NAME;
 
 @RestController
 public class BasketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
-
-    private static final String REQUEST_ID_HEADER_NAME = "X-Request-ID";
-    private static final String LOG_MESSAGE_DATA_KEY = "message";
 
     private final BasketMapper mapper;
     private final DeliveryDetailsMapper deliveryDetailsMapper;

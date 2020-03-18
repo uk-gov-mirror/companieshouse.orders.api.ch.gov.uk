@@ -51,6 +51,9 @@ public class OrderService {
         return repository.save(mappedOrder);
     }
 
+    public Optional<Order> getOrder(String id) {
+        return repository.findById(id);
+    }
     /**
      * Sets the created at and updated at date time 'timestamps' to now.
      * @param order the order to be 'timestamped'
@@ -59,6 +62,7 @@ public class OrderService {
         final LocalDateTime now = LocalDateTime.now();
         order.setCreatedAt(now);
         order.setUpdatedAt(now);
+        order.getData().setOrderedAt(now);
     }
 
 }
