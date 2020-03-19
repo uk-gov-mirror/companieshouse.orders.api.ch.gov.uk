@@ -59,7 +59,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void throwsNotFoundIfOrderDoesNotExist() throws Exception {
+    public void respondsWithNotFoundIfOrderDoesNotExist() throws Exception {
         mockMvc.perform(get("/orders/"+ORDER_ID)
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
