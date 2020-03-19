@@ -77,23 +77,17 @@ public class BasketController {
     @GetMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment")
     public ResponseEntity<Object> getPaymentDetails(final @PathVariable String checkoutId,
                                       final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
-        trace("Getting checkout item details", requestId);
+        trace("Getting checkout item details for id: " + checkoutId, requestId);
 
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
-        //if(checkout.isPresent()) {
-            CheckoutData checkoutData = checkout.getData();
+        CheckoutData checkoutData = checkout.getData();
 
-            PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
-            checkoutToPaymentDetailsMapper.updateDTOWithPaymentDetails(checkoutData, paymentDetailsDTO);
-            trace("Successfully returned payment details for checkoutId "+checkoutId, requestId);
-            return ResponseEntity.status(OK).body(paymentDetailsDTO);
-        /*}
-        else {
-            final List<String> errors = new ArrayList<>();
-            errors.add("Checkout resource not found");
-            return ResponseEntity.status(NOT_FOUND).body(new ApiError(NOT_FOUND, errors));
-        }*/
+        PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
+        //checkoutToPaymentDetailsMapper.updateDTOWithPaymentDetails(checkoutData, paymentDetailsDTO);
+        trace("Successfully returned payment details for checkoutId "+checkoutId, requestId);
+
+        return ResponseEntity.status(OK).body(paymentDetailsDTO);
     }
 
     @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
