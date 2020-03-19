@@ -70,6 +70,9 @@ public class OrderService {
         return repository.save(mappedOrder);
     }
 
+    public Optional<Order> getOrder(String id) {
+        return repository.findById(id);
+    }
     /**
      * Sends a message to Kafka topic 'order-received'
      * @param orderId order id
@@ -93,5 +96,6 @@ public class OrderService {
         final LocalDateTime now = LocalDateTime.now();
         order.setCreatedAt(now);
         order.setUpdatedAt(now);
+        order.getData().setOrderedAt(now);
     }
 }

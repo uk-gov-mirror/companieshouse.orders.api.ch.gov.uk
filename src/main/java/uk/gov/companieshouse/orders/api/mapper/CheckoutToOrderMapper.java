@@ -8,8 +8,8 @@ import uk.gov.companieshouse.orders.api.model.Order;
 @Mapper(componentModel = "spring")
 public interface CheckoutToOrderMapper {
 
-    @Mapping(source = "data.paidAt", target = "data.orderedAt")
     @Mapping(source = "data.checkedOutBy", target = "data.orderedBy")
+    @Mapping(target = "data.orderedAt", ignore = true)
     Order checkoutToOrder(Checkout checkout);
 
 }

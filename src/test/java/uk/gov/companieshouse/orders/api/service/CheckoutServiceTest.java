@@ -31,6 +31,7 @@ public class CheckoutServiceTest {
     private static final String ETAG = "etag";
     private static final String LINKS_SELF = "links/self";
     private static final String LINKS_PAYMENT = "links/payment";
+    private static final String KIND = "order";
 
     @InjectMocks
     CheckoutService serviceUnderTest;
@@ -74,6 +75,7 @@ public class CheckoutServiceTest {
         assertEquals(ERIC_IDENTITY_VALUE, argCaptor.getValue().getUserId());
         assertEquals(COMPANY_NUMBER, argCaptor.getValue().getData().getItems().get(0).getCompanyNumber());
         assertEquals(argCaptor.getValue().getId(), argCaptor.getValue().getData().getReference());
+        assertEquals(KIND, argCaptor.getValue().getData().getKind());
     }
 
     @Test

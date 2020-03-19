@@ -42,7 +42,8 @@ public class CheckoutToOrderMapperTest {
     private static final ItemCosts ITEM_COSTS = new ItemCosts("1", "2", "3", CERTIFICATE);
     private static final String POSTAGE_COST = "0";
     private static final String TOTAL_ITEM_COST = "100";
-    private static final String KIND = "certificate";
+    private static final String ITEM_KIND = "certificate";
+    private static final String ORDER_KIND = "order";
     private static final boolean POSTAL_DELIVERY = true;
     private static final String CUSTOMER_REFERENCE = "Certificate ordered by NJ.";
     private static final String ORDER_REFERENCE = "Order reference";
@@ -135,7 +136,7 @@ public class CheckoutToOrderMapperTest {
         final CheckoutData data = new CheckoutData();
         data.setDeliveryDetails(DELIVERY_DETAILS);
         data.setEtag(TOKEN_ETAG);
-        data.setKind(KIND);
+        data.setKind(ORDER_KIND);
         data.setLinks(LINKS);
         data.setPaymentReference("1234");
         data.setTotalOrderCost("100");
@@ -154,7 +155,7 @@ public class CheckoutToOrderMapperTest {
         item.setItemCosts(singletonList(ITEM_COSTS));
         item.setPostageCost(POSTAGE_COST);
         item.setTotalItemCost(TOTAL_ITEM_COST);
-        item.setKind(KIND);
+        item.setKind(ITEM_KIND);
         item.setPostalDelivery(POSTAL_DELIVERY);
         item.setItemOptions(ITEM_OPTIONS);
         item.setEtag(TOKEN_ETAG);
@@ -177,7 +178,6 @@ public class CheckoutToOrderMapperTest {
         assertThat(order.getData().getPaymentReference(), is(checkout.getData().getPaymentReference()));
         assertThat(order.getData().getTotalOrderCost(), is(checkout.getData().getTotalOrderCost()));
         assertThat(order.getData().getReference(), is(checkout.getData().getReference()));
-        assertThat(order.getData().getOrderedAt(), is(checkout.getData().getPaidAt()));
         assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));
     }
 

@@ -43,6 +43,7 @@ public class CheckoutService {
         checkout.getData().setLinks(linksGeneratorService.generateCheckoutLinks(objectId));
         checkout.getData().getItems().add(item);
         checkout.getData().setReference(objectId);
+        checkout.getData().setKind("order");
         return checkoutRepository.save(checkout);
     }
 
