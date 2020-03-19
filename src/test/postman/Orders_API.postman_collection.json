@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d4d1d4cd-d3e3-46f9-a805-b11d4dadbeee",
+		"_postman_id": "07392165-d6d9-4830-b3a3-59395f5cc4de",
 		"name": "Orders API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -305,6 +305,37 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Orders API",
+			"item": [
+				{
+					"name": "Get an order",
+					"item": [
+						{
+							"name": "Get an order",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/orders/5e73343ae8cc406d978ef08f",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"orders",
+										"5e73343ae8cc406d978ef08f"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
 		}
 	],
 	"auth": {
@@ -312,7 +343,7 @@
 		"oauth2": [
 			{
 				"key": "accessToken",
-				"value": "n1fwWk6oYj3W1r4yV6Wf8zQeieDN9-RBFnbM35xfKYuCbDegNHP91htLQuEVIMwlKM5Kzq2QYVpq0blIOymaDg",
+				"value": "65zWkuhzJJhOeEiLiFn5tgAZMjuZa2yX4mPPWBB_9nfQ_GMvawP0hx3OSZ4Zeq05rdHL17yKuZg2SbZjeop3cA",
 				"type": "string"
 			},
 			{
