@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.model.OrderData;
@@ -22,6 +23,7 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_
 
 @AutoConfigureMockMvc
 @SpringBootTest
+@EmbeddedKafka
 public class OrderControllerIntegrationTest {
     private static final String ORDER_ID = "0001";
     private static final String ORDER_REFERENCE = "0001";
