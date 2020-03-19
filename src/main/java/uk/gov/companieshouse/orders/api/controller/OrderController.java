@@ -35,7 +35,7 @@ public class OrderController {
         trace("ENTERING getOrder(" + id + ")", requestId);
         final Order orderRetrieved = orderService.getOrder(id)
                 .orElseThrow(ResourceNotFoundException::new);
-        trace("EXITING getOrder(" + id + ") with" +orderRetrieved.getData(),  requestId);
+        trace("EXITING getOrder(" + id + ") with " +orderRetrieved.getData(),  requestId);
         return ResponseEntity.ok().body(orderRetrieved.getData());
     }
 
