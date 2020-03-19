@@ -24,7 +24,7 @@ public class PaymentDetailsDTO {
     @JsonProperty("links")
     private PaymentLinks links;
 
-    @JsonProperty("paidAt")
+    @JsonProperty("paid_at")
     private LocalDateTime paidAt;
 
     @JsonProperty("payment_reference")

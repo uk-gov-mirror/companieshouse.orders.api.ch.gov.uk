@@ -83,8 +83,8 @@ public class BasketController {
                 .orElseThrow(ResourceNotFoundException::new);
         CheckoutData checkoutData = checkout.getData();
 
-        PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
-        //checkoutToPaymentDetailsMapper.updateDTOWithPaymentDetails(checkoutData, paymentDetailsDTO);
+        PaymentDetailsDTO paymentDetailsDTO = checkoutToPaymentDetailsMapper.checkoutToPaymentDetailsMapper(checkout);
+        checkoutToPaymentDetailsMapper.updateDTOWithPaymentDetails(checkoutData, paymentDetailsDTO);
         trace("Successfully returned payment details for checkoutId "+checkoutId, requestId);
 
         return ResponseEntity.status(OK).body(paymentDetailsDTO);
