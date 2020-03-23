@@ -6,8 +6,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import uk.gov.companieshouse.orders.api.dto.ItemDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
+import uk.gov.companieshouse.orders.api.dto.PaymentLinksDTO;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.CheckoutData;
+import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.ItemCosts;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,14 +18,14 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CheckoutToPaymentDetailsMapper {
 
-    static final String CLASS_OF_PAYMENT_ORDERABLE_ITEM = "orderable-item";
-    static final String AVAILABLE_PAYMENT_METHOD_CREDIT_CARD = "credit-card";
-    static final String ITEM_RESOURCE_TYPE = "cost#cost";
-    static final String CHECKOUT_RESOURCE_TYPE = "payment-details#payment-details";
+    String CLASS_OF_PAYMENT_ORDERABLE_ITEM = "orderable-item";
+    String AVAILABLE_PAYMENT_METHOD_CREDIT_CARD = "credit-card";
+    String ITEM_RESOURCE_TYPE = "cost#cost";
+    String CHECKOUT_KIND = "payment-details#payment-details";
 
     @Mapping(source = "data.paidAt", target = "paidAt")
     @Mapping(source = "data.reference", target = "paymentReference")
-    @Mapping(source = "data.items", target = "items")
+    //@Mapping(source = "data.items", target = "items")
     @Mapping(source = "data.status", target = "status")
     @Mapping(source = "data.links.payment", target = "links.self")
     @Mapping(source = "data.links.self", target = "links.resource")
@@ -31,8 +34,12 @@ public interface CheckoutToPaymentDetailsMapper {
 
     @AfterMapping
     default void updateDTOWithPaymentDetails(CheckoutData checkoutData, @MappingTarget PaymentDetailsDTO paymentDetailsDTO) {
-        List<ItemDTO> itemDTOs = paymentDetailsDTO.getItems();
-        for (ItemDTO itemDTO : itemDTOs) {
+        List<ItemDTO> itemDTOs = new ArrayList<>();
+        //for (Item item : checkoutData.getItems()) {
+        Item item = checkoutData.getItems().get(0);
+        for (ItemCosts itemCosts : item.getItemCosts()) {
+            ItemDTO itemDTO = new ItemDTO();
+
             List<String> classOfPayment = new ArrayList<>();
             classOfPayment.add(CLASS_OF_PAYMENT_ORDERABLE_ITEM);
             itemDTO.setClassOfPayment(classOfPayment);
@@ -41,10 +48,19 @@ public interface CheckoutToPaymentDetailsMapper {
             availablePaymentMethods.add(AVAILABLE_PAYMENT_METHOD_CREDIT_CARD);
             itemDTO.setAvailablePaymentMethods(availablePaymentMethods);
 
-            itemDTO.setResourceKind(itemDTO.getKind());
+            itemDTO.setResourceKind(item.getKind());
             itemDTO.setKind(ITEM_RESOURCE_TYPE);
+
+            itemDTO.setProductType(itemCosts.getProductType().getJsonName());
+            itemDTO.setAmount(itemCosts.getCalculatedCost());
+
+            itemDTO.setDescriptionIdentifier(item.getDescriptionIdentifier());
+            itemDTO.setDescriptionValues(item.getDescriptionValues());
+
+            itemDTOs.add(itemDTO);
         }
 
-        paymentDetailsDTO.setKind(CHECKOUT_RESOURCE_TYPE);
+        paymentDetailsDTO.setItems(itemDTOs);
+        paymentDetailsDTO.setKind(CHECKOUT_KIND);
     }
 }

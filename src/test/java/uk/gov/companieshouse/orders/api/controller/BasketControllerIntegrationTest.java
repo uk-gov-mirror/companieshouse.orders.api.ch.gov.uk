@@ -13,10 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
+import uk.gov.companieshouse.orders.api.dto.*;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
@@ -39,10 +36,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
@@ -80,6 +77,7 @@ class BasketControllerIntegrationTest {
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY));
     private static final String POSTAGE_COST = "0";
     private static final String TOTAL_ITEM_COST = "70";
+    static final String PAYMENT_KIND = "payment-details#payment-details";
 
     @Autowired
     private MockMvc mockMvc;
@@ -682,6 +680,91 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isForbidden());
 
         assertOrderCreatedCorrectly(CHECKOUT_ID, preexistingOrderCreationTime, preexistingOrderCreationTime);
+    }
+
+    @Test
+    @DisplayName("Return not found when payment details do not exist")
+    void getPaymentDetailsReturnsNotFound() throws Exception {
+        // When and then
+        mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("Successfully gets payment details")
+    void getPaymentDetailsSuccessfully() throws Exception {
+        Checkout checkout = createCheckout();
+
+        PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO();
+        PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
+
+        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
+                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
+                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
+                .andExpect(jsonPath("$.status", is("pending")))
+                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
+                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    private PaymentLinksDTO createPaymentLinksDTO(String checkoutId) {
+        PaymentLinksDTO paymentLinksDTO = new PaymentLinksDTO();
+        paymentLinksDTO.setSelf("/basket/checkouts/" + checkoutId + "/payment");
+        paymentLinksDTO.setResource("/basket/checkouts/" + checkoutId);
+
+        return paymentLinksDTO;
+    }
+
+    private PaymentDetailsDTO createPaymentDetailsDTO(){
+        PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
+        paymentDetailsDTO.setStatus(PaymentStatus.PENDING);
+        paymentDetailsDTO.setKind(PAYMENT_KIND);
+        List<ItemDTO> itemDTOs = new ArrayList<>();
+        ItemDTO itemDTO1 = new ItemDTO();
+        itemDTO1.setAmount("50");
+        itemDTO1.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
+        itemDTO1.setClassOfPayment(Collections.singletonList("orderable-item"));
+        itemDTO1.setKind("cost#cost");
+        itemDTO1.setProductType("certificate-same-day");
+        itemDTOs.add(itemDTO1);
+        ItemDTO itemDTO2 = new ItemDTO();
+        itemDTO2.setAmount("10");
+        itemDTO2.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
+        itemDTO2.setClassOfPayment(Collections.singletonList("orderable-item"));
+        itemDTO2.setKind("cost#cost");
+        itemDTO2.setProductType("certificate-additional-copy");
+        itemDTOs.add(itemDTO2);
+        ItemDTO itemDTO3 = new ItemDTO();
+        itemDTO3.setAmount("10");
+        itemDTO3.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
+        itemDTO3.setClassOfPayment(Collections.singletonList("orderable-item"));
+        itemDTO3.setKind("cost#cost");
+        itemDTO3.setProductType("certificate-additional-copy");
+        itemDTOs.add(itemDTO3);
+        paymentDetailsDTO.setItems(itemDTOs);
+
+        return paymentDetailsDTO;
+    }
+
+    private Checkout createCheckout() {
+        final Item item = new Item();
+        item.setItemCosts(ITEM_COSTS);
+        item.setPostageCost(POSTAGE_COST);
+        item.setTotalItemCost(TOTAL_ITEM_COST);
+
+        return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE);
     }
 
     private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
