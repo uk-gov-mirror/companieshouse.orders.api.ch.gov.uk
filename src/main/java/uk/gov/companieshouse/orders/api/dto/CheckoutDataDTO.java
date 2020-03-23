@@ -34,7 +34,7 @@ public class CheckoutDataDTO {
     @JsonProperty("delivery_details")
     private DeliveryDetails deliveryDetails = new DeliveryDetails();
 
-    private List<Item> items = new ArrayList<>();
+    private List<ItemDTO> items = new ArrayList<>();
 
     private String kind;
 
@@ -72,6 +72,62 @@ public class CheckoutDataDTO {
 
     public void setLinks(CheckoutLinksDTO links) {
         this.links = links;
+    }
+
+    public String getPaymentReference() {
+        return paymentReference;
+    }
+
+    public void setPaymentReference(String paymentReference) {
+        this.paymentReference = paymentReference;
+    }
+
+    public String getEtag() {
+        return etag;
+    }
+
+    public void setEtag(String etag) {
+        this.etag = etag;
+    }
+
+    public DeliveryDetails getDeliveryDetails() {
+        return deliveryDetails;
+    }
+
+    public void setDeliveryDetails(DeliveryDetails deliveryDetails) {
+        this.deliveryDetails = deliveryDetails;
+    }
+
+    public List<ItemDTO> getItems() {
+        return items;
+    }
+
+    public void setItems(List<ItemDTO> items) {
+        this.items = items;
+    }
+
+    public String getKind() {
+        return kind;
+    }
+
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+
+    public String getTotalOrderCost() {
+        return totalOrderCost;
+    }
+
+    public void setTotalOrderCost(String totalOrderCost) {
+        this.totalOrderCost = totalOrderCost;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
     }
 
     public String toString() { return new Gson().toJson(this); }
