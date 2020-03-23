@@ -29,25 +29,16 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -698,11 +689,13 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Successfully gets payment details")
     void getPaymentDetailsSuccessfully() throws Exception {
+        // When item(s) checked out
         Checkout checkout = createCheckout();
 
         PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO();
         PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
 
+        // Then expect payment details
         mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)

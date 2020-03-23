@@ -6,7 +6,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import uk.gov.companieshouse.orders.api.dto.ItemDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
-import uk.gov.companieshouse.orders.api.dto.PaymentLinksDTO;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.Item;
@@ -25,7 +24,6 @@ public interface CheckoutToPaymentDetailsMapper {
 
     @Mapping(source = "data.paidAt", target = "paidAt")
     @Mapping(source = "data.reference", target = "paymentReference")
-    //@Mapping(source = "data.items", target = "items")
     @Mapping(source = "data.status", target = "status")
     @Mapping(source = "data.links.payment", target = "links.self")
     @Mapping(source = "data.links.self", target = "links.resource")
@@ -35,7 +33,6 @@ public interface CheckoutToPaymentDetailsMapper {
     @AfterMapping
     default void updateDTOWithPaymentDetails(CheckoutData checkoutData, @MappingTarget PaymentDetailsDTO paymentDetailsDTO) {
         List<ItemDTO> itemDTOs = new ArrayList<>();
-        //for (Item item : checkoutData.getItems()) {
         Item item = checkoutData.getItems().get(0);
         for (ItemCosts itemCosts : item.getItemCosts()) {
             ItemDTO itemDTO = new ItemDTO();
