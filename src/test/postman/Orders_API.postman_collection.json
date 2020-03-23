@@ -336,6 +336,34 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Get payment details",
+			"item": [
+				{
+					"name": "Get payment details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/basket/checkouts/5e73592e5821a83750274f02/payment",
+							"protocol": "http",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"basket",
+								"checkouts",
+								"5e73592e5821a83750274f02",
+								"payment"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {},
+			"_postman_isSubFolder": true
 		}
 	],
 	"auth": {
