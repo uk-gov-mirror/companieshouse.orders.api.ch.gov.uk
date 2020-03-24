@@ -50,5 +50,4 @@ public class CheckoutService {
     public Optional<Checkout> getCheckoutById(String id) {
         return checkoutRepository.findById(id);
     }
-
 }
