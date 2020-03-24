@@ -67,7 +67,7 @@ public class BasketController {
     @GetMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment")
     public ResponseEntity<Object> getPaymentDetails(final @PathVariable String checkoutId,
                                       final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
-        trace("Getting checkout item details for id: " + checkoutId, requestId);
+        trace("ENTERING getPaymentDetails(" + checkoutId + ")", requestId);
 
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
@@ -75,7 +75,7 @@ public class BasketController {
 
         PaymentDetailsDTO paymentDetailsDTO = checkoutToPaymentDetailsMapper.checkoutToPaymentDetailsMapper(checkout);
         checkoutToPaymentDetailsMapper.updateDTOWithPaymentDetails(checkoutData, paymentDetailsDTO);
-        trace("Successfully returned payment details for checkoutId "+checkoutId, requestId);
+        trace("EXITING getPaymentDetails() with " + paymentDetailsDTO, requestId);
 
         return ResponseEntity.status(OK).body(paymentDetailsDTO);
     }
