@@ -1,7 +1,6 @@
 package uk.gov.companieshouse.orders.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import uk.gov.companieshouse.orders.api.model.AbstractLinks;
 
 public class PaymentLinksDTO {
     @JsonProperty("resource")
