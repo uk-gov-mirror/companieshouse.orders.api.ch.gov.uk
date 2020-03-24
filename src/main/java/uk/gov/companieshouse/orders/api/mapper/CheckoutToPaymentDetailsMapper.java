@@ -15,11 +15,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CheckoutToPaymentDetailsMapper {
 
-    String CLASS_OF_PAYMENT_ORDERABLE_ITEM = "orderable-item";
-    String AVAILABLE_PAYMENT_METHOD_CREDIT_CARD = "credit-card";
-    String ITEM_RESOURCE_TYPE = "cost#cost";
-    String CHECKOUT_KIND = "payment-details#payment-details";
-
     @Mapping(source = "data.paidAt", target = "paidAt")
     @Mapping(source = "data.reference", target = "paymentReference")
     @Mapping(source = "data.status", target = "status")
@@ -35,15 +30,15 @@ public interface CheckoutToPaymentDetailsMapper {
             ItemDTO itemDTO = new ItemDTO();
 
             List<String> classOfPayment = new ArrayList<>();
-            classOfPayment.add(CLASS_OF_PAYMENT_ORDERABLE_ITEM);
+            classOfPayment.add("orderable-item");
             itemDTO.setClassOfPayment(classOfPayment);
 
             List<String> availablePaymentMethods = new ArrayList<>();
-            availablePaymentMethods.add(AVAILABLE_PAYMENT_METHOD_CREDIT_CARD);
+            availablePaymentMethods.add("credit-card");
             itemDTO.setAvailablePaymentMethods(availablePaymentMethods);
 
             itemDTO.setResourceKind(item.getKind());
-            itemDTO.setKind(ITEM_RESOURCE_TYPE);
+            itemDTO.setKind("cost#cost");
 
             itemDTO.setProductType(itemCosts.getProductType().getJsonName());
             itemDTO.setAmount(itemCosts.getCalculatedCost());
@@ -55,6 +50,6 @@ public interface CheckoutToPaymentDetailsMapper {
         }
 
         paymentDetailsDTO.setItems(itemDTOs);
-        paymentDetailsDTO.setKind(CHECKOUT_KIND);
+        paymentDetailsDTO.setKind("payment-details#payment-details");
     }
 }

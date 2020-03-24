@@ -37,10 +37,6 @@ public class PaymentDetailsDTO {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getEtag() {
         return etag;
     }
