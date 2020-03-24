@@ -1,9 +1,7 @@
 package uk.gov.companieshouse.orders.api.mapper;
 
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import uk.gov.companieshouse.orders.api.dto.ItemDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
 import uk.gov.companieshouse.orders.api.model.Checkout;
@@ -30,8 +28,7 @@ public interface CheckoutToPaymentDetailsMapper {
     @Mapping(source = "data.etag", target = "etag")
     PaymentDetailsDTO checkoutToPaymentDetailsMapper(Checkout checkout);
 
-    @AfterMapping
-    default void updateDTOWithPaymentDetails(CheckoutData checkoutData, @MappingTarget PaymentDetailsDTO paymentDetailsDTO) {
+    default void updateDTOWithPaymentDetails(CheckoutData checkoutData, PaymentDetailsDTO paymentDetailsDTO) {
         List<ItemDTO> itemDTOs = new ArrayList<>();
         Item item = checkoutData.getItems().get(0);
         for (ItemCosts itemCosts : item.getItemCosts()) {

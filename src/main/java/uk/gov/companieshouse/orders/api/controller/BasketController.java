@@ -28,14 +28,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.*;
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.*;
 
 @RestController
 public class BasketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
-
-    private static final String REQUEST_ID_HEADER_NAME = "X-Request-ID";
-    private static final String LOG_MESSAGE_DATA_KEY = "message";
 
     private final BasketMapper basketMapper;
     private final DeliveryDetailsMapper deliveryDetailsMapper;
