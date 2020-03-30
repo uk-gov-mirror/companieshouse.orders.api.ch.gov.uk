@@ -64,13 +64,12 @@ class OrdersApiApplicationTests {
 
 	@Test
 	@DisplayName("Add item rejects request with authenticated API client only")
-	void addItemRejectsRequestWithoutWithAuthenticatedApiOnly() {
+	void addItemRejectsRequestWithAuthenticatedApiOnly() {
 
 		// Given
 		final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
 		addToBasketRequestDTO.setItemUri(ITEM_URI);
 
-		// TODO GCI-332 Check understanding of what ends up in ERIC headers for 2 authenticated client types
 		// When and then
 		webTestClient.post().uri("/basket/items")
 				.contentType(MediaType.APPLICATION_JSON)

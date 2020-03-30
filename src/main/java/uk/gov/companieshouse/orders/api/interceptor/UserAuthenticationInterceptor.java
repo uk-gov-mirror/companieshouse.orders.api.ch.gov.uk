@@ -16,7 +16,7 @@ import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.API_KEY_IDENTITY_TYPE;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.OAUTH2_IDENTITY_TYPE;
 
-public class UserAuthenticationInterceptor  extends HandlerInterceptorAdapter {
+public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
 
