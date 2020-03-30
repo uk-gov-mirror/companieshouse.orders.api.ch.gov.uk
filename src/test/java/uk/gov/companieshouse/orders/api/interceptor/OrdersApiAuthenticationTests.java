@@ -243,5 +243,4 @@ class OrdersApiAuthenticationTests {
 				.expectStatus().isUnauthorized();
 	}
 
-
 }

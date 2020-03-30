@@ -1,6 +1,8 @@
 package uk.gov.companieshouse.orders.api.interceptor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
@@ -17,18 +19,31 @@ import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.API_KEY_IDENTITY_TYPE;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.OAUTH2_IDENTITY_TYPE;
 
+@Service
 public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
+
+    private final String addItemUri;
+    private final String checkoutBasketUri;
+    private final String patchBasketUri;
+
+    public UserAuthenticationInterceptor(
+            @Value("${uk.gov.companieshouse.orders.api.basket.items}")     final String addItemUri,
+            @Value("${uk.gov.companieshouse.orders.api.basket.checkouts}") final String checkoutBasketUri,
+            @Value("${uk.gov.companieshouse.orders.api.basket}")           final String patchBasketUri) {
+        this.addItemUri = addItemUri;
+        this.checkoutBasketUri = checkoutBasketUri;
+        this.patchBasketUri = patchBasketUri;
+    }
 
     @Override
     public boolean preHandle(final HttpServletRequest request,
                              final HttpServletResponse response,
                              final Object handler) {
-        // TODO GCI-332 Use config properties
-        if (request.getMethod().equals(POST.name()) && request.getRequestURI().endsWith("/basket/items") /* add item */ ||
-            request.getMethod().equals(POST.name()) && request.getRequestURI().endsWith("/basket/checkouts") /* checkout basket */ ||
-            request.getMethod().equals(PATCH.name()) && request.getRequestURI().endsWith("/basket") /* patch basket */
+        if (request.getMethod().equals(POST.name()) && request.getRequestURI().endsWith(addItemUri) /* add item */ ||
+            request.getMethod().equals(POST.name()) && request.getRequestURI().endsWith(checkoutBasketUri) /* checkout basket */ ||
+            request.getMethod().equals(PATCH.name()) && request.getRequestURI().endsWith(patchBasketUri) /* patch basket */
         ) {
             return hasSignedInUser(request, response);
         } else {

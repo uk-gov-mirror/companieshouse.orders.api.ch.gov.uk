@@ -16,10 +16,16 @@ import uk.gov.companieshouse.orders.api.interceptor.UserAuthenticationIntercepto
 @Configuration
 public class ApplicationConfig implements WebMvcConfigurer {
 
+    private final UserAuthenticationInterceptor authenticationInterceptor;
+
+    public ApplicationConfig(final UserAuthenticationInterceptor authenticationInterceptor) {
+        this.authenticationInterceptor = authenticationInterceptor;
+    }
+
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
         registry.addInterceptor(new LoggingInterceptor());
-        registry.addInterceptor(new UserAuthenticationInterceptor()); // TODO GCI-332 paths?
+        registry.addInterceptor(authenticationInterceptor); // TODO GCI-332 paths?
     }
 
     @Bean
