@@ -106,6 +106,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -127,6 +128,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -153,6 +155,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -168,6 +171,7 @@ class BasketControllerIntegrationTest {
     public void addItemFailsToAddItemToBasketIfFailsValidation() throws Exception {
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"gibberish\":\"gibberish\"}"))
@@ -200,6 +204,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
                 .andExpect(status().isOk());
@@ -223,6 +228,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
                 .andExpect(status().isConflict());
 
@@ -235,6 +241,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
                 .andExpect(status().isConflict());
 
@@ -255,6 +262,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
                 .andExpect(status().isBadRequest());
 
@@ -267,6 +275,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"gibberish\":\"gibberish\"}"))
@@ -305,6 +314,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
                 .andExpect(status().isOk())
@@ -341,6 +351,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(patch("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
             .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
@@ -380,6 +391,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(patch("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
             .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
@@ -419,6 +431,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(patch("/basket")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
