@@ -692,6 +692,7 @@ class BasketControllerIntegrationTest {
         // When and then
         mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -710,6 +711,7 @@ class BasketControllerIntegrationTest {
         // Then expect payment details
         mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
