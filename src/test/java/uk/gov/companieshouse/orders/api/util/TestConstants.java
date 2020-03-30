@@ -8,8 +8,9 @@ public class TestConstants {
     public static final String ERIC_IDENTITY_HEADER_NAME = "ERIC-Identity";
     public static final String ERIC_IDENTITY_VALUE = "Y2VkZWVlMzhlZWFjY2M4MzQ3MT";
     public static final String ERIC_IDENTITY_TYPE_HEADER_NAME = "ERIC-Identity-Type";
-    public static final String ERIC_IDENTITY_TYPE_VALUE = "oauth2";
+    public static final String ERIC_IDENTITY_OAUTH2_TYPE_VALUE = "oauth2";
     public static final String ERIC_AUTHORISED_USER_HEADER_NAME = "ERIC-Authorised-User";
     public static final String ERIC_AUTHORISED_USER_VALUE = "demo@ch.gov.uk";
+    public static final String ERIC_IDENTITY_API_KEY_TYPE_VALUE = "key";
 
 }

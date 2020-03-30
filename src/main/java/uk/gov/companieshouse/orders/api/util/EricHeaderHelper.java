@@ -6,6 +6,9 @@ import javax.servlet.http.HttpServletRequest;
 
 public class EricHeaderHelper {
 
+    public static final String OAUTH2_IDENTITY_TYPE         = "oauth2";
+    public static final String API_KEY_IDENTITY_TYPE        = "key";
+
     public static final String ERIC_IDENTITY = "ERIC-Identity";
     public static final String ERIC_IDENTITY_TYPE = "ERIC-Identity-Type";
     public static final String ERIC_AUTHORISED_USER = "eric-authorised-user";

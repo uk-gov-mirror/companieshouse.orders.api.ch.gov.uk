@@ -11,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.companieshouse.kafka.serialization.SerializerFactory;
 import uk.gov.companieshouse.orders.api.interceptor.LoggingInterceptor;
+import uk.gov.companieshouse.orders.api.interceptor.UserAuthenticationInterceptor;
 
 @Configuration
 public class ApplicationConfig implements WebMvcConfigurer {
@@ -18,6 +19,7 @@ public class ApplicationConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
         registry.addInterceptor(new LoggingInterceptor());
+        registry.addInterceptor(new UserAuthenticationInterceptor()); // TODO GCI-332 paths?
     }
 
     @Bean
