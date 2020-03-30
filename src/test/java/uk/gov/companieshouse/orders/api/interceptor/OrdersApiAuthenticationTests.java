@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.orders.api.interceptor;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +12,14 @@ import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
 import uk.gov.companieshouse.orders.api.model.*;
-import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
+import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 
+import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
@@ -42,8 +44,8 @@ class OrdersApiAuthenticationTests {
 	@Autowired
 	private WebTestClient webTestClient;
 
-	@Autowired
-	private BasketRepository basketRepository;
+	@MockBean
+	private BasketService basketService;
 
 	@MockBean
 	private ApiClientService apiClientService;
@@ -53,14 +55,6 @@ class OrdersApiAuthenticationTests {
 
 	@MockBean
 	private Checkout checkout;
-
-	@AfterEach
-	void tearDown() {
-		basketRepository.findById(ERIC_IDENTITY_VALUE).ifPresent(basketRepository::delete);
-		// TODO GCI-332 Are we avoiding using these repos? Could we be mocking out more so we are retesting less?
-		// checkoutRepository.deleteAll();
-		// orderRepository.deleteAll();
-	}
 
 	@Test
 	@DisplayName("Add item accepts request with signed in user")
@@ -128,7 +122,6 @@ class OrdersApiAuthenticationTests {
 		final BasketItem basketItem = new BasketItem();
 		basketItem.setItemUri(ITEM_URI);
 		basket.getData().getItems().add(basketItem);
-		basketRepository.save(basket);
 
 		final Certificate certificate = new Certificate();
 		certificate.setCompanyNumber(COMPANY_NUMBER);
@@ -138,6 +131,7 @@ class OrdersApiAuthenticationTests {
 		certificate.setItemOptions(options);
 		when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
+		when(basketService.getBasketById(anyString())).thenReturn(Optional.of(basket));
 		when(checkoutService.createCheckout(any(Certificate.class), any(String.class), any(String.class)))
 				.thenReturn(checkout);
 
@@ -183,9 +177,6 @@ class OrdersApiAuthenticationTests {
 	void patchBasketAcceptsRequestWithSignedInUser() {
 
 		// Given
-		final Basket basket = new Basket();
-		basketRepository.save(basket);
-
 		final AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
 		DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
 		deliveryDetailsDTO.setAddressLine1(ADDRESS_LINE_1);
@@ -199,6 +190,10 @@ class OrdersApiAuthenticationTests {
 		deliveryDetailsDTO.setRegion(REGION);
 		deliveryDetailsDTO.setSurname(SURNAME);
 		addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
+
+		final Basket basket = new Basket();
+		when(basketService.getBasketById(anyString())).thenReturn(Optional.of(basket));
+		when(basketService.saveBasket(basket)).thenReturn(basket);
 
 		// When and then
 		webTestClient.patch().uri("/basket")
