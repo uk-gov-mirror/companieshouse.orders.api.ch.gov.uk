@@ -70,7 +70,6 @@ class OrdersApiAuthenticationTests {
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-				.header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
 				.body(fromObject(addToBasketRequestDTO))
 				.exchange()
 				.expectStatus().isOk();
@@ -201,7 +200,6 @@ class OrdersApiAuthenticationTests {
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-				.header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
 				.body(fromObject(addDeliveryDetailsRequestDTO))
 				.exchange()
 				.expectStatus().isOk();
