@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
@@ -24,13 +25,15 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(final HttpServletRequest request,
                              final HttpServletResponse response,
                              final Object handler) {
-        // add item TODO GCI-332 Use config properties
-        if (request.getMethod().equals(POST.name()) && request.getRequestURI().endsWith("/basket/items")) {
+        // TODO GCI-332 Use config properties
+        if (request.getMethod().equals(POST.name()) && request.getRequestURI().endsWith("/basket/items") /* add item */ ||
+            request.getMethod().equals(POST.name()) && request.getRequestURI().endsWith("/basket/checkouts") /* checkout basket */ ||
+            request.getMethod().equals(PATCH.name()) && request.getRequestURI().endsWith("/basket") /* patch basket */
+        ) {
             return hasSignedInUser(request, response);
         } else {
             return true;
         }
-
     }
 
     private boolean hasSignedInUser(final HttpServletRequest request,
