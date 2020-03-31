@@ -34,6 +34,17 @@ import static uk.gov.companieshouse.orders.api.OrdersApiApplication.*;
 public class BasketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
 
+    public static final String GET_PAYMENT_DETAILS_URI =
+            "${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment";
+    public static final String ADD_ITEM_URI =
+            "${uk.gov.companieshouse.orders.api.basket.items}";
+    public static final String PATCH_BASKET_URI =
+            "${uk.gov.companieshouse.orders.api.basket}";
+    public static final String CHECKOUT_BASKET_URI =
+            "${uk.gov.companieshouse.orders.api.basket.checkouts}";
+    public static final String PATCH_PAYMENT_DETAILS_URI =
+            "${uk.gov.companieshouse.orders.api.basket.checkouts}/{id}/payment";
+
     private final BasketMapper basketMapper;
     private final DeliveryDetailsMapper deliveryDetailsMapper;
     private final CheckoutToPaymentDetailsMapper checkoutToPaymentDetailsMapper;
@@ -64,7 +75,7 @@ public class BasketController {
         this.orderService = orderService;
     }
 
-    @GetMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment")
+    @GetMapping(GET_PAYMENT_DETAILS_URI)
     public ResponseEntity<Object> getPaymentDetails(final @PathVariable String checkoutId,
                                       final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
         trace("ENTERING getPaymentDetails(" + checkoutId + ")", requestId);
@@ -80,7 +91,7 @@ public class BasketController {
         return ResponseEntity.status(OK).body(paymentDetailsDTO);
     }
 
-    @PostMapping("${uk.gov.companieshouse.orders.api.basket.items}")
+    @PostMapping(ADD_ITEM_URI)
     public ResponseEntity<AddToBasketResponseDTO> addItemToBasket(final @Valid @RequestBody AddToBasketRequestDTO addToBasketRequestDTO,
                                                                   HttpServletRequest request,
                                                                   final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
@@ -104,7 +115,7 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(addToBasketResponseDTO);
     }
 
-    @PatchMapping("${uk.gov.companieshouse.orders.api.basket}")
+    @PatchMapping(PATCH_BASKET_URI)
     public ResponseEntity<?> addDeliveryDetailsToBasket(final @Valid @RequestBody AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO,
                                                                  HttpServletRequest request,
                                                                  final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
@@ -133,7 +144,7 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(returnedBasket.getData());
     }
 
-    @PostMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}")
+    @PostMapping(CHECKOUT_BASKET_URI)
     public ResponseEntity<?> checkoutBasket(@RequestBody(required = false) String json,
                                             HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
@@ -169,7 +180,7 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(checkout.getData());
     }
 
-    @PatchMapping("${uk.gov.companieshouse.orders.api.basket.checkouts}/{id}/payment")
+    @PatchMapping(PATCH_PAYMENT_DETAILS_URI)
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
                                                             HttpServletRequest request,

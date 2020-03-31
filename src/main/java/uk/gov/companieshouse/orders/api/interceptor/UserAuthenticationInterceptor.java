@@ -21,6 +21,8 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.controller.BasketController.*;
+import static uk.gov.companieshouse.orders.api.controller.OrderController.GET_ORDER_URI;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.API_KEY_IDENTITY_TYPE;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.OAUTH2_IDENTITY_TYPE;
 
@@ -48,19 +50,18 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
      */
     private List<RequestMappingInfo> authenticatedRequests;
 
-    // TODO GCI-332 Use constants for complete SPEL expressions.
     public UserAuthenticationInterceptor(
-            @Value("${uk.gov.companieshouse.orders.api.basket.items}")
+            @Value(ADD_ITEM_URI)
             final String addItemUri,
-            @Value("${uk.gov.companieshouse.orders.api.basket.checkouts}")
+            @Value(CHECKOUT_BASKET_URI)
             final String checkoutBasketUri,
-            @Value("${uk.gov.companieshouse.orders.api.basket}")
+            @Value(PATCH_BASKET_URI)
             final String patchBasketUri,
-            @Value("${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment")
+            @Value(GET_PAYMENT_DETAILS_URI)
             final String getPaymentDetailsUri,
-            @Value("${uk.gov.companieshouse.orders.api.orders}/{id}")
+            @Value(GET_ORDER_URI)
             final String getOrderUri,
-            @Value("${uk.gov.companieshouse.orders.api.basket.checkouts}/{id}/payment")
+            @Value(PATCH_PAYMENT_DETAILS_URI)
             final String patchPaymentDetailsUri) {
         this.addItemUri = addItemUri;
         this.checkoutBasketUri = checkoutBasketUri;
