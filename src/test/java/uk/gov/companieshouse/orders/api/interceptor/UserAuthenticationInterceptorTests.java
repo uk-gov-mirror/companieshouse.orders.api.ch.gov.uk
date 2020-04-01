@@ -2,20 +2,24 @@ package uk.gov.companieshouse.orders.api.interceptor;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.*;
 import static uk.gov.companieshouse.orders.api.interceptor.UserAuthenticationInterceptor.*;
+import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.*;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 
 /**
  * Unit/integration tests the {@link UserAuthenticationInterceptor} class.
@@ -27,8 +31,51 @@ public class UserAuthenticationInterceptorTests {
     @Autowired
     private UserAuthenticationInterceptor interceptorUnderTest;
 
-    @MockBean
+    @Mock
     private HttpServletRequest request;
+
+    @Mock
+    private HttpServletResponse response;
+
+    @Mock
+    private Object handler;
+
+    @Test
+    @DisplayName("preHandle accepts a request it has not been configured to authenticate")
+    void preHandleAcceptsUnknownRequest() {
+
+        // Given
+        givenRequest(DELETE, "/unknown");
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle rejects a request it has been configured to authenticate that lacks required headers")
+    void preHandleRejectsUnauthenticatedRequest() {
+
+        // Given
+        givenRequest(POST, "/basket/items");
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts a request it has been configured to authenticate that has the required headers")
+    void preHandleAcceptsAuthenticatedRequest() {
+
+        // Given
+        givenRequest(POST, "/basket/items");
+        givenRequestHasSignedInUser();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
 
     @Test
     @DisplayName("getRequestMappingInfo gets the add item request mapping")
@@ -118,5 +165,13 @@ public class UserAuthenticationInterceptorTests {
         when(request.getContextPath()).thenReturn("");
         when(request.getServletPath()).thenReturn("");
     }
+
+    /**
+     * Sets up request with required header values to represent a signed in user.
+     */
+   private void givenRequestHasSignedInUser() {
+        when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(OAUTH2_IDENTITY_TYPE);
+       when(request.getHeader(ERIC_IDENTITY)).thenReturn(ERIC_IDENTITY_VALUE);
+   }
 
 }
