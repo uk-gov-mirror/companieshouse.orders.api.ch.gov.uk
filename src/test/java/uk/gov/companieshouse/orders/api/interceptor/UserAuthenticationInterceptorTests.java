@@ -53,8 +53,8 @@ public class UserAuthenticationInterceptorTests {
     }
 
     @Test
-    @DisplayName("preHandle rejects a request it has been configured to authenticate that lacks required headers")
-    void preHandleRejectsUnauthenticatedRequest() {
+    @DisplayName("preHandle rejects add item request that lacks required headers")
+    void preHandleRejectsUnauthenticatedAddItemRequest() {
 
         // Given
         givenRequest(POST, "/basket/items");
@@ -65,12 +65,162 @@ public class UserAuthenticationInterceptorTests {
     }
 
     @Test
-    @DisplayName("preHandle accepts a request it has been configured to authenticate that has the required headers")
-    void preHandleAcceptsAuthenticatedRequest() {
+    @DisplayName("preHandle rejects checkout basket request that lacks required headers")
+    void preHandleRejectsUnauthenticatedCheckoutBasketRequest() {
+
+        // Given
+        givenRequest(POST, "/basket/checkouts");
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("preHandle rejects get payment details request that lacks required headers")
+    void preHandleRejectsUnauthenticatedGetPaymentDetailsRequest() {
+
+        // Given
+        givenRequest(GET, "/basket/checkouts/1234/payment");
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("preHandle rejects patch basket request that lacks required headers")
+    void preHandleRejectsUnauthenticatedPatchBasketRequest() {
+
+        // Given
+        givenRequest(PATCH, "/basket");
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("preHandle rejects patch payment details request that lacks required headers")
+    void preHandleRejectsUnauthenticatedPatchPaymentDetailsRequest() {
+
+        // Given
+        givenRequest(PATCH, "/basket/checkouts/1234/payment");
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+    @Test
+    @DisplayName("preHandle rejects get order request that lacks required headers")
+    void preHandleRejectsUnauthenticatedGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts add item request that has the required headers")
+    void preHandleAcceptsAuthenticatedAddItemRequest() {
 
         // Given
         givenRequest(POST, "/basket/items");
         givenRequestHasSignedInUser();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts checkout basket request that has the required headers")
+    void preHandleAcceptsAuthenticatedCheckoutBasketRequest() {
+
+        // Given
+        givenRequest(POST, "/basket/checkouts");
+        givenRequestHasSignedInUser();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts get payment details request that has signed in user headers")
+    void preHandleAcceptsSignedInUserGetPaymentDetailsRequest() {
+
+        // Given
+        givenRequest(GET, "/basket/checkouts/1234/payment");
+        givenRequestHasSignedInUser();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts get payment details request that has authenticated API headers")
+    void preHandleAcceptsAuthenticatedApiGetPaymentDetailsRequest() {
+
+        // Given
+        givenRequest(GET, "/basket/checkouts/1234/payment");
+        givenRequestHasAuthenticatedApi();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts patch basket request that has the required headers")
+    void preHandleAcceptsAuthenticatedPatchBasketRequest() {
+
+        // Given
+        givenRequest(PATCH, "/basket");
+        givenRequestHasSignedInUser();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts patch payment details request that has the required headers")
+    void preHandleAcceptsAuthenticatedPatchPaymentDetailsRequest() {
+
+        // Given
+        givenRequest(PATCH, "/basket/checkouts/1234/payment");
+        givenRequestHasAuthenticatedApi();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts get order request that has signed in user headers")
+    void preHandleAcceptsSignedInUserGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasSignedInUser();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts get order request that has authenticated API headers")
+    void preHandleAcceptsAuthenticatedApiGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasAuthenticatedApi();
 
         // When and then
         assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
@@ -170,8 +320,16 @@ public class UserAuthenticationInterceptorTests {
      * Sets up request with required header values to represent a signed in user.
      */
    private void givenRequestHasSignedInUser() {
-        when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(OAUTH2_IDENTITY_TYPE);
+       when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(OAUTH2_IDENTITY_TYPE);
        when(request.getHeader(ERIC_IDENTITY)).thenReturn(ERIC_IDENTITY_VALUE);
    }
+
+    /**
+     * Sets up request with required header values to represent a signed in user.
+     */
+    private void givenRequestHasAuthenticatedApi() {
+        when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(API_KEY_IDENTITY_TYPE);
+        when(request.getHeader(ERIC_IDENTITY)).thenReturn(ERIC_IDENTITY_VALUE);
+    }
 
 }
