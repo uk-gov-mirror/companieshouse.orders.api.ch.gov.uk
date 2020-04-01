@@ -110,6 +110,14 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
         return null; // no match found
     }
 
+    /**
+     * Checks whether the request contains the required ERIC headers representing an OAuth2 signed in user.
+     * @param request the request to be checked
+     * @param response the response in which the status code is set to 401 Unauthorised by this where required tokens
+     *                 are missing from request
+     * @return whether the request contains the required authentication tokens (<code>true</code>), or not
+     * (<code>false</code>)
+     */
     private boolean hasSignedInUser(final HttpServletRequest request,
                                     final HttpServletResponse response) {
         final String identityType = getAuthorisedIdentityType(request, response);
@@ -119,6 +127,14 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
         return hasRequiredIdentity(request, response, identityType, OAUTH2_IDENTITY_TYPE);
     }
 
+    /**
+     * Checks whether the request contains the required ERIC headers representing a CHS internal API.
+     * @param request the request to be checked
+     * @param response the response in which the status code is set to 401 Unauthorised by this where required tokens
+     *                 are missing from request
+     * @return whether the request contains the required authentication tokens (<code>true</code>), or not
+     * (<code>false</code>)
+     */
     private boolean hasAuthenticatedApi(final HttpServletRequest request,
                                         final HttpServletResponse response) {
         final String identityType = getAuthorisedIdentityType(request, response);
@@ -128,6 +144,15 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
         return hasRequiredIdentity(request, response, identityType, API_KEY_IDENTITY_TYPE);
     }
 
+    /**
+     * Checks whether the request contains the required ERIC headers representing either an OAuth2 signed in user,
+     * or a CHS internal API.
+     * @param request the request to be checked
+     * @param response the response in which the status code is set to 401 Unauthorised by this where required tokens
+     *                 are missing from request
+     * @return whether the request contains the required authentication tokens (<code>true</code>), or not
+     * (<code>false</code>)
+     */
     private boolean hasAuthenticatedClient(final HttpServletRequest request,
                                            final HttpServletResponse response) {
         final String identityType = getAuthorisedIdentityType(request, response);
@@ -144,6 +169,13 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
         return true;
     }
 
+    /**
+     * Gets the value of the <code>ERIC-Identity-Type</code> header on the request.
+     * @param request the request to be inspected
+     * @param response the response in which the status code is set to 401 Unauthorised by this where there is no value
+     *                 for the header in the request
+     * @return the value of the header, which may be <code>null</code>
+     */
     private String getAuthorisedIdentityType(final HttpServletRequest request,
                                              final HttpServletResponse response) {
         final String identityType = EricHeaderHelper.getIdentityType(request);
@@ -154,6 +186,17 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
         return identityType;
     }
 
+    /**
+     * Checks whether the request contains the required <code>ERIC-Identity-Type</code> header value, and if so, whether
+     * it contains a non-blank value for the <code>ERIC-Identity</code> header.
+     * @param request the request to be checked
+     * @param response the response in which the status code is set to 401 Unauthorised by this where required tokens
+     *                 are missing from request
+     * @param actualIdentityType the actual ERIC identity type
+     * @param requiredIdentityType the required ERIC identity type
+     * @return whether the request contains the required authentication tokens (<code>true</code>), or not
+     * (<code>false</code>)
+     */
     private boolean hasRequiredIdentity(final HttpServletRequest request,
                                         final HttpServletResponse response,
                                         final String actualIdentityType,
