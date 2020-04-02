@@ -19,6 +19,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.*;
 import static uk.gov.companieshouse.orders.api.interceptor.UserAuthenticationInterceptor.*;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.*;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_INVALID_TYPE_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 
 /**
@@ -228,6 +229,60 @@ public class UserAuthenticationInterceptorTests {
     }
 
     @Test
+    @DisplayName("preHandle rejects request from which identity header value is missing for single permissible auth type request")
+    void preHandleRejectsMissingIdentityHeaderForSinglePermissibleAuthTypeRequest() {
+
+        // Given
+        givenRequest(POST, "/basket/items");
+        givenRequestHasSignedInUserIdentityTypeOnly();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("preHandle rejects request with incorrect identity type for single permissible auth type request")
+    void preHandleRejectsInvalidIdentityTypeForSinglePermissibleAuthTypeRequest() {
+
+        // Given
+        givenRequest(POST, "/basket/items");
+        givenRequestHasInvalidIdentityType();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+
+    @Test
+    @DisplayName("preHandle rejects request from which identity header value is missing for multiple permissible auth type request")
+    void preHandleRejectsMissingIdentityHeaderForMultiplePermissibleAuthTypeRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasAuthenticatedApiIdentityTypeOnly();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+    @Test
+    @DisplayName("preHandle rejects request with incorrect identity type for multiple permissible auth type request")
+    void preHandleRejectsInvalidIdentityTypeForMultiplePermissibleAuthTypeRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasInvalidIdentityType();
+
+        // When and then
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+    }
+
+
+    @Test
     @DisplayName("getRequestMappingInfo gets the add item request mapping")
     void getRequestMappingInfoGetsAddItem() {
 
@@ -325,10 +380,32 @@ public class UserAuthenticationInterceptorTests {
    }
 
     /**
-     * Sets up request with required header values to represent a signed in user.
+     * Sets up request with required header values to represent an API client.
      */
     private void givenRequestHasAuthenticatedApi() {
         when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(API_KEY_IDENTITY_TYPE);
+        when(request.getHeader(ERIC_IDENTITY)).thenReturn(ERIC_IDENTITY_VALUE);
+    }
+
+    /**
+     * Sets up request with an API client identity type, but no identity.
+     */
+    private void givenRequestHasAuthenticatedApiIdentityTypeOnly() {
+        when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(API_KEY_IDENTITY_TYPE);
+    }
+
+    /**
+     * Sets up request with a signed in user identity type, but no identity.
+     */
+    private void givenRequestHasSignedInUserIdentityTypeOnly() {
+        when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(OAUTH2_IDENTITY_TYPE);
+    }
+
+    /**
+     * Sets up request with an identity, but an invalid identity type.
+     */
+    private void givenRequestHasInvalidIdentityType() {
+        when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(ERIC_IDENTITY_INVALID_TYPE_VALUE);
         when(request.getHeader(ERIC_IDENTITY)).thenReturn(ERIC_IDENTITY_VALUE);
     }
 

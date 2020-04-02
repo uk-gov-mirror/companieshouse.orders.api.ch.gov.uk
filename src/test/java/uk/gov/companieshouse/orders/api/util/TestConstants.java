@@ -12,5 +12,6 @@ public class TestConstants {
     public static final String ERIC_AUTHORISED_USER_HEADER_NAME = "ERIC-Authorised-User";
     public static final String ERIC_AUTHORISED_USER_VALUE = "demo@ch.gov.uk";
     public static final String ERIC_IDENTITY_API_KEY_TYPE_VALUE = "key";
+    public static final String ERIC_IDENTITY_INVALID_TYPE_VALUE = "invalid identity type";
 
 }
