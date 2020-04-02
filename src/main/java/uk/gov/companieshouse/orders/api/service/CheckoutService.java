@@ -4,6 +4,7 @@ import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.orders.api.model.ActionedBy;
 import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
@@ -24,7 +25,7 @@ public class CheckoutService {
         this.linksGeneratorService = linksGeneratorService;
     }
 
-    public Checkout createCheckout(Item item, String userId, String email) {
+    public Checkout createCheckout(Item item, String userId, String email, DeliveryDetails deliveryDetails) {
         final LocalDateTime now = LocalDateTime.now();
         String objectId = new ObjectId().toString();
 
@@ -44,6 +45,8 @@ public class CheckoutService {
         checkout.getData().getItems().add(item);
         checkout.getData().setReference(objectId);
         checkout.getData().setKind("order");
+        checkout.getData().setDeliveryDetails(deliveryDetails);
+
         return checkoutRepository.save(checkout);
     }
 

@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.CheckoutLinks;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,17 @@ public class CheckoutServiceTest {
     private static final String LINKS_PAYMENT = "links/payment";
     private static final String KIND = "order";
 
+    private static final String ADDRESS_LINE_1 = "address line 1";
+    private static final String ADDRESS_LINE_2 = "address line 2";
+    private static final String COUNTRY = "country";
+    private static final String FORENAME = "forename";
+    private static final String LOCALITY = "locality";
+    private static final String PO_BOX = "po box";
+    private static final String POSTAL_CODE = "postal code";
+    private static final String PREMISES = "premises";
+    private static final String REGION = "region";
+    private static final String SURNAME = "surname";
+
     @InjectMocks
     CheckoutService serviceUnderTest;
 
@@ -54,7 +66,8 @@ public class CheckoutServiceTest {
 
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE);
+        serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
+                ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(argCaptor.capture());
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
@@ -68,7 +81,8 @@ public class CheckoutServiceTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         when(checkoutRepository.save(any(Checkout.class))).thenReturn(new Checkout());
 
-        serviceUnderTest.createCheckout(certificate, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE);
+        serviceUnderTest.createCheckout(certificate, ERIC_IDENTITY_VALUE,
+                ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(argCaptor.capture());
 
         assertEquals(1, argCaptor.getValue().getData().getItems().size());
@@ -82,11 +96,44 @@ public class CheckoutServiceTest {
     void createCheckoutPopulatesAndSavesCheckedOutBy() {
         when(checkoutRepository.save(any(Checkout.class))).thenReturn(new Checkout());
 
-        serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE);
+        serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
+                ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(argCaptor.capture());
 
         assertEquals(argCaptor.getValue().getData().getCheckedOutBy().getId(), ERIC_IDENTITY_VALUE);
         assertEquals(argCaptor.getValue().getData().getCheckedOutBy().getEmail(), ERIC_AUTHORISED_USER_VALUE);
+    }
+
+    @Test
+    void createCheckoutPopulatesAndSavesDeliveryDetails() {
+        when(checkoutRepository.save(any(Checkout.class))).thenReturn(new Checkout());
+        DeliveryDetails deliveryDetails = new DeliveryDetails();
+        deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetails.setCountry(COUNTRY);
+        deliveryDetails.setForename(FORENAME);
+        deliveryDetails.setLocality(LOCALITY);
+        deliveryDetails.setPoBox(PO_BOX);
+        deliveryDetails.setPostalCode(POSTAL_CODE);
+        deliveryDetails.setPremises(PREMISES);
+        deliveryDetails.setRegion(REGION);
+        deliveryDetails.setSurname(SURNAME);
+
+        serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
+                ERIC_AUTHORISED_USER_VALUE, deliveryDetails);
+        verify(checkoutRepository).save(argCaptor.capture());
+
+        DeliveryDetails createdDeliveryDetails = argCaptor.getValue().getData().getDeliveryDetails();
+        assertEquals(createdDeliveryDetails.getAddressLine1(), ADDRESS_LINE_1);
+        assertEquals(createdDeliveryDetails.getAddressLine2(), ADDRESS_LINE_2);
+        assertEquals(createdDeliveryDetails.getCountry(), COUNTRY);
+        assertEquals(createdDeliveryDetails.getForename(), FORENAME);
+        assertEquals(createdDeliveryDetails.getLocality(), LOCALITY);
+        assertEquals(createdDeliveryDetails.getPoBox(), PO_BOX);
+        assertEquals(createdDeliveryDetails.getPostalCode(), POSTAL_CODE);
+        assertEquals(createdDeliveryDetails.getPremises(), PREMISES);
+        assertEquals(createdDeliveryDetails.getRegion(), REGION);
+        assertEquals(createdDeliveryDetails.getSurname(), SURNAME);
     }
 
     @Test
@@ -99,7 +146,8 @@ public class CheckoutServiceTest {
         when(etagGeneratorService.generateEtag()).thenReturn(ETAG);
         when(linksGeneratorService.generateCheckoutLinks(any(String.class))).thenReturn(checkoutLinks);
 
-        serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE);
+        serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
+                ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(argCaptor.capture());
 
         verify(etagGeneratorService, times(1)).generateEtag();
