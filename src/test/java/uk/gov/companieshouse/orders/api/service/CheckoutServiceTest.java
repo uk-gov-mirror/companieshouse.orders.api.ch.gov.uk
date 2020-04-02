@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.orders.api.service;
 
-import com.sun.org.apache.regexp.internal.RE;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
