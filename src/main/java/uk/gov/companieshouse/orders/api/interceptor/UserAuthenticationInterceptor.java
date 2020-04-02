@@ -119,11 +119,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
      */
     private boolean hasSignedInUser(final HttpServletRequest request,
                                     final HttpServletResponse response) {
-        final String identityType = getAuthorisedIdentityType(request, response);
-        if (identityType == null) {
-            return false;
-        }
-        return hasRequiredIdentity(request, response, identityType, OAUTH2_IDENTITY_TYPE);
+        return hasRequiredIdentity(request, response, OAUTH2_IDENTITY_TYPE);
     }
 
     /**
@@ -136,11 +132,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
      */
     private boolean hasAuthenticatedApi(final HttpServletRequest request,
                                         final HttpServletResponse response) {
-        final String identityType = getAuthorisedIdentityType(request, response);
-        if (identityType == null) {
-            return false;
-        }
-        return hasRequiredIdentity(request, response, identityType, API_KEY_IDENTITY_TYPE);
+        return hasRequiredIdentity(request, response, API_KEY_IDENTITY_TYPE);
     }
 
     /**
@@ -186,6 +178,26 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
             response.setStatus(UNAUTHORIZED.value());
         }
         return identityType;
+    }
+
+    /**
+     * Checks whether the request contains the required <code>ERIC-Identity-Type</code> header value, and if so, whether
+     * it contains a non-blank value for the <code>ERIC-Identity</code> header.
+     * @param request the request to be checked
+     * @param response the response in which the status code is set to 401 Unauthorised by this where required tokens
+     *                 are missing from request
+     * @param requiredIdentityType the required ERIC identity type
+     * @return whether the request contains the required authentication tokens (<code>true</code>), or not
+     * (<code>false</code>)
+     */
+    private boolean hasRequiredIdentity(final HttpServletRequest request,
+                                        final HttpServletResponse response,
+                                        final String requiredIdentityType) {
+        final String identityType = getAuthorisedIdentityType(request, response);
+        if (identityType == null) {
+            return false;
+        }
+        return hasRequiredIdentity(request, response, identityType, requiredIdentityType);
     }
 
     /**
