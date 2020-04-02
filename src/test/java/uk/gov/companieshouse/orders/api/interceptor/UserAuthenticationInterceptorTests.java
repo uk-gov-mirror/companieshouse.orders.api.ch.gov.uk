@@ -49,8 +49,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequest(DELETE, "/unknown");
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -61,8 +60,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequest(POST, "/basket/items");
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
     @Test
@@ -73,8 +71,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequest(POST, "/basket/checkouts");
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
     @Test
@@ -85,8 +82,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequest(GET, "/basket/checkouts/1234/payment");
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
     @Test
@@ -97,8 +93,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequest(PATCH, "/basket");
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
     @Test
@@ -109,8 +104,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequest(PATCH, "/basket/checkouts/1234/payment");
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
     @Test
     @DisplayName("preHandle rejects get order request that lacks required headers")
@@ -120,8 +114,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequest(GET, "/orders/1234");
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
     @Test
@@ -133,8 +126,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasSignedInUser();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -146,8 +138,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasSignedInUser();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -159,8 +150,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasSignedInUser();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -172,8 +162,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasAuthenticatedApi();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -185,8 +174,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasSignedInUser();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -198,8 +186,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasAuthenticatedApi();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -211,8 +198,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasSignedInUser();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -224,8 +210,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasAuthenticatedApi();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
-        verify(response, never()).setStatus(anyInt());
+        thenRequestIsAccepted();
     }
 
     @Test
@@ -237,8 +222,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasSignedInUserIdentityTypeOnly();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
     @Test
@@ -250,8 +234,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasInvalidIdentityType();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
 
@@ -264,8 +247,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasAuthenticatedApiIdentityTypeOnly();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
     @Test
@@ -277,8 +259,7 @@ public class UserAuthenticationInterceptorTests {
         givenRequestHasInvalidIdentityType();
 
         // When and then
-        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
-        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
+        thenRequestIsRejected();
     }
 
 
@@ -407,6 +388,22 @@ public class UserAuthenticationInterceptorTests {
     private void givenRequestHasInvalidIdentityType() {
         when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(ERIC_IDENTITY_INVALID_TYPE_VALUE);
         when(request.getHeader(ERIC_IDENTITY)).thenReturn(ERIC_IDENTITY_VALUE);
+    }
+
+    /**
+     * Verifies that the authentication interceptor does not reject the request as unauthorised.
+     */
+    private void thenRequestIsAccepted() {
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(true));
+        verify(response, never()).setStatus(anyInt());
+    }
+
+    /**
+     * Verifies that the authentication interceptor blocks the request as unauthorised.
+     */
+    private void thenRequestIsRejected() {
+        assertThat(interceptorUnderTest.preHandle(request, response, handler), is(false));
+        verify(response).setStatus(HttpStatus.UNAUTHORIZED.value());
     }
 
 }
