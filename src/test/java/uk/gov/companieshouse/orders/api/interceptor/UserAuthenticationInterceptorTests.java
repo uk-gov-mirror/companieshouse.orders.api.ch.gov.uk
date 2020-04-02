@@ -262,6 +262,17 @@ public class UserAuthenticationInterceptorTests {
         thenRequestIsRejected();
     }
 
+    @Test
+    @DisplayName("preHandle rejects request with blank identity value")
+    void preHandleRejectsBlankIdentityValue() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasBlankSignedInUserIdentity();
+
+        // When and then
+        thenRequestIsRejected();
+    }
 
     @Test
     @DisplayName("getRequestMappingInfo gets the add item request mapping")
@@ -388,6 +399,15 @@ public class UserAuthenticationInterceptorTests {
     private void givenRequestHasInvalidIdentityType() {
         when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(ERIC_IDENTITY_INVALID_TYPE_VALUE);
         when(request.getHeader(ERIC_IDENTITY)).thenReturn(ERIC_IDENTITY_VALUE);
+    }
+
+    /**
+     * Sets up request with required header values to represent a signed in user, but with a blank (empty string)
+     * identity header value.
+     */
+    private void givenRequestHasBlankSignedInUserIdentity() {
+        when(request.getHeader(ERIC_IDENTITY_TYPE)).thenReturn(OAUTH2_IDENTITY_TYPE);
+        when(request.getHeader(ERIC_IDENTITY)).thenReturn("");
     }
 
     /**

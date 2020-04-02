@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 import static uk.gov.companieshouse.orders.api.controller.BasketController.*;
@@ -161,7 +160,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
         }
         final String identity = EricHeaderHelper.getIdentity(request);
         // TODO GCI-332 Rationalise?
-        if (!identityType.equals(OAUTH2_IDENTITY_TYPE) && !identityType.equals(API_KEY_IDENTITY_TYPE) || isBlank(identity)) {
+        if (!identityType.equals(OAUTH2_IDENTITY_TYPE) && !identityType.equals(API_KEY_IDENTITY_TYPE) || identity == null) {
             LOGGER.infoRequest(request,
                     "UserAuthenticationInterceptor error: no authorised identity (provided identity type: " +
                             identityType + ", permitted: " + OAUTH2_IDENTITY_TYPE + ", " + API_KEY_IDENTITY_TYPE + ")",
@@ -205,7 +204,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
                                         final String actualIdentityType,
                                         final String requiredIdentityType) {
         final String identity = EricHeaderHelper.getIdentity(request);
-        if (!actualIdentityType.equals(requiredIdentityType) || isBlank(identity)) {
+        if (!actualIdentityType.equals(requiredIdentityType) || identity == null) {
             LOGGER.infoRequest(request,
                     "UserAuthenticationInterceptor error: no authorised identity (provided identity type: " +
                             actualIdentityType + ", required: " + requiredIdentityType + ")", null);
