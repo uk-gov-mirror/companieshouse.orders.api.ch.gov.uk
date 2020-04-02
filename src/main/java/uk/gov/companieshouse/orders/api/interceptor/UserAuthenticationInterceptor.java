@@ -162,7 +162,10 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
         final String identity = EricHeaderHelper.getIdentity(request);
         // TODO GCI-332 Rationalise?
         if (!identityType.equals(OAUTH2_IDENTITY_TYPE) && !identityType.equals(API_KEY_IDENTITY_TYPE) || isBlank(identity)) {
-            LOGGER.infoRequest(request, "UserAuthenticationInterceptor error: no authorised identity", null);
+            LOGGER.infoRequest(request,
+                    "UserAuthenticationInterceptor error: no authorised identity (provided identity type: " +
+                            identityType + ", permitted: " + OAUTH2_IDENTITY_TYPE + ", " + API_KEY_IDENTITY_TYPE + ")",
+                    null);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return false;
         }
@@ -180,7 +183,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
                                              final HttpServletResponse response) {
         final String identityType = EricHeaderHelper.getIdentityType(request);
         if (identityType == null) {
-            LOGGER.infoRequest(request, "UserAuthenticationInterceptor error: no authorised identity type", null);
+            LOGGER.infoRequest(request, "UserAuthenticationInterceptor error: no authorised identity type provided", null);
             response.setStatus(UNAUTHORIZED.value());
         }
         return identityType;
@@ -203,7 +206,9 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
                                         final String requiredIdentityType) {
         final String identity = EricHeaderHelper.getIdentity(request);
         if (!actualIdentityType.equals(requiredIdentityType) || isBlank(identity)) {
-            LOGGER.infoRequest(request, "UserAuthenticationInterceptor error: no authorised identity", null);
+            LOGGER.infoRequest(request,
+                    "UserAuthenticationInterceptor error: no authorised identity (provided identity type: " +
+                            actualIdentityType + ", required: " + requiredIdentityType + ")", null);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             return false;
         }
