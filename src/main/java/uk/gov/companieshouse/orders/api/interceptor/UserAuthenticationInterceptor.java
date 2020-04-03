@@ -2,7 +2,6 @@ package uk.gov.companieshouse.orders.api.interceptor;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -18,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 import static uk.gov.companieshouse.orders.api.controller.BasketController.*;
@@ -119,7 +119,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
      */
     private boolean hasSignedInUser(final HttpServletRequest request,
                                     final HttpServletResponse response) {
-        return hasRequiredIdentity(request, response, OAUTH2_IDENTITY_TYPE);
+        return hasRequiredIdentity(request, response, singletonList(OAUTH2_IDENTITY_TYPE));
     }
 
     /**
@@ -132,7 +132,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
      */
     private boolean hasAuthenticatedApi(final HttpServletRequest request,
                                         final HttpServletResponse response) {
-        return hasRequiredIdentity(request, response, API_KEY_IDENTITY_TYPE);
+        return hasRequiredIdentity(request, response, singletonList(API_KEY_IDENTITY_TYPE));
     }
 
     /**
@@ -146,21 +146,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
      */
     private boolean hasAuthenticatedClient(final HttpServletRequest request,
                                            final HttpServletResponse response) {
-        final String identityType = getAuthorisedIdentityType(request, response);
-        if (identityType == null) {
-            return false;
-        }
-        final String identity = EricHeaderHelper.getIdentity(request);
-        // TODO GCI-332 Rationalise?
-        if (!identityType.equals(OAUTH2_IDENTITY_TYPE) && !identityType.equals(API_KEY_IDENTITY_TYPE) || identity == null) {
-            LOGGER.infoRequest(request,
-                    "UserAuthenticationInterceptor error: no authorised identity (provided identity type: " +
-                            identityType + ", permitted: " + OAUTH2_IDENTITY_TYPE + ", " + API_KEY_IDENTITY_TYPE + ")",
-                    null);
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            return false;
-        }
-        return true;
+        return hasRequiredIdentity(request, response, asList(API_KEY_IDENTITY_TYPE, OAUTH2_IDENTITY_TYPE));
     }
 
     /**
@@ -181,46 +167,46 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter imp
     }
 
     /**
-     * Checks whether the request contains the required <code>ERIC-Identity-Type</code> header value, and if so, whether
+     * Checks whether the request contains a required <code>ERIC-Identity-Type</code> header value, and if so, whether
      * it contains a non-blank value for the <code>ERIC-Identity</code> header.
      * @param request the request to be checked
      * @param response the response in which the status code is set to 401 Unauthorised by this where required tokens
      *                 are missing from request
-     * @param requiredIdentityType the required ERIC identity type
+     * @param requiredIdentityTypes the required ERIC identity types
      * @return whether the request contains the required authentication tokens (<code>true</code>), or not
      * (<code>false</code>)
      */
     private boolean hasRequiredIdentity(final HttpServletRequest request,
                                         final HttpServletResponse response,
-                                        final String requiredIdentityType) {
+                                        final List<String> requiredIdentityTypes) {
         final String identityType = getAuthorisedIdentityType(request, response);
         if (identityType == null) {
             return false;
         }
-        return hasRequiredIdentity(request, response, identityType, requiredIdentityType);
+        return hasRequiredIdentity(request, response, identityType, requiredIdentityTypes);
     }
 
     /**
-     * Checks whether the request contains the required <code>ERIC-Identity-Type</code> header value, and if so, whether
+     * Checks whether the request contains a required <code>ERIC-Identity-Type</code> header value, and if so, whether
      * it contains a non-blank value for the <code>ERIC-Identity</code> header.
      * @param request the request to be checked
      * @param response the response in which the status code is set to 401 Unauthorised by this where required tokens
      *                 are missing from request
      * @param actualIdentityType the actual ERIC identity type
-     * @param requiredIdentityType the required ERIC identity type
+     * @param requiredIdentityTypes the required ERIC identity types
      * @return whether the request contains the required authentication tokens (<code>true</code>), or not
      * (<code>false</code>)
      */
     private boolean hasRequiredIdentity(final HttpServletRequest request,
                                         final HttpServletResponse response,
                                         final String actualIdentityType,
-                                        final String requiredIdentityType) {
+                                        final List<String> requiredIdentityTypes) {
         final String identity = EricHeaderHelper.getIdentity(request);
-        if (!actualIdentityType.equals(requiredIdentityType) || identity == null) {
+        if (!requiredIdentityTypes.contains(actualIdentityType)|| identity == null) {
             LOGGER.infoRequest(request,
                     "UserAuthenticationInterceptor error: no authorised identity (provided identity type: " +
-                            actualIdentityType + ", required: " + requiredIdentityType + ")", null);
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            actualIdentityType + ", required (any of): " + requiredIdentityTypes + ")", null);
+            response.setStatus(UNAUTHORIZED.value());
             return false;
         }
         return true;
