@@ -347,7 +347,6 @@
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/basket/checkouts/5e73592e5821a83750274f02/payment",
-							"protocol": "http",
 							"host": [
 								"{{base_url}}"
 							],
@@ -362,8 +361,7 @@
 					"response": []
 				}
 			],
-			"protocolProfileBehavior": {},
-			"_postman_isSubFolder": true
+			"protocolProfileBehavior": {}
 		}
 	],
 	"auth": {
