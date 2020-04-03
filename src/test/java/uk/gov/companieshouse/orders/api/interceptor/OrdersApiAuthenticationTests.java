@@ -121,6 +121,7 @@ class OrdersApiAuthenticationTests {
 		final BasketItem basketItem = new BasketItem();
 		basketItem.setItemUri(ITEM_URI);
 		basket.getData().getItems().add(basketItem);
+		basket.getData().setDeliveryDetails(new DeliveryDetails());
 
 		final Certificate certificate = new Certificate();
 		certificate.setCompanyNumber(COMPANY_NUMBER);
@@ -131,7 +132,8 @@ class OrdersApiAuthenticationTests {
 		when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
 		when(basketService.getBasketById(anyString())).thenReturn(Optional.of(basket));
-		when(checkoutService.createCheckout(any(Certificate.class), any(String.class), any(String.class)))
+		when(checkoutService.createCheckout(
+				any(Certificate.class), any(String.class), any(String.class), any(DeliveryDetails.class)))
 				.thenReturn(checkout);
 
 		// When and then
