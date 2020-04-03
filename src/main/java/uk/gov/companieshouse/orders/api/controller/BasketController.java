@@ -174,7 +174,8 @@ public class BasketController {
 
         Checkout checkout = checkoutService.createCheckout(item,
                 EricHeaderHelper.getIdentity(request),
-                EricHeaderHelper.getAuthorisedUser(request));
+                EricHeaderHelper.getAuthorisedUser(request),
+                retrievedBasket.getData().getDeliveryDetails());
         trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
         return ResponseEntity.status(HttpStatus.OK).body(checkout.getData());

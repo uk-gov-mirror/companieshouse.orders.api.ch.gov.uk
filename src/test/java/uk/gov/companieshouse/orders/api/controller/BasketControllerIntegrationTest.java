@@ -12,6 +12,8 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.orders.api.dto.*;
 import uk.gov.companieshouse.orders.api.model.*;
@@ -199,17 +201,18 @@ class BasketControllerIntegrationTest {
         certificate.setItemOptions(options);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
-        ResultCaptor<Checkout> resultCaptor = new ResultCaptor<>();
-        doAnswer(resultCaptor).when(checkoutService).createCheckout(any(Certificate.class), any(String.class), any(String.class));
-
-        mockMvc.perform(post("/basket/checkouts")
+        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
                 .andExpect(status().isOk());
 
-        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(resultCaptor.getResult().getId());
+        MvcResult result = resultActions.andReturn();
+        String contentAsString = result.getResponse().getContentAsString();
+        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
         assertTrue(retrievedCheckout.isPresent());
         assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
         final Item item = retrievedCheckout.get().getData().getItems().get(0);
@@ -307,12 +310,7 @@ class BasketControllerIntegrationTest {
         item.setTotalItemCost(TOTAL_ITEM_COST);
         expectedResponseBody.setItems(singletonList(item));
 
-        final ResultCaptor<Checkout> resultCaptor = new ResultCaptor<>();
-        doAnswer(resultCaptor)
-                .when(checkoutService)
-                .createCheckout(any(Certificate.class), any(String.class), any(String.class));
-
-        mockMvc.perform(post("/basket/checkouts")
+        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
@@ -320,7 +318,11 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(expectedResponseBody)));
 
-        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(resultCaptor.getResult().getId());
+        MvcResult result = resultActions.andReturn();
+        String contentAsString = result.getResponse().getContentAsString();
+        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
         assertTrue(retrievedCheckout.isPresent());
         final Item retrievedItem = retrievedCheckout.get().getData().getItems().get(0);
         assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
@@ -778,7 +780,7 @@ class BasketControllerIntegrationTest {
         item.setPostageCost(POSTAGE_COST);
         item.setTotalItemCost(TOTAL_ITEM_COST);
 
-        return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE);
+        return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
     private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,

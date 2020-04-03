@@ -13,7 +13,7 @@ public abstract class AbstractOrderData {
 
     private String etag;
 
-    private DeliveryDetails deliveryDetails = new DeliveryDetails();
+    private DeliveryDetails deliveryDetails;
 
     private List<Item> items = new ArrayList<>();
 
