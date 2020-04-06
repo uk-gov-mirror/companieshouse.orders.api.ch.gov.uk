@@ -25,11 +25,14 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    public static final String GET_ORDER_URI =
+            "${uk.gov.companieshouse.orders.api.orders}/{id}";
+
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 
-    @GetMapping("${uk.gov.companieshouse.orders.api.orders}/{id}")
+    @GetMapping(GET_ORDER_URI)
     public ResponseEntity<OrderData> getOrder(final @PathVariable String id,
                                               final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING getOrder(" + id + ")", requestId);
