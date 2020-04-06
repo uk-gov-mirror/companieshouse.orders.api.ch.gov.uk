@@ -38,8 +38,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
-import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
+import static uk.gov.companieshouse.orders.api.model.ProductType.*;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @AutoConfigureMockMvc
@@ -779,6 +778,10 @@ class BasketControllerIntegrationTest {
         item.setItemCosts(ITEM_COSTS);
         item.setPostageCost(POSTAGE_COST);
         item.setTotalItemCost(TOTAL_ITEM_COST);
+        item.setDescriptionIdentifier(CERTIFICATE.getJsonName());
+        Map<String, String> descValues = new HashMap<>();
+        descValues.put(CERTIFICATE.getJsonName(), "certificate item");
+        item.setDescriptionValues(descValues);
 
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
