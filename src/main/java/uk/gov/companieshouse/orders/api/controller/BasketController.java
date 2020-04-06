@@ -184,29 +184,26 @@ public class BasketController {
     @PatchMapping(PATCH_PAYMENT_DETAILS_URI)
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
-                                                            HttpServletRequest request,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
-        if(basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
-            processSuccessfulPayment(request, requestId, id);
+        if (basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
+            processSuccessfulPayment(requestId, id);
         }
         return ResponseEntity.ok("");
     }
 
     /**
      * Performs the actions required to process a successful payment.
-     * @param request the request
      * @param requestId the request ID
      * @param checkoutId the checkout ID
      */
-    private void processSuccessfulPayment(final HttpServletRequest request,
-                                          final String requestId,
+    private void processSuccessfulPayment(final String requestId,
                                           final String checkoutId) {
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
         final Order order = orderService.createOrder(checkout);
         trace("Created order: " + order, requestId);
-        final Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
+        final Basket basket = basketService.clearBasket(checkout.getUserId());
         trace("Cleared basket: " + basket, requestId);
     }
 

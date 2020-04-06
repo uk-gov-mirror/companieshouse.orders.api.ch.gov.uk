@@ -464,7 +464,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details clears basket is status is paid")
+    @DisplayName("Patch basket payment details clears basket if status is paid")
     public void patchBasketPaymentDetailsClearsBasketStatusPaid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
@@ -475,6 +475,7 @@ class BasketControllerIntegrationTest {
 
         final Checkout checkout = new Checkout();
         checkout.setId(CHECKOUT_ID);
+        checkout.setUserId(ERIC_IDENTITY_VALUE);
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
