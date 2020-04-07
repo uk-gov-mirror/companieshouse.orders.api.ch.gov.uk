@@ -50,7 +50,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
                     return getPaymentDetailsClientIsAuthorised(request, response);
                 case GET_ORDER:
                     // TODO GCI-951: Authorisation.
-                    return getOrderClientIsAuthorised(request, response);
+                    return true;
                 case PATCH_PAYMENT_DETAILS:
                     return clientIsAuthorisedInternalApi(request, response);
                 default:
@@ -61,7 +61,14 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         return true;
     }
 
-    private boolean getPaymentDetailsClientIsAuthorised(final HttpServletRequest request, final HttpServletResponse response) {
+    /**
+     * Inspects ERIC populated headers to determine whether the request is authorised.
+     * @param request the request checked
+     * @param response the response, updated by this should the request be found to be unauthorised
+     * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
+     */
+    private boolean getPaymentDetailsClientIsAuthorised(final HttpServletRequest request,
+                                                        final HttpServletResponse response) {
         final String identityType = EricHeaderHelper.getIdentityType(request);
         if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
             LOGGER.infoRequest(request,
@@ -74,7 +81,13 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         }
     }
 
-    // TODO GCI-951: Javadoc or function name - resource owner
+    /**
+     * Inspects ERIC populated headers to determine whether the request comes from a user who is the owner of the
+     * checkout resource the get payment details request attempts to access.
+     * @param request the request checked
+     * @param response the response, updated by this should the request be found to be unauthorised
+     * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
+     */
     private boolean getPaymentDetailsUserIsResourceOwner(final HttpServletRequest request,
                                                          final HttpServletResponse response) {
         final String requestUserId = EricHeaderHelper.getIdentity(request);
@@ -91,21 +104,11 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         }
     }
 
-    private boolean getOrderClientIsAuthorised(final HttpServletRequest request, final HttpServletResponse response) {
-        // TODO GCI-951
-//        final String identityType = EricHeaderHelper.getIdentityType(request);
-//        if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
-//            LOGGER.infoRequest(request,
-//                    "UserAuthorisationInterceptor: client is presenting an API key", null);
-//            return clientIsAuthorisedInternalApi(request, response);
-//        } else {
-//            LOGGER.infoRequest(request,
-//                    "UserAuthorisationInterceptor: client is presenting signed in user credentials", null);
-//            return clientIsAuthorisedSignedInUser(request, response);
-//        }
-        return true;
-    }
-
+    /**
+     * Extracts the checkout ID Spring path variable from the request.
+     * @param request assumed to have been populated by Spring with the required path variable
+     * @return the checkout ID path variable value
+     */
     String getCheckoutId(final HttpServletRequest request) {
         // TODO GCI-951: Depending on context this may not be present. Do we need to check for that?
         final Map<String, String> uriTemplateVariables =
@@ -113,7 +116,15 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         return uriTemplateVariables.get("checkoutId"); // TODO GCI-951: Use constant to have a contract
     }
 
-    private boolean clientIsAuthorisedInternalApi(final HttpServletRequest request, final HttpServletResponse response) {
+    /**
+     * Assuming the request contains ERIC headers representing an API client, this checks these to determine whether
+     * the API client has an internal user role (aka "elevated privileges").
+     * @param request the request to be checked
+     * @param response the response, updated by this should the request be found to be unauthorised
+     * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
+     */
+    private boolean clientIsAuthorisedInternalApi(final HttpServletRequest request, final HttpServletResponse response)
+    {
         // We know we are dealing with an API request here due to prior work carried out by the
         // UserAuthenticationInterceptor on this request.
         final boolean isAuthorisedInternalApi = AuthorisationUtil.hasInternalUserRole(request);
