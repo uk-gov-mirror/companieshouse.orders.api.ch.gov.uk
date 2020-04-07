@@ -94,7 +94,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         final String requestUserId = EricHeaderHelper.getIdentity(request);
         final String checkoutId = getCheckoutId(request);
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
-                .orElseThrow(ResourceNotFoundException::new); // TODO GCI-951: integration test this
+                .orElseThrow(ResourceNotFoundException::new);
         if (requestUserId.equals(checkout.getUserId())) {
             LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
             return true;
