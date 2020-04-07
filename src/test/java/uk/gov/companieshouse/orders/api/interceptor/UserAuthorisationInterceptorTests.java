@@ -28,6 +28,7 @@ import static org.springframework.http.HttpMethod.PATCH;
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
+import static uk.gov.companieshouse.orders.api.controller.BasketController.CHECKOUT_ID_PATH_VARIABLE;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.*;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.WRONG_ERIC_IDENTITY_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
@@ -147,7 +148,7 @@ public class UserAuthorisationInterceptorTests {
      * @param checkoutOwnerId the user ID value on the retrieved checkout
      */
     private void givenGetPaymentDetailsCheckoutIdPathVariableIsPopulated(final String checkoutOwnerId) {
-        givenPathVariable("checkoutId", "1"); // TODO GCI-951: Use constant
+        givenPathVariable(CHECKOUT_ID_PATH_VARIABLE, "1");
         when(checkoutService.getCheckoutById("1")).thenReturn(Optional.of(checkout));
         when(checkout.getUserId()).thenReturn(checkoutOwnerId);
     }

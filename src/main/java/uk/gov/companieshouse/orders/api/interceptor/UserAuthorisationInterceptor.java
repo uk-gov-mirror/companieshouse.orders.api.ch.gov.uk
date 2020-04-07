@@ -18,6 +18,7 @@ import java.util.Map;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.controller.BasketController.CHECKOUT_ID_PATH_VARIABLE;
 import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.*;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.API_KEY_IDENTITY_TYPE;
 
@@ -113,7 +114,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         // TODO GCI-951: Depending on context this may not be present. Do we need to check for that?
         final Map<String, String> uriTemplateVariables =
                 (Map<String, String>) request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-        return uriTemplateVariables.get("checkoutId"); // TODO GCI-951: Use constant to have a contract
+        return uriTemplateVariables.get(CHECKOUT_ID_PATH_VARIABLE);
     }
 
     /**

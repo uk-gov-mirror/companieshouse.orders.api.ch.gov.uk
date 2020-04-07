@@ -34,8 +34,12 @@ import static uk.gov.companieshouse.orders.api.OrdersApiApplication.*;
 public class BasketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
 
+    public static final String CHECKOUT_ID_PATH_VARIABLE = "checkoutId";
+
+    /** ${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment */
     public static final String GET_PAYMENT_DETAILS_URI =
-            "${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment";
+            "${uk.gov.companieshouse.orders.api.basket.checkouts}/{"
+            + CHECKOUT_ID_PATH_VARIABLE + "}/payment";
     public static final String ADD_ITEM_URI =
             "${uk.gov.companieshouse.orders.api.basket.items}";
     public static final String PATCH_BASKET_URI =
@@ -76,8 +80,8 @@ public class BasketController {
     }
 
     @GetMapping(GET_PAYMENT_DETAILS_URI)
-    public ResponseEntity<Object> getPaymentDetails(final @PathVariable String checkoutId,
-                                      final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
+    public ResponseEntity<Object> getPaymentDetails(final @PathVariable(CHECKOUT_ID_PATH_VARIABLE) String checkoutId,
+                                                    final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
         trace("ENTERING getPaymentDetails(" + checkoutId + ")", requestId);
 
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
