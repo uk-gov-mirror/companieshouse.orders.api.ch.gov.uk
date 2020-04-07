@@ -10,7 +10,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
+import uk.gov.companieshouse.orders.api.service.OrderService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -58,6 +60,12 @@ public class UserAuthorisationInterceptorTests {
 
     @Mock
     private Checkout checkout;
+
+    @MockBean
+    private OrderService orderService;
+
+    @Mock
+    private Order order;
 
     @Test
     @DisplayName("preHandle accepts patch payment details request that has the required headers")
@@ -120,7 +128,7 @@ public class UserAuthorisationInterceptorTests {
     }
 
     @Test
-    @DisplayName("preHandle accepts get payment details user request that lacks the required headers")
+    @DisplayName("preHandle rejects get payment details user request that lacks the required headers")
     void preHandleRejectsUnauthorisedUserGetPaymentDetailsRequest() {
 
         // Given
@@ -138,6 +146,70 @@ public class UserAuthorisationInterceptorTests {
 
         // Given
         givenRequest(GET, "/basket/checkouts/1234/payment");
+        givenRequestHasSignedInUser(ERIC_IDENTITY_VALUE);
+
+        // When and then
+        final IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> interceptorUnderTest.preHandle(request, response, handler));
+        assertEquals("No URI template path variables found in the request!", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("preHandle accepts get order internal API request that has the required headers")
+    void preHandleAcceptsAuthorisedInternalApiGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasInternalUserRole();
+
+        // When and then
+        thenRequestIsAccepted();
+    }
+
+    @Test
+    @DisplayName("preHandle accepts get order user request that has the required headers")
+    void preHandleAcceptsAuthorisedUserGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasSignedInUser(ERIC_IDENTITY_VALUE);
+        givenGetOrderOrderIdPathVariableIsPopulated(ERIC_IDENTITY_VALUE);
+
+        // When and then
+        thenRequestIsAccepted();
+    }
+
+    @Test
+    @DisplayName("preHandle rejects get order internal API request that lacks the required headers")
+    void preHandleRejectsUnauthorisedInternalApiGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestDoesNotHaveInternalUserRole();
+
+        // When and then
+        thenRequestIsRejected();
+    }
+
+    @Test
+    @DisplayName("preHandle rejects get order user request that lacks the required headers")
+    void preHandleRejectsUnauthorisedUserGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
+        givenRequestHasSignedInUser(WRONG_ERIC_IDENTITY_VALUE);
+        givenGetOrderOrderIdPathVariableIsPopulated(ERIC_IDENTITY_VALUE);
+
+        // When and then
+        thenRequestIsRejected();
+    }
+
+    @Test
+    @DisplayName("preHandle errors clearly if URI path variables are not present in get order request")
+    void preHandleErrorsClearlyIfUriPathVariablesNotPresentInGetOrderRequest() {
+
+        // Given
+        givenRequest(GET, "/orders/1234");
         givenRequestHasSignedInUser(ERIC_IDENTITY_VALUE);
 
         // When and then
@@ -166,6 +238,16 @@ public class UserAuthorisationInterceptorTests {
         givenPathVariable(CHECKOUT_ID_PATH_VARIABLE, "1");
         when(checkoutService.getCheckoutById("1")).thenReturn(Optional.of(checkout));
         when(checkout.getUserId()).thenReturn(checkoutOwnerId);
+    }
+
+    /**
+     * Sets up the request with the order ID path variable as Spring does.
+     * @param orderOwnerId the user ID value on the retrieved order
+     */
+    private void givenGetOrderOrderIdPathVariableIsPopulated(final String orderOwnerId) {
+        givenPathVariable("Id", "1"); // TODO GCI-951: Use constant.
+        when(orderService.getOrder("1")).thenReturn(Optional.of(order));
+        when(order.getUserId()).thenReturn(orderOwnerId);
     }
 
     /**
