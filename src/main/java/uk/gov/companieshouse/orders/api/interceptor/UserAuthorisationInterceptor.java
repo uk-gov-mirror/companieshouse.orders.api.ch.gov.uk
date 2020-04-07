@@ -1,18 +1,25 @@
 package uk.gov.companieshouse.orders.api.interceptor;
 
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import uk.gov.companieshouse.api.util.security.AuthorisationUtil;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.service.CheckoutService;
+import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.*;
+import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.API_KEY_IDENTITY_TYPE;
 
 @Service
 public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
@@ -20,9 +27,12 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
 
     private final RequestMapper requestMapper;
+    private final CheckoutService checkoutService;
 
-    public UserAuthorisationInterceptor(final RequestMapper requestMapper) {
+    public UserAuthorisationInterceptor(final RequestMapper requestMapper,
+                                        final CheckoutService checkoutService) {
         this.requestMapper = requestMapper;
+        this.checkoutService = checkoutService;
     }
 
     @Override
@@ -37,9 +47,10 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
                 case PATCH_BASKET:
                     return true; // no authorisation required
                 case GET_PAYMENT_DETAILS:
+                    return getPaymentDetailsClientIsAuthorised(request, response);
                 case GET_ORDER:
                     // TODO GCI-951: Authorisation.
-                    return true;
+                    return getOrderClientIsAuthorised(request, response);
                 case PATCH_PAYMENT_DETAILS:
                     return clientIsAuthorisedInternalApi(request, response);
                 default:
@@ -48,6 +59,58 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
             }
         }
         return true;
+    }
+
+    private boolean getPaymentDetailsClientIsAuthorised(final HttpServletRequest request, final HttpServletResponse response) {
+        final String identityType = EricHeaderHelper.getIdentityType(request);
+        if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
+            LOGGER.infoRequest(request,
+                    "UserAuthorisationInterceptor: client is presenting an API key", null);
+            return clientIsAuthorisedInternalApi(request, response);
+        } else {
+            LOGGER.infoRequest(request,
+                    "UserAuthorisationInterceptor: client is presenting signed in user credentials", null);
+            return getPaymentDetailsUserIsResourceOwner(request, response);
+        }
+    }
+
+    // TODO GCI-951: Javadoc or function name - resource owner
+    private boolean getPaymentDetailsUserIsResourceOwner(final HttpServletRequest request,
+                                                         final HttpServletResponse response) {
+        final String requestUserId = EricHeaderHelper.getIdentity(request);
+        final String checkoutId = getCheckoutId(request);
+        final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
+                .orElseThrow(ResourceNotFoundException::new); // TODO GCI-951: integration test this
+        if (requestUserId.equals(checkout.getUserId())) {
+            LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
+            return true;
+        } else {
+            LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is not resource owner", null);
+            response.setStatus(UNAUTHORIZED.value());
+            return false;
+        }
+    }
+
+    private boolean getOrderClientIsAuthorised(final HttpServletRequest request, final HttpServletResponse response) {
+        // TODO GCI-951
+//        final String identityType = EricHeaderHelper.getIdentityType(request);
+//        if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
+//            LOGGER.infoRequest(request,
+//                    "UserAuthorisationInterceptor: client is presenting an API key", null);
+//            return clientIsAuthorisedInternalApi(request, response);
+//        } else {
+//            LOGGER.infoRequest(request,
+//                    "UserAuthorisationInterceptor: client is presenting signed in user credentials", null);
+//            return clientIsAuthorisedSignedInUser(request, response);
+//        }
+        return true;
+    }
+
+    String getCheckoutId(final HttpServletRequest request) {
+        // TODO GCI-951: Depending on context this may not be present. Do we need to check for that?
+        final Map<String, String> uriTemplateVariables =
+                (Map<String, String>) request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        return uriTemplateVariables.get("checkoutId"); // TODO GCI-951: Use constant to have a contract
     }
 
     private boolean clientIsAuthorisedInternalApi(final HttpServletRequest request, final HttpServletResponse response) {
