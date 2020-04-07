@@ -27,6 +27,8 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
 
+    private static final String PATH_VARIABLES_ERROR = "No URI template path variables found in the request!";
+
     private final RequestMapper requestMapper;
     private final CheckoutService checkoutService;
 
@@ -110,10 +112,14 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
      * @param request assumed to have been populated by Spring with the required path variable
      * @return the checkout ID path variable value
      */
-    String getCheckoutId(final HttpServletRequest request) {
-        // TODO GCI-951: Depending on context this may not be present. Do we need to check for that?
+    private String getCheckoutId(final HttpServletRequest request) {
         final Map<String, String> uriTemplateVariables =
                 (Map<String, String>) request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        if (uriTemplateVariables == null) {
+            // This should not happen.
+            LOGGER.error(PATH_VARIABLES_ERROR);
+            throw new IllegalStateException(PATH_VARIABLES_ERROR);
+        }
         return uriTemplateVariables.get(CHECKOUT_ID_PATH_VARIABLE);
     }
 

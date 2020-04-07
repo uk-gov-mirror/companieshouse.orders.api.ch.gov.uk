@@ -14,13 +14,14 @@ import uk.gov.companieshouse.orders.api.service.CheckoutService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpMethod.GET;
@@ -30,8 +31,8 @@ import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORI
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
 import static uk.gov.companieshouse.orders.api.controller.BasketController.CHECKOUT_ID_PATH_VARIABLE;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.*;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.WRONG_ERIC_IDENTITY_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.WRONG_ERIC_IDENTITY_VALUE;
 
 /**
  * Unit/integration tests the {@link UserAuthorisationInterceptor} class.
@@ -129,6 +130,20 @@ public class UserAuthorisationInterceptorTests {
 
         // When and then
         thenRequestIsRejected();
+    }
+
+    @Test
+    @DisplayName("preHandle errors clearly if URI path variables are not present in get payment details request")
+    void preHandleErrorsClearlyIfUriPathVariablesNotPresentInGetPaymentDetailsRequest() {
+
+        // Given
+        givenRequest(GET, "/basket/checkouts/1234/payment");
+        givenRequestHasSignedInUser(ERIC_IDENTITY_VALUE);
+
+        // When and then
+        final IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> interceptorUnderTest.preHandle(request, response, handler));
+        assertEquals("No URI template path variables found in the request!", exception.getMessage());
     }
 
     /**
