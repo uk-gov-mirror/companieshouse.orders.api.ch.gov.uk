@@ -37,6 +37,7 @@ public class CheckoutToPaymentDetailsMapperTest {
     static final String COMPANY_NUMBER = "000000001";
     static final String DESC_VALUE_KEY = "company_number";
     static final String DESC_IDENTIFIER = "certificate";
+    static final String DESCRIPTION = "certificate for company 00006400";
     static final Map<String, String> DESC_VALUES = new HashMap<>();
 
     static final List<ItemCosts> ITEM_COSTS_LIST = new ArrayList<>();
@@ -80,6 +81,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         ITEM.setId(ITEM_ID);
         ITEM.setCompanyName(COMPANY_NAME);
         ITEM.setCompanyNumber(COMPANY_NUMBER);
+        ITEM.setDescription(DESCRIPTION);
         ITEM.setDescriptionIdentifier(DESC_IDENTIFIER);
         ITEM.setDescriptionValues(DESC_VALUES);
         ITEM.setItemOptions(ITEM_OPTIONS);
@@ -148,6 +150,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         assertFalse(target.getItems().get(0).getAvailablePaymentMethods().isEmpty());
         assertTrue(target.getItems().get(0).getAvailablePaymentMethods().contains(EXPECTED_AVAILABLE_PAYMENT_METHODS));
         assertThat(target.getItems().get(0).getAmount(), is(source.getData().getItems().get(0).getItemCosts().get(0).getCalculatedCost()));
+        assertThat(target.getItems().get(0).getDescription(), is(source.getData().getItems().get(0).getDescription()));
         assertThat(target.getItems().get(0).getDescriptionValues().get(COMPANY_NUMBER_KEY), is(COMPANY_NUMBER));
         assertFalse(target.getItems().get(0).getClassOfPayment().isEmpty());
         assertTrue(target.getItems().get(0).getClassOfPayment().contains(EXPECTED_CLASS_OF_PAYMENT));
@@ -159,6 +162,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         assertFalse(target.getItems().get(1).getAvailablePaymentMethods().isEmpty());
         assertTrue(target.getItems().get(1).getAvailablePaymentMethods().contains(EXPECTED_AVAILABLE_PAYMENT_METHODS));
         assertThat(target.getItems().get(1).getAmount(), is(source.getData().getItems().get(0).getItemCosts().get(1).getCalculatedCost()));
+        assertThat(target.getItems().get(1).getDescription(), is(source.getData().getItems().get(0).getDescription()));
         assertThat(target.getItems().get(1).getDescriptionValues().get(COMPANY_NUMBER_KEY), is(COMPANY_NUMBER));
         assertFalse(target.getItems().get(1).getClassOfPayment().isEmpty());
         assertTrue(target.getItems().get(1).getClassOfPayment().contains(EXPECTED_CLASS_OF_PAYMENT));
@@ -170,6 +174,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         assertFalse(target.getItems().get(2).getAvailablePaymentMethods().isEmpty());
         assertTrue(target.getItems().get(2).getAvailablePaymentMethods().contains(EXPECTED_AVAILABLE_PAYMENT_METHODS));
         assertThat(target.getItems().get(2).getAmount(), is(source.getData().getItems().get(0).getItemCosts().get(2).getCalculatedCost()));
+        assertThat(target.getItems().get(2).getDescription(), is(source.getData().getItems().get(0).getDescription()));
         assertThat(target.getItems().get(2).getDescriptionValues().get(COMPANY_NUMBER_KEY), is(COMPANY_NUMBER));
         assertFalse(target.getItems().get(2).getClassOfPayment().isEmpty());
         assertTrue(target.getItems().get(2).getClassOfPayment().contains(EXPECTED_CLASS_OF_PAYMENT));
