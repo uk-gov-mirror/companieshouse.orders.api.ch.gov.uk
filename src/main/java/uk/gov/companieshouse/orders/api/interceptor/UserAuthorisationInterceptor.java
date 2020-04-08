@@ -7,8 +7,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import uk.gov.companieshouse.api.util.security.AuthorisationUtil;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.model.AbstractOrder;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
@@ -16,7 +15,9 @@ import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
@@ -36,6 +37,23 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     private final RequestMapper requestMapper;
     private final CheckoutRepository checkoutRepository;
     private final OrderRepository orderRepository;
+
+    /**
+     * Cut-down variant on {@link Function} defining a function with an {@link Optional} return type.
+     * @param <T> the function input argument value
+     * @param <R> the type of the result of the function
+     */
+    @FunctionalInterface
+    private interface FunctionWithOptionalReturnValue<T, R> {
+
+        /**
+         * Applies this function to the given argument.
+         *
+         * @param t the function argument
+         * @return the function result
+         */
+        Optional<R> apply(T t);
+    }
 
     public UserAuthorisationInterceptor(final RequestMapper requestMapper,
                                         final CheckoutRepository checkoutRepository,
@@ -102,18 +120,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
      */
     private boolean getPaymentDetailsUserIsResourceOwner(final HttpServletRequest request,
                                                          final HttpServletResponse response) {
-        final String requestUserId = EricHeaderHelper.getIdentity(request);
-        final String checkoutId = getPathVariable(request, CHECKOUT_ID_PATH_VARIABLE);
-        final Checkout checkout = checkoutRepository.findById(checkoutId)
-                .orElseThrow(ResourceNotFoundException::new);
-        if (requestUserId.equals(checkout.getUserId())) {
-            LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
-            return true;
-        } else {
-            LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is not resource owner", null);
-            response.setStatus(UNAUTHORIZED.value());
-            return false;
-        }
+        return getRequestUserIsResourceOwner(request, response, CHECKOUT_ID_PATH_VARIABLE, this::retrieveCheckout);
     }
 
     /**
@@ -125,9 +132,25 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
      */
     private boolean getOrderUserIsResourceOwner(final HttpServletRequest request,
                                                 final HttpServletResponse response) {
+        return getRequestUserIsResourceOwner(request, response, ORDER_ID_PATH_VARIABLE, this::retrieveOrder);
+    }
+
+    /**
+     * Inspects ERIC populated headers to determine whether the request comes from a user who is the owner of the
+     * checkout resource the get payment details request attempts to access.
+     * @param request the request checked
+     * @param response the response, updated by this should the request be found to be unauthorised
+     * @param resourceIdPathVariable the name of the resource ID Spring path variable
+     * @param findById the method to call to retrieve the resource by its ID
+     * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
+     */
+    private boolean getRequestUserIsResourceOwner(final HttpServletRequest request,
+                                                  final HttpServletResponse response,
+                                                  final String resourceIdPathVariable,
+                                                  final FunctionWithOptionalReturnValue<String, AbstractOrder> findById) {
         final String requestUserId = EricHeaderHelper.getIdentity(request);
-        final String orderId = getPathVariable(request, ORDER_ID_PATH_VARIABLE);
-        final Order order = orderRepository.findById(orderId).orElseThrow(ResourceNotFoundException::new);
+        final String orderId = getPathVariable(request, resourceIdPathVariable);
+        final AbstractOrder order = findById.apply(orderId).orElseThrow(ResourceNotFoundException::new);
         if (requestUserId.equals(order.getUserId())) {
             LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
             return true;
@@ -153,6 +176,24 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
             throw new IllegalStateException(PATH_VARIABLES_ERROR);
         }
         return uriTemplateVariables.get(pathVariable);
+    }
+
+    /**
+     * Retrieves the checkout identified by the ID from the checkout repository.
+     * @param checkoutId the checkout ID
+     * @return the checkout
+     */
+    private Optional<AbstractOrder> retrieveCheckout(final String checkoutId) {
+        return Optional.of(checkoutRepository.findById(checkoutId).orElseThrow(ResourceNotFoundException::new));
+    }
+
+    /**
+     * Retrieves the order identified by the ID from the order repository.
+     * @param orderId the order ID
+     * @return the order
+     */
+    private Optional<AbstractOrder> retrieveOrder(final String orderId) {
+        return Optional.of(orderRepository.findById(orderId).orElseThrow(ResourceNotFoundException::new));
     }
 
     /**
