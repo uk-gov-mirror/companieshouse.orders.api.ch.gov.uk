@@ -11,8 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
-import uk.gov.companieshouse.orders.api.service.CheckoutService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,7 +56,7 @@ public class UserAuthorisationInterceptorTests {
     private Object handler;
 
     @MockBean
-    private CheckoutService checkoutService;
+    private CheckoutRepository checkoutRepository;
 
     @Mock
     private Checkout checkout;
@@ -236,7 +236,7 @@ public class UserAuthorisationInterceptorTests {
      */
     private void givenGetPaymentDetailsCheckoutIdPathVariableIsPopulated(final String checkoutOwnerId) {
         givenPathVariable(CHECKOUT_ID_PATH_VARIABLE, "1");
-        when(checkoutService.getCheckoutById("1")).thenReturn(Optional.of(checkout));
+        when(checkoutRepository.findById("1")).thenReturn(Optional.of(checkout));
         when(checkout.getUserId()).thenReturn(checkoutOwnerId);
     }
 

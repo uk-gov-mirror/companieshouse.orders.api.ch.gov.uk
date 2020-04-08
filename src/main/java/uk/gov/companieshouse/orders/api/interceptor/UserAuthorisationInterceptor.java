@@ -9,8 +9,8 @@ import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
-import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,14 +32,14 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     private static final String PATH_VARIABLES_ERROR = "No URI template path variables found in the request!";
 
     private final RequestMapper requestMapper;
-    private final CheckoutService checkoutService;
+    private final CheckoutRepository checkoutRepository;
     private final OrderRepository orderRepository;
 
     public UserAuthorisationInterceptor(final RequestMapper requestMapper,
-                                        final CheckoutService checkoutService,
+                                        final CheckoutRepository checkoutRepository,
                                         final OrderRepository orderRepository) {
         this.requestMapper = requestMapper;
-        this.checkoutService = checkoutService;
+        this.checkoutRepository = checkoutRepository;
         this.orderRepository = orderRepository;
     }
 
@@ -119,7 +119,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
                                                          final HttpServletResponse response) {
         final String requestUserId = EricHeaderHelper.getIdentity(request);
         final String checkoutId = getCheckoutId(request);
-        final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
+        final Checkout checkout = checkoutRepository.findById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
         if (requestUserId.equals(checkout.getUserId())) {
             LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
