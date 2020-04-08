@@ -119,7 +119,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     private boolean getPaymentDetailsUserIsResourceOwner(final HttpServletRequest request,
                                                          final HttpServletResponse response) {
         final String requestUserId = EricHeaderHelper.getIdentity(request);
-        final String checkoutId = getCheckoutId(request);
+        final String checkoutId = getPathVariable(request, CHECKOUT_ID_PATH_VARIABLE);
         final Checkout checkout = checkoutRepository.findById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
         if (requestUserId.equals(checkout.getUserId())) {
@@ -142,7 +142,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     private boolean getOrderUserIsResourceOwner(final HttpServletRequest request,
                                                 final HttpServletResponse response) {
         final String requestUserId = EricHeaderHelper.getIdentity(request);
-        final String orderId = getOrderId(request);
+        final String orderId = getPathVariable(request, ORDER_ID_PATH_VARIABLE);
         final Order order = orderRepository.findById(orderId).orElseThrow(ResourceNotFoundException::new);
         if (requestUserId.equals(order.getUserId())) {
             LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
@@ -155,11 +155,12 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     }
 
     /**
-     * Extracts the checkout ID Spring path variable from the request.
+     * Extracts the named Spring path variable from the request.
      * @param request assumed to have been populated by Spring with the required path variable
-     * @return the checkout ID path variable value
+     * @param pathVariable the name of the path variable
+     * @return the path variable value
      */
-    private String getCheckoutId(final HttpServletRequest request) {
+    private String getPathVariable(final HttpServletRequest request, final String pathVariable) {
         final Map<String, String> uriTemplateVariables =
                 (Map<String, String>) request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
         if (uriTemplateVariables == null) {
@@ -167,23 +168,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
             LOGGER.error(PATH_VARIABLES_ERROR);
             throw new IllegalStateException(PATH_VARIABLES_ERROR);
         }
-        return uriTemplateVariables.get(CHECKOUT_ID_PATH_VARIABLE);
-    }
-
-    /**
-     * Extracts the order ID Spring path variable from the request.
-     * @param request assumed to have been populated by Spring with the required path variable
-     * @return the order ID path variable value
-     */
-    private String getOrderId(final HttpServletRequest request) {
-        final Map<String, String> uriTemplateVariables =
-                (Map<String, String>) request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-        if (uriTemplateVariables == null) {
-            // This should not happen.
-            LOGGER.error(PATH_VARIABLES_ERROR);
-            throw new IllegalStateException(PATH_VARIABLES_ERROR);
-        }
-        return uriTemplateVariables.get(ORDER_ID_PATH_VARIABLE);
+        return uriTemplateVariables.get(pathVariable);
     }
 
     /**
