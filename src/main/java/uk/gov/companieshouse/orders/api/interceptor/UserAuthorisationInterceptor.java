@@ -15,7 +15,6 @@ import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 
@@ -37,23 +36,6 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     private final RequestMapper requestMapper;
     private final CheckoutRepository checkoutRepository;
     private final OrderRepository orderRepository;
-
-    /**
-     * Cut-down variant on {@link Function} defining a function with an {@link Optional} return type.
-     * @param <T> the function input argument value
-     * @param <R> the type of the result of the function
-     */
-    @FunctionalInterface
-    private interface FunctionWithOptionalReturnValue<T, R> {
-
-        /**
-         * Applies this function to the given argument.
-         *
-         * @param t the function argument
-         * @return the function result
-         */
-        Optional<R> apply(T t);
-    }
 
     public UserAuthorisationInterceptor(final RequestMapper requestMapper,
                                         final CheckoutRepository checkoutRepository,
@@ -147,10 +129,10 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     private boolean getRequestUserIsResourceOwner(final HttpServletRequest request,
                                                   final HttpServletResponse response,
                                                   final String resourceIdPathVariable,
-                                                  final FunctionWithOptionalReturnValue<String, AbstractOrder> findById) {
+                                                  final Function<String, AbstractOrder> findById) {
         final String requestUserId = EricHeaderHelper.getIdentity(request);
         final String orderId = getPathVariable(request, resourceIdPathVariable);
-        final AbstractOrder order = findById.apply(orderId).orElseThrow(ResourceNotFoundException::new);
+        final AbstractOrder order = findById.apply(orderId);
         if (requestUserId.equals(order.getUserId())) {
             LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
             return true;
@@ -183,8 +165,8 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
      * @param checkoutId the checkout ID
      * @return the checkout
      */
-    private Optional<AbstractOrder> retrieveCheckout(final String checkoutId) {
-        return Optional.of(checkoutRepository.findById(checkoutId).orElseThrow(ResourceNotFoundException::new));
+    private AbstractOrder retrieveCheckout(final String checkoutId) {
+        return checkoutRepository.findById(checkoutId).orElseThrow(ResourceNotFoundException::new);
     }
 
     /**
@@ -192,8 +174,8 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
      * @param orderId the order ID
      * @return the order
      */
-    private Optional<AbstractOrder> retrieveOrder(final String orderId) {
-        return Optional.of(orderRepository.findById(orderId).orElseThrow(ResourceNotFoundException::new));
+    private AbstractOrder retrieveOrder(final String orderId) {
+        return orderRepository.findById(orderId).orElseThrow(ResourceNotFoundException::new);
     }
 
     /**
