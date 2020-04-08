@@ -26,8 +26,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.http.HttpMethod.*;
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
@@ -67,6 +66,17 @@ public class UserAuthorisationInterceptorTests {
 
     @Mock
     private Order order;
+
+    @Test
+    @DisplayName("preHandle accepts a request it has not been configured to authorise")
+    void preHandleAcceptsUnknownRequest() {
+
+        // Given
+        givenRequest(DELETE, "/unknown");
+
+        // When and then
+        thenRequestIsAccepted();
+    }
 
     @Test
     @DisplayName("preHandle accepts patch payment details request that has the required headers")
