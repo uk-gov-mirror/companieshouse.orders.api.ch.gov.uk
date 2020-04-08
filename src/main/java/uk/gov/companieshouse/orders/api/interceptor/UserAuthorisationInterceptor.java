@@ -16,6 +16,7 @@ import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
@@ -56,9 +57,9 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
                 case PATCH_BASKET:
                     return true; // no authorisation required
                 case GET_PAYMENT_DETAILS:
-                    return getPaymentDetailsClientIsAuthorised(request, response);
+                    return getRequestClientIsAuthorised(request, response, this::getPaymentDetailsUserIsResourceOwner);
                 case GET_ORDER:
-                    return getOrderClientIsAuthorised(request, response);
+                    return getRequestClientIsAuthorised(request, response, this::getOrderUserIsResourceOwner);
                 case PATCH_PAYMENT_DETAILS:
                     return clientIsAuthorisedInternalApi(request, response);
                 default:
@@ -73,10 +74,13 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
      * Inspects ERIC populated headers to determine whether the request is authorised.
      * @param request the request checked
      * @param response the response, updated by this should the request be found to be unauthorised
+     * @param isResourceOwner the method to call to check resource ownership, should it be necessary
      * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
      */
-    private boolean getPaymentDetailsClientIsAuthorised(final HttpServletRequest request,
-                                                        final HttpServletResponse response) {
+    private boolean getRequestClientIsAuthorised(
+            final HttpServletRequest request,
+            final HttpServletResponse response,
+            final BiPredicate<HttpServletRequest, HttpServletResponse> isResourceOwner) {
         final String identityType = EricHeaderHelper.getIdentityType(request);
         if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
             LOGGER.infoRequest(request,
@@ -85,27 +89,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         } else {
             LOGGER.infoRequest(request,
                     "UserAuthorisationInterceptor: client is presenting signed in user credentials", null);
-            return getPaymentDetailsUserIsResourceOwner(request, response);
-        }
-    }
-
-    /**
-     * Inspects ERIC populated headers to determine whether the request is authorised.
-     * @param request the request checked
-     * @param response the response, updated by this should the request be found to be unauthorised
-     * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
-     */
-    private boolean getOrderClientIsAuthorised(final HttpServletRequest request,
-                                               final HttpServletResponse response) {
-        final String identityType = EricHeaderHelper.getIdentityType(request);
-        if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
-            LOGGER.infoRequest(request,
-                    "UserAuthorisationInterceptor: client is presenting an API key", null);
-            return clientIsAuthorisedInternalApi(request, response);
-        } else {
-            LOGGER.infoRequest(request,
-                    "UserAuthorisationInterceptor: client is presenting signed in user credentials", null);
-            return getOrderUserIsResourceOwner(request, response);
+            return isResourceOwner.test(request, response);
         }
     }
 
