@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.orders.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 
 public class BasketPaymentRequestDTO {
@@ -37,4 +38,8 @@ public class BasketPaymentRequestDTO {
     public void setStatus(PaymentStatus status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() { return new Gson().toJson(this); }
+
 }
