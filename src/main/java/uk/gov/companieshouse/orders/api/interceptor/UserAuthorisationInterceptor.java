@@ -8,6 +8,8 @@ import uk.gov.companieshouse.api.util.security.AuthorisationUtil;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 
@@ -31,11 +33,14 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
 
     private final RequestMapper requestMapper;
     private final CheckoutService checkoutService;
+    private final OrderRepository orderRepository;
 
     public UserAuthorisationInterceptor(final RequestMapper requestMapper,
-                                        final CheckoutService checkoutService) {
+                                        final CheckoutService checkoutService,
+                                        final OrderRepository orderRepository) {
         this.requestMapper = requestMapper;
         this.checkoutService = checkoutService;
+        this.orderRepository = orderRepository;
     }
 
     @Override
@@ -52,8 +57,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
                 case GET_PAYMENT_DETAILS:
                     return getPaymentDetailsClientIsAuthorised(request, response);
                 case GET_ORDER:
-                    // TODO GCI-951: Authorisation.
-                    return true;
+                    return getOrderClientIsAuthorised(request, response);
                 case PATCH_PAYMENT_DETAILS:
                     return clientIsAuthorisedInternalApi(request, response);
                 default:
@@ -85,6 +89,26 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     }
 
     /**
+     * Inspects ERIC populated headers to determine whether the request is authorised.
+     * @param request the request checked
+     * @param response the response, updated by this should the request be found to be unauthorised
+     * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
+     */
+    private boolean getOrderClientIsAuthorised(final HttpServletRequest request,
+                                               final HttpServletResponse response) {
+        final String identityType = EricHeaderHelper.getIdentityType(request);
+        if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
+            LOGGER.infoRequest(request,
+                    "UserAuthorisationInterceptor: client is presenting an API key", null);
+            return clientIsAuthorisedInternalApi(request, response);
+        } else {
+            LOGGER.infoRequest(request,
+                    "UserAuthorisationInterceptor: client is presenting signed in user credentials", null);
+            return getOrderUserIsResourceOwner(request, response);
+        }
+    }
+
+    /**
      * Inspects ERIC populated headers to determine whether the request comes from a user who is the owner of the
      * checkout resource the get payment details request attempts to access.
      * @param request the request checked
@@ -108,6 +132,28 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
     }
 
     /**
+     * Inspects ERIC populated headers to determine whether the request comes from a user who is the owner of the
+     * order resource the get order request attempts to access.
+     * @param request the request checked
+     * @param response the response, updated by this should the request be found to be unauthorised
+     * @return whether the request is authorised (<code>true</code>), or not (<code>false</code>)
+     */
+    private boolean getOrderUserIsResourceOwner(final HttpServletRequest request,
+                                                final HttpServletResponse response) {
+        final String requestUserId = EricHeaderHelper.getIdentity(request);
+        final String orderId = getOrderId(request);
+        final Order order = orderRepository.findById(orderId).orElseThrow(ResourceNotFoundException::new);
+        if (requestUserId.equals(order.getUserId())) {
+            LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is resource owner", null);
+            return true;
+        } else {
+            LOGGER.infoRequest(request, "UserAuthorisationInterceptor: user is not resource owner", null);
+            response.setStatus(UNAUTHORIZED.value());
+            return false;
+        }
+    }
+
+    /**
      * Extracts the checkout ID Spring path variable from the request.
      * @param request assumed to have been populated by Spring with the required path variable
      * @return the checkout ID path variable value
@@ -121,6 +167,22 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
             throw new IllegalStateException(PATH_VARIABLES_ERROR);
         }
         return uriTemplateVariables.get(CHECKOUT_ID_PATH_VARIABLE);
+    }
+
+    /**
+     * Extracts the order ID Spring path variable from the request.
+     * @param request assumed to have been populated by Spring with the required path variable
+     * @return the order ID path variable value
+     */
+    private String getOrderId(final HttpServletRequest request) {
+        final Map<String, String> uriTemplateVariables =
+                (Map<String, String>) request.getAttribute(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+        if (uriTemplateVariables == null) {
+            // This should not happen.
+            LOGGER.error(PATH_VARIABLES_ERROR);
+            throw new IllegalStateException(PATH_VARIABLES_ERROR);
+        }
+        return uriTemplateVariables.get("id"); // TODO GCI-951: Use constant.
     }
 
     /**

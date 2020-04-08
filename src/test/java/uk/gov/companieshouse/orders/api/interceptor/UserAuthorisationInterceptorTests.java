@@ -11,8 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
-import uk.gov.companieshouse.orders.api.service.OrderService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -62,7 +62,7 @@ public class UserAuthorisationInterceptorTests {
     private Checkout checkout;
 
     @MockBean
-    private OrderService orderService;
+    private OrderRepository orderRepository;
 
     @Mock
     private Order order;
@@ -245,8 +245,8 @@ public class UserAuthorisationInterceptorTests {
      * @param orderOwnerId the user ID value on the retrieved order
      */
     private void givenGetOrderOrderIdPathVariableIsPopulated(final String orderOwnerId) {
-        givenPathVariable("Id", "1"); // TODO GCI-951: Use constant.
-        when(orderService.getOrder("1")).thenReturn(Optional.of(order));
+        givenPathVariable("id", "1"); // TODO GCI-951: Use constant.
+        when(orderRepository.findById("1")).thenReturn(Optional.of(order));
         when(order.getUserId()).thenReturn(orderOwnerId);
     }
 

@@ -44,6 +44,7 @@ public class OrderControllerIntegrationTest {
     public void getOrderSuccessfully() throws Exception {
         final Order preexistingOrder = new Order();
         preexistingOrder.setId(ORDER_ID);
+        preexistingOrder.setUserId(ERIC_IDENTITY_VALUE);
         final OrderData orderData = new OrderData();
         orderData.setReference(ORDER_REFERENCE);
         orderData.setTotalOrderCost("100");
@@ -68,4 +69,24 @@ public class OrderControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    public void getOrderUnauthorisedIfUserDoesNotOwnOrder() throws Exception {
+        final Order preexistingOrder = new Order();
+        preexistingOrder.setId(ORDER_ID);
+        preexistingOrder.setUserId(ERIC_IDENTITY_VALUE);
+        final OrderData orderData = new OrderData();
+        orderData.setReference(ORDER_REFERENCE);
+        orderData.setTotalOrderCost("100");
+        preexistingOrder.setData(orderData);
+        orderRepository.save(preexistingOrder);
+
+        mockMvc.perform(get("/orders/"+ORDER_ID)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, WRONG_ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
 }
