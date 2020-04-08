@@ -32,6 +32,7 @@ import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIAB
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
 import static uk.gov.companieshouse.orders.api.controller.BasketController.CHECKOUT_ID_PATH_VARIABLE;
+import static uk.gov.companieshouse.orders.api.controller.OrderController.ORDER_ID_PATH_VARIABLE;
 import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.*;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.WRONG_ERIC_IDENTITY_VALUE;
@@ -245,7 +246,7 @@ public class UserAuthorisationInterceptorTests {
      * @param orderOwnerId the user ID value on the retrieved order
      */
     private void givenGetOrderOrderIdPathVariableIsPopulated(final String orderOwnerId) {
-        givenPathVariable("id", "1"); // TODO GCI-951: Use constant.
+        givenPathVariable(ORDER_ID_PATH_VARIABLE, "1");
         when(orderRepository.findById("1")).thenReturn(Optional.of(order));
         when(order.getUserId()).thenReturn(orderOwnerId);
     }

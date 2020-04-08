@@ -36,7 +36,7 @@ public class BasketController {
 
     public static final String CHECKOUT_ID_PATH_VARIABLE = "checkoutId";
 
-    /** ${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment */
+    /** <code>${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment</code> */
     public static final String GET_PAYMENT_DETAILS_URI =
             "${uk.gov.companieshouse.orders.api.basket.checkouts}/{"
             + CHECKOUT_ID_PATH_VARIABLE + "}/payment";
