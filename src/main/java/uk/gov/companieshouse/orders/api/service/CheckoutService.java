@@ -53,4 +53,14 @@ public class CheckoutService {
     public Optional<Checkout> getCheckoutById(String id) {
         return checkoutRepository.findById(id);
     }
+
+    /**
+     * Saves the checkout, assumed to have been updated, to the database.
+     * @param updatedCheckout the certificate item to save
+     * @return the latest checkout state resulting from the save
+     */
+    public Checkout saveCheckout(final Checkout updatedCheckout) {
+        // TODO GCI-632: Implement this.
+        return updatedCheckout;
+    }
 }

@@ -29,6 +29,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
@@ -562,6 +563,49 @@ class BasketControllerIntegrationTest {
         verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get(), intervalStart, intervalEnd);
     }
 
+    @Test
+    @DisplayName("Patch basket payment details updates checkout")
+    public void patchBasketPaymentDetailsUpdatesCheckout() throws Exception {
+        final LocalDateTime intervalStart = LocalDateTime.now();
+
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        basket.setCreatedAt(intervalStart);
+        basket.setUpdatedAt(intervalStart);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        basketRepository.save(basket);
+
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
+        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        final LocalDateTime intervalEnd = LocalDateTime.now();
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(CHECKOUT_ID);
+        assertThat(retrievedCheckout.isPresent(), is(true));
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
+        verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get(), intervalStart, intervalEnd);
+        // TODO GCI-632: Etag?
+    }
+
+
     @DisplayName("PAID patch basket payment request creates order")
     public void paidPatchBasketPaymentDetailsCreatesOrder() throws Exception {
         final Checkout checkout = new Checkout();
@@ -791,17 +835,17 @@ class BasketControllerIntegrationTest {
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
-    private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
+    private void verifyUpdatedAtTimestampWithinExecutionInterval(final TimestampedEntity updatedEntity,
                                                                  final LocalDateTime intervalStart,
                                                                  final LocalDateTime intervalEnd) {
 
-        assertThat(itemUpdated.getUpdatedAt().isAfter(itemUpdated.getCreatedAt()) ||
-                itemUpdated.getUpdatedAt().isEqual(itemUpdated.getCreatedAt()), is(true));
+        assertThat(updatedEntity.getUpdatedAt().isAfter(updatedEntity.getCreatedAt()) ||
+                updatedEntity.getUpdatedAt().isEqual(updatedEntity.getCreatedAt()), is(true));
 
-        assertThat(itemUpdated.getUpdatedAt().isAfter(intervalStart) ||
-                itemUpdated.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemUpdated.getUpdatedAt().isBefore(intervalEnd) ||
-                itemUpdated.getUpdatedAt().isEqual(intervalEnd), is(true));
+        assertThat(updatedEntity.getUpdatedAt().isAfter(intervalStart) ||
+                updatedEntity.getUpdatedAt().isEqual(intervalStart), is(true));
+        assertThat(updatedEntity.getUpdatedAt().isBefore(intervalEnd) ||
+                updatedEntity.getUpdatedAt().isEqual(intervalEnd), is(true));
     }
 
     /**

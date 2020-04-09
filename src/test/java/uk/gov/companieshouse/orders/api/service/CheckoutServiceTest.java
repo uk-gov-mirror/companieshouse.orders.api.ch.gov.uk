@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -155,6 +156,15 @@ public class CheckoutServiceTest {
         assertEquals(LINKS_SELF, argCaptor.getValue().getData().getLinks().getSelf());
         assertEquals(LINKS_PAYMENT, argCaptor.getValue().getData().getLinks().getPayment());
         assertEquals(ETAG, argCaptor.getValue().getData().getEtag());
+    }
+
+    // TODO GCI-632: We will want to assert more than this.
+    @Test
+    @DisplayName("saveCheckout saves checkout as is")
+    void saveCheckoutSavesUpdatedCheckout() {
+        final Checkout checkout = new Checkout();
+        serviceUnderTest.saveCheckout(checkout);
+        verify(checkoutRepository).save(checkout);
     }
 
     private void verifyCreationTimestampsWithinExecutionInterval(final Checkout itemCreated,

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Document(collection = "basket")
-public class Basket {
+public class Basket implements TimestampedEntity {
     @Id
     private String id;
 

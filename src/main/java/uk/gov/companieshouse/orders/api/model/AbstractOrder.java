@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 /**
  * Factors out those data fields common to both {@link Checkout} and {@link Order}.
  */
-public abstract class AbstractOrder {
+public abstract class AbstractOrder implements TimestampedEntity {
     @Id
     private String id;
 
