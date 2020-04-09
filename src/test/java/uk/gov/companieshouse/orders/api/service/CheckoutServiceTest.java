@@ -101,8 +101,8 @@ public class CheckoutServiceTest {
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(argCaptor.capture());
 
-        assertEquals(argCaptor.getValue().getData().getCheckedOutBy().getId(), ERIC_IDENTITY_VALUE);
-        assertEquals(argCaptor.getValue().getData().getCheckedOutBy().getEmail(), ERIC_AUTHORISED_USER_VALUE);
+        assertThat(argCaptor.getValue().getData().getCheckedOutBy().getId(), is(ERIC_IDENTITY_VALUE));
+        assertThat(argCaptor.getValue().getData().getCheckedOutBy().getEmail(), is(ERIC_AUTHORISED_USER_VALUE));
     }
 
     @Test
@@ -125,16 +125,16 @@ public class CheckoutServiceTest {
         verify(checkoutRepository).save(argCaptor.capture());
 
         DeliveryDetails createdDeliveryDetails = argCaptor.getValue().getData().getDeliveryDetails();
-        assertEquals(createdDeliveryDetails.getAddressLine1(), ADDRESS_LINE_1);
-        assertEquals(createdDeliveryDetails.getAddressLine2(), ADDRESS_LINE_2);
-        assertEquals(createdDeliveryDetails.getCountry(), COUNTRY);
-        assertEquals(createdDeliveryDetails.getForename(), FORENAME);
-        assertEquals(createdDeliveryDetails.getLocality(), LOCALITY);
-        assertEquals(createdDeliveryDetails.getPoBox(), PO_BOX);
-        assertEquals(createdDeliveryDetails.getPostalCode(), POSTAL_CODE);
-        assertEquals(createdDeliveryDetails.getPremises(), PREMISES);
-        assertEquals(createdDeliveryDetails.getRegion(), REGION);
-        assertEquals(createdDeliveryDetails.getSurname(), SURNAME);
+        assertThat(createdDeliveryDetails.getAddressLine1(), is(ADDRESS_LINE_1));
+        assertThat(createdDeliveryDetails.getAddressLine2(), is(ADDRESS_LINE_2));
+        assertThat(createdDeliveryDetails.getCountry(), is(COUNTRY));
+        assertThat(createdDeliveryDetails.getForename(), is(FORENAME));
+        assertThat(createdDeliveryDetails.getLocality(), is(LOCALITY));
+        assertThat(createdDeliveryDetails.getPoBox(), is(PO_BOX));
+        assertThat(createdDeliveryDetails.getPostalCode(), is(POSTAL_CODE));
+        assertThat(createdDeliveryDetails.getPremises(), is(PREMISES));
+        assertThat(createdDeliveryDetails.getRegion(), is(REGION));
+        assertThat(createdDeliveryDetails.getSurname(), is(SURNAME));
     }
 
     @Test
