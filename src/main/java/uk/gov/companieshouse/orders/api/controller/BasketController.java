@@ -34,8 +34,12 @@ import static uk.gov.companieshouse.orders.api.OrdersApiApplication.*;
 public class BasketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
 
+    public static final String CHECKOUT_ID_PATH_VARIABLE = "checkoutId";
+
+    /** <code>${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment</code> */
     public static final String GET_PAYMENT_DETAILS_URI =
-            "${uk.gov.companieshouse.orders.api.basket.checkouts}/{checkoutId}/payment";
+            "${uk.gov.companieshouse.orders.api.basket.checkouts}/{"
+            + CHECKOUT_ID_PATH_VARIABLE + "}/payment";
     public static final String ADD_ITEM_URI =
             "${uk.gov.companieshouse.orders.api.basket.items}";
     public static final String PATCH_BASKET_URI =
@@ -76,8 +80,8 @@ public class BasketController {
     }
 
     @GetMapping(GET_PAYMENT_DETAILS_URI)
-    public ResponseEntity<Object> getPaymentDetails(final @PathVariable String checkoutId,
-                                      final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
+    public ResponseEntity<Object> getPaymentDetails(final @PathVariable(CHECKOUT_ID_PATH_VARIABLE) String checkoutId,
+                                                    final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
         trace("ENTERING getPaymentDetails(" + checkoutId + ")", requestId);
 
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
@@ -184,29 +188,26 @@ public class BasketController {
     @PatchMapping(PATCH_PAYMENT_DETAILS_URI)
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
                                                             final @PathVariable String id,
-                                                            HttpServletRequest request,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
-        if(basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
-            processSuccessfulPayment(request, requestId, id);
+        if (basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
+            processSuccessfulPayment(requestId, id);
         }
         return ResponseEntity.ok("");
     }
 
     /**
      * Performs the actions required to process a successful payment.
-     * @param request the request
      * @param requestId the request ID
      * @param checkoutId the checkout ID
      */
-    private void processSuccessfulPayment(final HttpServletRequest request,
-                                          final String requestId,
+    private void processSuccessfulPayment(final String requestId,
                                           final String checkoutId) {
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
         final Order order = orderService.createOrder(checkout);
         trace("Created order: " + order, requestId);
-        final Basket basket = basketService.clearBasket(EricHeaderHelper.getIdentity(request));
+        final Basket basket = basketService.clearBasket(checkout.getUserId());
         trace("Cleared basket: " + basket, requestId);
     }
 

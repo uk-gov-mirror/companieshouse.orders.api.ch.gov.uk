@@ -13,6 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import uk.gov.companieshouse.kafka.serialization.SerializerFactory;
 import uk.gov.companieshouse.orders.api.interceptor.LoggingInterceptor;
 import uk.gov.companieshouse.orders.api.interceptor.UserAuthenticationInterceptor;
+import uk.gov.companieshouse.orders.api.interceptor.UserAuthorisationInterceptor;
 
 import static uk.gov.companieshouse.orders.api.controller.HealthcheckController.HEALTHCHECK_URI;
 
@@ -20,11 +21,14 @@ import static uk.gov.companieshouse.orders.api.controller.HealthcheckController.
 public class ApplicationConfig implements WebMvcConfigurer {
 
     private final UserAuthenticationInterceptor authenticationInterceptor;
+    private final UserAuthorisationInterceptor authorisationInterceptor;
     private final String healthcheckUri;
 
     public ApplicationConfig(final UserAuthenticationInterceptor authenticationInterceptor,
+                             final UserAuthorisationInterceptor authorisationInterceptor,
                              @Value(HEALTHCHECK_URI) final String healthcheckUri) {
         this.authenticationInterceptor = authenticationInterceptor;
+        this.authorisationInterceptor = authorisationInterceptor;
         this.healthcheckUri = healthcheckUri;
     }
 
@@ -32,6 +36,7 @@ public class ApplicationConfig implements WebMvcConfigurer {
     public void addInterceptors(final InterceptorRegistry registry) {
         registry.addInterceptor(new LoggingInterceptor());
         registry.addInterceptor(authenticationInterceptor).excludePathPatterns(healthcheckUri);
+        registry.addInterceptor(authorisationInterceptor).excludePathPatterns(healthcheckUri);
     }
 
     @Bean

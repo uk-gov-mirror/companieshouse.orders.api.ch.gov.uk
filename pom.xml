@@ -30,6 +30,7 @@
 		<api-sdk-manager-java-library.version>1.0.2</api-sdk-manager-java-library.version>
 		<api-sdk-java.version>4.1.48</api-sdk-java.version>
 		<api-helper-java.version>1.4.1</api-helper-java.version>
+		<api-security-java.version>0.2.9</api-security-java.version>
 	</properties>
 
 	<dependencies>
@@ -42,6 +43,11 @@
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>api-sdk-java</artifactId>
 			<version>${api-sdk-java.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.gov.companieshouse</groupId>
+			<artifactId>api-security-java</artifactId>
+			<version>${api-security-java.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
