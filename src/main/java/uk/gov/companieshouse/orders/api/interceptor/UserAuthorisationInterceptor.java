@@ -192,8 +192,11 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
         final boolean isAuthorisedInternalApi = AuthorisationUtil.hasInternalUserRole(request);
         if (!isAuthorisedInternalApi) {
             LOGGER.infoRequest(request,
-                    "UserAuthorisationInterceptor error: client does not have required internal user role", null);
+                    "UserAuthorisationInterceptor: client does not have required internal user role", null);
             response.setStatus(UNAUTHORIZED.value());
+        } else {
+            LOGGER.infoRequest(request,
+                    "UserAuthorisationInterceptor: client has required internal user role", null);
         }
         return isAuthorisedInternalApi;
     }
