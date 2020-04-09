@@ -190,21 +190,34 @@ public class BasketController {
                                                             final @PathVariable String id,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
+        final Checkout updatedCheckout = updateCheckout(id, basketPaymentRequestDTO.getStatus());
         if (basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
-            processSuccessfulPayment(requestId, id);
+            processSuccessfulPayment(requestId, updatedCheckout);
         }
         return ResponseEntity.ok("");
     }
 
     /**
-     * Performs the actions required to process a successful payment.
-     * @param requestId the request ID
-     * @param checkoutId the checkout ID
+     * Updates the checkout identified with the payment status provided
+     * @param checkoutId the id of the checkout to be updated
+     * @param paymentStatus the payment status to update the checkout to
+     * @return the updated checkout
      */
-    private void processSuccessfulPayment(final String requestId,
-                                          final String checkoutId) {
+    private Checkout updateCheckout(final String checkoutId, final PaymentStatus paymentStatus) {
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
+        checkout.getData().setStatus(paymentStatus);
+        checkoutService.saveCheckout(checkout);
+        return checkout;
+    }
+
+    /**
+     * Performs the actions required to process a successful payment.
+     * @param requestId the request ID used for logging purposes
+     * @param checkout the checkout required to process the payment
+     */
+    private void processSuccessfulPayment(final String requestId,
+                                          final Checkout checkout) {
         final Order order = orderService.createOrder(checkout);
         trace("Created order: " + order, requestId);
         final Basket basket = basketService.clearBasket(checkout.getUserId());

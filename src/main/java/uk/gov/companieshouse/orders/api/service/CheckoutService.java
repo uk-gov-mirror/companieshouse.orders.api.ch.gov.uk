@@ -61,6 +61,8 @@ public class CheckoutService {
      */
     public Checkout saveCheckout(final Checkout updatedCheckout) {
         // TODO GCI-632: Implement this.
-        return updatedCheckout;
+        final LocalDateTime now = LocalDateTime.now();
+        updatedCheckout.setUpdatedAt(now);
+        return checkoutRepository.save(updatedCheckout);
     }
 }

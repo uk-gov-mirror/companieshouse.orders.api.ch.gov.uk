@@ -116,13 +116,14 @@ class BasketControllerTest {
         final BasketPaymentRequestDTO paymentStatusUpdate = new BasketPaymentRequestDTO();
         paymentStatusUpdate.setStatus(paymentOutcome);
         when(checkoutService.getCheckoutById("checkoutId")).thenReturn(Optional.of(checkout));
+        when(checkout.getData()).thenReturn(checkoutData);
 
         // When
         controllerUnderTest.patchBasketPaymentDetails(paymentStatusUpdate, "checkoutId", "requestId");
 
         // Then
         verify(checkoutData).setStatus(paymentOutcome);
-        verify(checkout).setData(checkoutData);
+        verify(checkout).getData();
         verify(checkoutService).saveCheckout(checkout);
     }
 

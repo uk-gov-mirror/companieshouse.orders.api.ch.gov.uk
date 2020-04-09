@@ -507,6 +507,10 @@ class BasketControllerIntegrationTest {
         basket.getData().getItems().add(basketItem);
         basketRepository.save(basket);
 
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
@@ -568,20 +572,13 @@ class BasketControllerIntegrationTest {
     public void patchBasketPaymentDetailsUpdatesCheckout() throws Exception {
         final LocalDateTime intervalStart = LocalDateTime.now();
 
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        basket.setCreatedAt(intervalStart);
-        basket.setUpdatedAt(intervalStart);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
-
         final Checkout checkout = new Checkout();
         checkout.setId(CHECKOUT_ID);
+        checkout.setCreatedAt(intervalStart);
+        checkout.setUpdatedAt(intervalStart);
         checkoutRepository.save(checkout);
 
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
