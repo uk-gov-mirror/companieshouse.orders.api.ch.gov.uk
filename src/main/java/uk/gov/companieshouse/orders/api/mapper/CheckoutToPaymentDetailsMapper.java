@@ -46,6 +46,8 @@ public interface CheckoutToPaymentDetailsMapper {
             itemDTO.setDescriptionIdentifier(item.getDescriptionIdentifier());
             itemDTO.setDescriptionValues(item.getDescriptionValues());
 
+            itemDTO.setDescription(item.getDescription());
+
             itemDTOs.add(itemDTO);
         }
 
