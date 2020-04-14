@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,19 +29,24 @@ public class BasketServiceTest {
     @Mock
     private BasketRepository repository;
 
-    private TimestampedEntityVerifier timestamps = new TimestampedEntityVerifier();
+    private TimestampedEntityVerifier timestamps;
+
+    @BeforeEach
+    void setUp() {
+        timestamps = new TimestampedEntityVerifier();
+    }
 
     @Test
     public void saveBasketPopulatesCreatedAtAndUpdatedAtAndSavesItem() {
         final Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         service.saveBasket(basket);
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
-        timestamps.verifyCreationTimestampsWithinExecutionInterval(basket, intervalStart, intervalEnd);
+        timestamps.end();
+        timestamps.verifyCreationTimestampsWithinExecutionInterval(basket);
         verify(repository).save(basket);
     }
 
@@ -50,13 +56,13 @@ public class BasketServiceTest {
         basket.setCreatedAt(CREATED_AT);
         basket.setId(ERIC_IDENTITY_VALUE);
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         service.saveBasket(basket);
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
         assertThat(basket.getCreatedAt(), is(CREATED_AT));
-        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(basket, intervalStart, intervalEnd);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(basket);
         verify(repository).save(basket);
     }
 

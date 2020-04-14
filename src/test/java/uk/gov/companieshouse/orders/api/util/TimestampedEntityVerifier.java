@@ -5,6 +5,7 @@ import uk.gov.companieshouse.orders.api.model.TimestampedEntity;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 
 /**
@@ -13,15 +14,39 @@ import static org.hamcrest.core.Is.is;
 public class TimestampedEntityVerifier {
 
     /**
+     * the start of the test, prior to the invocation of the method under test
+     */
+    private LocalDateTime intervalStart;
+
+    /**
+     * the end of the test, after the invocation of the method under test
+     */
+    private LocalDateTime intervalEnd;
+
+    /** Use to record the start of the test, prior to the invocation of the method under test.
+     * @return the recorded start timestamp
+     */
+    public LocalDateTime start() {
+        intervalStart = LocalDateTime.now();
+        return intervalStart;
+    }
+
+    /** Use to record the end of the test, after the invocation of the method under test.
+     * @return the recorded end timestamp
+     */
+    public LocalDateTime end() {
+        intervalEnd = LocalDateTime.now();
+        return intervalEnd;
+    }
+
+    /**
      * Verifies that the entity created at and updated at timestamps are within the expected interval
      * for the creation.
      * @param createdEntity the created entity
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
      */
-    public void verifyCreationTimestampsWithinExecutionInterval(final TimestampedEntity createdEntity,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
+    public void verifyCreationTimestampsWithinExecutionInterval(final TimestampedEntity createdEntity) {
+        checkIntervalRecorded();
+
         assertThat(createdEntity.getCreatedAt().isAfter(intervalStart) ||
                 createdEntity.getCreatedAt().isEqual(intervalStart), is(true));
         assertThat(createdEntity.getCreatedAt().isBefore(intervalEnd) ||
@@ -36,12 +61,9 @@ public class TimestampedEntityVerifier {
      * Verifies that the updated entity updated at timestamp is within the expected interval
      * for the update.
      * @param updatedEntity the updated entity
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
      */
-    public void verifyUpdatedAtTimestampWithinExecutionInterval(final TimestampedEntity updatedEntity,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
+    public void verifyUpdatedAtTimestampWithinExecutionInterval(final TimestampedEntity updatedEntity) {
+        checkIntervalRecorded();
 
         assertThat(updatedEntity.getUpdatedAt().isAfter(updatedEntity.getCreatedAt()) ||
                 updatedEntity.getUpdatedAt().isEqual(updatedEntity.getCreatedAt()), is(true));
@@ -50,6 +72,14 @@ public class TimestampedEntityVerifier {
                 updatedEntity.getUpdatedAt().isEqual(intervalStart), is(true));
         assertThat(updatedEntity.getUpdatedAt().isBefore(intervalEnd) ||
                 updatedEntity.getUpdatedAt().isEqual(intervalEnd), is(true));
+    }
+
+    /**
+     * Checks that the interval start and end points have been recorded correctly.
+     */
+    private void checkIntervalRecorded() {
+        assertThat("start() must already have been called at this point!", intervalStart, is(notNullValue()));
+        assertThat("end() must already have been called at this point!", intervalEnd, is(notNullValue()));
     }
 
 }

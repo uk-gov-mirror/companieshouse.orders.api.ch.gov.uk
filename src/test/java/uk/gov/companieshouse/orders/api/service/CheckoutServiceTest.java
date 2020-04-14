@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,21 +60,26 @@ public class CheckoutServiceTest {
     @Captor
     ArgumentCaptor<Checkout> checkoutCaptor;
 
-    private TimestampedEntityVerifier timestamps = new TimestampedEntityVerifier();
+    private TimestampedEntityVerifier timestamps;
+
+    @BeforeEach
+    void setUp() {
+        timestamps = new TimestampedEntityVerifier();
+    }
 
     @Test
     void createCheckoutPopulatesCreatedAndUpdated() {
         when(checkoutRepository.save(any(Checkout.class))).thenReturn(new Checkout());
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(checkoutCaptor.capture());
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
 
-        timestamps.verifyCreationTimestampsWithinExecutionInterval(checkout(), intervalStart, intervalEnd);
+        timestamps.verifyCreationTimestampsWithinExecutionInterval(checkout());
     }
 
     @Test
@@ -168,18 +174,18 @@ public class CheckoutServiceTest {
         checkout.getData().setStatus(PaymentStatus.PAID);
         when(etagGeneratorService.generateEtag()).thenReturn(ETAG);
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         // When
         serviceUnderTest.saveCheckout(checkout);
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
 
         // Then
         verify(etagGeneratorService, times(1)).generateEtag();
         verify(checkoutRepository).save(checkoutCaptor.capture());
         assertThat(checkout().getData().getEtag(), is(ETAG));
-        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(checkout(), intervalStart, intervalEnd);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(checkout());
     }
 
     /**
