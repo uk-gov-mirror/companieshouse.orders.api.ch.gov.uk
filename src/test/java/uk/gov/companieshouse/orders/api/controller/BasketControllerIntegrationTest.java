@@ -614,6 +614,7 @@ class BasketControllerIntegrationTest {
     }
 
 
+    @Test
     @DisplayName("PAID patch basket payment request creates order")
     public void paidPatchBasketPaymentDetailsCreatesOrder() throws Exception {
         final Checkout checkout = new Checkout();
@@ -629,7 +630,9 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
                 .andExpect(status().isOk());
