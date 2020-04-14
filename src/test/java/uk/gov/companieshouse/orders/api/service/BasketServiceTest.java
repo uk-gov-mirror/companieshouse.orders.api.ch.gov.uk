@@ -20,7 +20,7 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_
 @ExtendWith(MockitoExtension.class)
 public class BasketServiceTest {
 
-    private static final LocalDateTime CREATED_AT = LocalDateTime.of(2020, 01, 12, 9, 1);
+    private static final LocalDateTime CREATED_AT = LocalDateTime.of(2020, 1, 12, 9, 1);
 
     @InjectMocks
     private BasketService service;
