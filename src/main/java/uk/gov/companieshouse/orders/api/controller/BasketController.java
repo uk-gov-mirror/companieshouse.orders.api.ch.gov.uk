@@ -190,7 +190,7 @@ public class BasketController {
                                                             final @PathVariable String id,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
-        final Checkout updatedCheckout = updateCheckout(id, basketPaymentRequestDTO.getStatus());
+        final Checkout updatedCheckout = updateCheckout(id, basketPaymentRequestDTO);
         if (basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
             processSuccessfulPayment(requestId, updatedCheckout);
         }
@@ -198,15 +198,20 @@ public class BasketController {
     }
 
     /**
-     * Updates the checkout identified with the payment status provided
+     * Updates the checkout identified with the payment status update provided.
      * @param checkoutId the id of the checkout to be updated
-     * @param paymentStatus the payment status to update the checkout to
+     * @param update the payment status update
      * @return the updated checkout
      */
-    private Checkout updateCheckout(final String checkoutId, final PaymentStatus paymentStatus) {
+    private Checkout updateCheckout(final String checkoutId, final BasketPaymentRequestDTO update) {
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
-        checkout.getData().setStatus(paymentStatus);
+        final CheckoutData data = checkout.getData();
+        data.setStatus(update.getStatus());
+        if (update.getStatus() == PaymentStatus.PAID) {
+            data.setPaidAt(update.getPaidAt());
+            data.setPaymentReference(update.getPaymentReference());
+        }
         checkoutService.saveCheckout(checkout);
         return checkout;
     }

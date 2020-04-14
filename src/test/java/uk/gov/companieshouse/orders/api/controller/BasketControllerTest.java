@@ -20,6 +20,7 @@ import uk.gov.companieshouse.orders.api.service.OrderService;
 import uk.gov.companieshouse.orders.api.validator.CheckoutBasketValidator;
 import uk.gov.companieshouse.orders.api.validator.DeliveryDetailsValidator;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.mockito.Mockito.verify;
@@ -113,8 +114,12 @@ class BasketControllerTest {
     private void patchPaymentDetailsStatusUpdateIsSaved(final PaymentStatus paymentOutcome) {
 
         // Given
+        final LocalDateTime paidAt = LocalDateTime.now();
         final BasketPaymentRequestDTO paymentStatusUpdate = new BasketPaymentRequestDTO();
         paymentStatusUpdate.setStatus(paymentOutcome);
+        paymentStatusUpdate.setPaidAt(paidAt);
+        paymentStatusUpdate.setPaymentReference("Payment reference");
+
         when(checkoutService.getCheckoutById("checkoutId")).thenReturn(Optional.of(checkout));
         when(checkout.getData()).thenReturn(checkoutData);
 
@@ -124,6 +129,10 @@ class BasketControllerTest {
         // Then
         verify(checkout).getData();
         verify(checkoutData).setStatus(paymentOutcome);
+        if (paymentOutcome == PaymentStatus.PAID) {
+            verify(checkoutData).setPaidAt(paidAt);
+            verify(checkoutData).setPaymentReference("Payment reference");
+        }
         verify(checkoutService).saveCheckout(checkout);
     }
 

@@ -465,7 +465,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -495,7 +495,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -527,7 +527,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
@@ -563,7 +563,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -597,7 +597,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -631,7 +631,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -664,7 +664,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -697,7 +697,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
@@ -721,7 +721,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -754,7 +754,7 @@ class BasketControllerIntegrationTest {
         orderRepository.save(preexistingOrder);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
