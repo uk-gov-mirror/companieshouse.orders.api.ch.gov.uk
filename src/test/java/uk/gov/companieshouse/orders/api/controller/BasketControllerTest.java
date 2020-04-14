@@ -122,8 +122,8 @@ class BasketControllerTest {
         controllerUnderTest.patchBasketPaymentDetails(paymentStatusUpdate, "checkoutId", "requestId");
 
         // Then
-        verify(checkoutData).setStatus(paymentOutcome);
         verify(checkout).getData();
+        verify(checkoutData).setStatus(paymentOutcome);
         verify(checkoutService).saveCheckout(checkout);
     }
 

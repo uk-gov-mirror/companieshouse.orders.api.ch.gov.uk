@@ -60,9 +60,9 @@ public class CheckoutService {
      * @return the latest checkout state resulting from the save
      */
     public Checkout saveCheckout(final Checkout updatedCheckout) {
-        // TODO GCI-632: Implement this.
         final LocalDateTime now = LocalDateTime.now();
         updatedCheckout.setUpdatedAt(now);
+        updatedCheckout.getData().setEtag(etagGeneratorService.generateEtag());
         return checkoutRepository.save(updatedCheckout);
     }
 }

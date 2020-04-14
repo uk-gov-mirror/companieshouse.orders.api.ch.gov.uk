@@ -22,6 +22,7 @@ import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
+import uk.gov.companieshouse.orders.api.service.EtagGeneratorService;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -71,6 +72,8 @@ class BasketControllerIntegrationTest {
     private static final String POSTAGE_COST = "0";
     private static final String TOTAL_ITEM_COST = "70";
     static final String PAYMENT_KIND = "payment-details#payment-details";
+    private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
+    private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
 
     @Autowired
     private MockMvc mockMvc;
@@ -92,6 +95,9 @@ class BasketControllerIntegrationTest {
 
     @SpyBean
     private CheckoutService checkoutService;
+
+    @MockBean
+    private EtagGeneratorService etagGenerator;
 
     @AfterEach
     void tearDown() {
@@ -576,12 +582,17 @@ class BasketControllerIntegrationTest {
         checkout.setId(CHECKOUT_ID);
         checkout.setCreatedAt(intervalStart);
         checkout.setUpdatedAt(intervalStart);
+        final CheckoutData data = new CheckoutData();
+        data.setEtag(TOKEN_ETAG);
+        checkout.setData(data);
         checkoutRepository.save(checkout);
 
         final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
         basketPaymentRequestDTO.setPaidAt("paid-at");
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
 
         mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -598,8 +609,8 @@ class BasketControllerIntegrationTest {
         assertThat(retrievedCheckout.isPresent(), is(true));
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
         assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
+        assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
         verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get(), intervalStart, intervalEnd);
-        // TODO GCI-632: Etag?
     }
 
 
@@ -832,6 +843,13 @@ class BasketControllerIntegrationTest {
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
+    /**
+     * Verifies that the updated entity updated at timestamp is within the expected interval
+     * for the update.
+     * @param updatedEntity the updated entity
+     * @param intervalStart roughly the start of the test
+     * @param intervalEnd roughly the end of the test
+     */
     private void verifyUpdatedAtTimestampWithinExecutionInterval(final TimestampedEntity updatedEntity,
                                                                  final LocalDateTime intervalStart,
                                                                  final LocalDateTime intervalEnd) {
