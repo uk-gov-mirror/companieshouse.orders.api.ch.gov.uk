@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
+import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 
 import java.time.LocalDateTime;
 
@@ -58,6 +59,8 @@ public class CheckoutServiceTest {
     @Captor
     ArgumentCaptor<Checkout> checkoutCaptor;
 
+    private TimestampedEntityVerifier timestamps = new TimestampedEntityVerifier();
+
     @Test
     void createCheckoutPopulatesCreatedAndUpdated() {
         when(checkoutRepository.save(any(Checkout.class))).thenReturn(new Checkout());
@@ -70,7 +73,7 @@ public class CheckoutServiceTest {
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
 
-        verifyCreationTimestampsWithinExecutionInterval(checkout(), intervalStart, intervalEnd);
+        timestamps.verifyCreationTimestampsWithinExecutionInterval(checkout(), intervalStart, intervalEnd);
     }
 
     @Test
@@ -176,7 +179,7 @@ public class CheckoutServiceTest {
         verify(etagGeneratorService, times(1)).generateEtag();
         verify(checkoutRepository).save(checkoutCaptor.capture());
         assertThat(checkout().getData().getEtag(), is(ETAG));
-        verifyUpdatedAtTimestampWithinExecutionInterval(checkout(), intervalStart, intervalEnd);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(checkout(), intervalStart, intervalEnd);
     }
 
     /**
@@ -186,36 +189,4 @@ public class CheckoutServiceTest {
         return checkoutCaptor.getValue();
     }
 
-    private void verifyCreationTimestampsWithinExecutionInterval(final Checkout itemCreated,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-        assertThat(itemCreated.getCreatedAt().isAfter(intervalStart) ||
-                itemCreated.getCreatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemCreated.getCreatedAt().isBefore(intervalEnd) ||
-                itemCreated.getCreatedAt().isEqual(intervalEnd), is(true));
-        assertThat(itemCreated.getUpdatedAt().isAfter(intervalStart) ||
-                itemCreated.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemCreated.getUpdatedAt().isBefore(intervalEnd) ||
-                itemCreated.getUpdatedAt().isEqual(intervalEnd), is(true));
-    }
-
-    /**
-     * Verifies that the updated entity updated at timestamp is within the expected interval
-     * for the update.
-     * @param updatedEntity the updated entity
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
-     */
-    private void verifyUpdatedAtTimestampWithinExecutionInterval(final TimestampedEntity updatedEntity,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-
-        assertThat(updatedEntity.getUpdatedAt().isAfter(updatedEntity.getCreatedAt()) ||
-                updatedEntity.getUpdatedAt().isEqual(updatedEntity.getCreatedAt()), is(true));
-
-        assertThat(updatedEntity.getUpdatedAt().isAfter(intervalStart) ||
-                updatedEntity.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(updatedEntity.getUpdatedAt().isBefore(intervalEnd) ||
-                updatedEntity.getUpdatedAt().isEqual(intervalEnd), is(true));
-    }
 }

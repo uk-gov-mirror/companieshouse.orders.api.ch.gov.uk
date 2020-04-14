@@ -23,6 +23,7 @@ import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.service.EtagGeneratorService;
+import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -98,6 +99,8 @@ class BasketControllerIntegrationTest {
 
     @MockBean
     private EtagGeneratorService etagGenerator;
+
+    private TimestampedEntityVerifier timestamps = new TimestampedEntityVerifier();
 
     @AfterEach
     void tearDown() {
@@ -570,7 +573,7 @@ class BasketControllerIntegrationTest {
         final LocalDateTime intervalEnd = LocalDateTime.now();
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get(), intervalStart, intervalEnd);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get(), intervalStart, intervalEnd);
     }
 
     @Test
@@ -610,7 +613,7 @@ class BasketControllerIntegrationTest {
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
         assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
         assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
-        verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get(), intervalStart, intervalEnd);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get(), intervalStart, intervalEnd);
     }
 
 
@@ -847,46 +850,6 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Verifies that the updated entity updated at timestamp is within the expected interval
-     * for the update.
-     * @param updatedEntity the updated entity
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
-     */
-    private void verifyUpdatedAtTimestampWithinExecutionInterval(final TimestampedEntity updatedEntity,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-
-        assertThat(updatedEntity.getUpdatedAt().isAfter(updatedEntity.getCreatedAt()) ||
-                updatedEntity.getUpdatedAt().isEqual(updatedEntity.getCreatedAt()), is(true));
-
-        assertThat(updatedEntity.getUpdatedAt().isAfter(intervalStart) ||
-                updatedEntity.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(updatedEntity.getUpdatedAt().isBefore(intervalEnd) ||
-                updatedEntity.getUpdatedAt().isEqual(intervalEnd), is(true));
-    }
-
-    /**
-     * Verifies that the order created at and updated at timestamps are within the expected interval
-     * for item creation.
-     * @param orderCreated the order created
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
-     */
-    private void verifyCreationTimestampsWithinExecutionInterval(final Order orderCreated,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-        assertThat(orderCreated.getCreatedAt().isAfter(intervalStart) ||
-                orderCreated.getCreatedAt().isEqual(intervalStart), is(true));
-        assertThat(orderCreated.getCreatedAt().isBefore(intervalEnd) ||
-                orderCreated.getCreatedAt().isEqual(intervalEnd), is(true));
-        assertThat(orderCreated.getUpdatedAt().isAfter(intervalStart) ||
-                orderCreated.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(orderCreated.getUpdatedAt().isBefore(intervalEnd) ||
-                orderCreated.getUpdatedAt().isEqual(intervalEnd), is(true));
-    }
-
-    /**
      * Verifies that the order assumed to have been created by a PAID patch payment details request can be retrieved
      * from the database using its expected ID value.
      * @param expectedOrderId the expected ID of the newly created order
@@ -901,7 +864,7 @@ class BasketControllerIntegrationTest {
         assertThat(retrievedOrder.isPresent(), is(true));
         final Order order = retrievedOrder.get();
         assertThat(order.getId(), is(expectedOrderId));
-        verifyCreationTimestampsWithinExecutionInterval(order, intervalStart, intervalEnd);
+        timestamps.verifyCreationTimestampsWithinExecutionInterval(order, intervalStart, intervalEnd);
         return order;
     }
 
