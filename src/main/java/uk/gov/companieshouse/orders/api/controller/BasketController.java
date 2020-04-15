@@ -191,7 +191,7 @@ public class BasketController {
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
         final Checkout updatedCheckout = updateCheckout(id, basketPaymentRequestDTO);
-        if (basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
+        if (basketPaymentRequestDTO.getStatus() == PaymentStatus.PAID) {
             processSuccessfulPayment(requestId, updatedCheckout);
         }
         return ResponseEntity.ok("");
