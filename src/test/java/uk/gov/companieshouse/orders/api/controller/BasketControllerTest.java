@@ -72,43 +72,44 @@ class BasketControllerTest {
     private BasketPaymentRequestDTO paymentStatusUpdate;
 
     @Test
-    @DisplayName("Patch payment details PAID status update is saved")
+    @DisplayName("Patch payment details PAID status update is saved to checkout")
     void patchPaymentDetailsPaidStatusUpdateIsSaved() {
         patchPaymentDetailsStatusUpdateIsSaved(PaymentStatus.PAID);
     }
 
     @Test
-    @DisplayName("Patch payment details FAILED status update is saved")
+    @DisplayName("Patch payment details FAILED status update is saved to checkout")
     void patchPaymentDetailsFailedStatusUpdateIsSaved() {
         patchPaymentDetailsStatusUpdateIsSaved(PaymentStatus.FAILED);
     }
 
     @Test
-    @DisplayName("Patch payment details PENDING status update is saved")
+    @DisplayName("Patch payment details PENDING status update is saved to checkout")
     void patchPaymentDetailsPendingStatusUpdateIsSaved() {
         patchPaymentDetailsStatusUpdateIsSaved(PaymentStatus.PENDING);
     }
 
     @Test
-    @DisplayName("Patch payment details EXPIRED status update is saved")
+    @DisplayName("Patch payment details EXPIRED status update is saved to checkout")
     void patchPaymentDetailsExpiredStatusUpdateIsSaved() {
         patchPaymentDetailsStatusUpdateIsSaved(PaymentStatus.EXPIRED);
     }
 
     @Test
-    @DisplayName("Patch payment details IN_PROGRESS status update is saved")
+    @DisplayName("Patch payment details IN_PROGRESS status update is saved to checkout")
     void patchPaymentDetailsInProgressStatusUpdateIsSaved() {
         patchPaymentDetailsStatusUpdateIsSaved(PaymentStatus.IN_PROGRESS);
     }
 
     @Test
-    @DisplayName("Patch payment details NO_FUNDS status update is saved")
+    @DisplayName("Patch payment details NO_FUNDS status update is saved to checkout")
     void patchPaymentDetailsNoFundsStatusUpdateIsSaved() {
         patchPaymentDetailsStatusUpdateIsSaved(PaymentStatus.NO_FUNDS);
     }
 
     /**
-     * Verifies that the controller has requested the checkout service to save the updated status to the checkout.
+     * Verifies that the controller has requested the checkout service to save the updated status to the checkout,
+     * and made any further updates required to the checkout for that updated status.
      * @param paymentOutcome the payment status updated value
      */
     private void patchPaymentDetailsStatusUpdateIsSaved(final PaymentStatus paymentOutcome) {
