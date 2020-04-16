@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -7,11 +9,9 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.companieshouse.orders.api.model.Certificate;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.CheckoutLinks;
-import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
+import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 
 import java.time.LocalDateTime;
 
@@ -58,21 +58,28 @@ public class CheckoutServiceTest {
     LinksGeneratorService linksGeneratorService;
 
     @Captor
-    ArgumentCaptor<Checkout> argCaptor;
+    ArgumentCaptor<Checkout> checkoutCaptor;
+
+    private TimestampedEntityVerifier timestamps;
+
+    @BeforeEach
+    void setUp() {
+        timestamps = new TimestampedEntityVerifier();
+    }
 
     @Test
     void createCheckoutPopulatesCreatedAndUpdated() {
         when(checkoutRepository.save(any(Checkout.class))).thenReturn(new Checkout());
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
-        verify(checkoutRepository).save(argCaptor.capture());
+        verify(checkoutRepository).save(checkoutCaptor.capture());
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
 
-        verifyCreationTimestampsWithinExecutionInterval(argCaptor.getValue(), intervalStart, intervalEnd);
+        timestamps.verifyCreationTimestampsWithinExecutionInterval(checkout());
     }
 
     @Test
@@ -83,13 +90,13 @@ public class CheckoutServiceTest {
 
         serviceUnderTest.createCheckout(certificate, ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
-        verify(checkoutRepository).save(argCaptor.capture());
+        verify(checkoutRepository).save(checkoutCaptor.capture());
 
-        assertEquals(1, argCaptor.getValue().getData().getItems().size());
-        assertEquals(ERIC_IDENTITY_VALUE, argCaptor.getValue().getUserId());
-        assertEquals(COMPANY_NUMBER, argCaptor.getValue().getData().getItems().get(0).getCompanyNumber());
-        assertEquals(argCaptor.getValue().getId(), argCaptor.getValue().getData().getReference());
-        assertEquals(KIND, argCaptor.getValue().getData().getKind());
+        assertEquals(1, checkout().getData().getItems().size());
+        assertEquals(ERIC_IDENTITY_VALUE, checkout().getUserId());
+        assertEquals(COMPANY_NUMBER, checkout().getData().getItems().get(0).getCompanyNumber());
+        assertEquals(checkout().getId(), checkout().getData().getReference());
+        assertEquals(KIND, checkout().getData().getKind());
     }
 
     @Test
@@ -98,10 +105,10 @@ public class CheckoutServiceTest {
 
         serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
-        verify(checkoutRepository).save(argCaptor.capture());
+        verify(checkoutRepository).save(checkoutCaptor.capture());
 
-        assertEquals(argCaptor.getValue().getData().getCheckedOutBy().getId(), ERIC_IDENTITY_VALUE);
-        assertEquals(argCaptor.getValue().getData().getCheckedOutBy().getEmail(), ERIC_AUTHORISED_USER_VALUE);
+        assertThat(checkout().getData().getCheckedOutBy().getId(), is(ERIC_IDENTITY_VALUE));
+        assertThat(checkout().getData().getCheckedOutBy().getEmail(), is(ERIC_AUTHORISED_USER_VALUE));
     }
 
     @Test
@@ -121,19 +128,19 @@ public class CheckoutServiceTest {
 
         serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, deliveryDetails);
-        verify(checkoutRepository).save(argCaptor.capture());
+        verify(checkoutRepository).save(checkoutCaptor.capture());
 
-        DeliveryDetails createdDeliveryDetails = argCaptor.getValue().getData().getDeliveryDetails();
-        assertEquals(createdDeliveryDetails.getAddressLine1(), ADDRESS_LINE_1);
-        assertEquals(createdDeliveryDetails.getAddressLine2(), ADDRESS_LINE_2);
-        assertEquals(createdDeliveryDetails.getCountry(), COUNTRY);
-        assertEquals(createdDeliveryDetails.getForename(), FORENAME);
-        assertEquals(createdDeliveryDetails.getLocality(), LOCALITY);
-        assertEquals(createdDeliveryDetails.getPoBox(), PO_BOX);
-        assertEquals(createdDeliveryDetails.getPostalCode(), POSTAL_CODE);
-        assertEquals(createdDeliveryDetails.getPremises(), PREMISES);
-        assertEquals(createdDeliveryDetails.getRegion(), REGION);
-        assertEquals(createdDeliveryDetails.getSurname(), SURNAME);
+        DeliveryDetails createdDeliveryDetails = checkout().getData().getDeliveryDetails();
+        assertThat(createdDeliveryDetails.getAddressLine1(), is(ADDRESS_LINE_1));
+        assertThat(createdDeliveryDetails.getAddressLine2(), is(ADDRESS_LINE_2));
+        assertThat(createdDeliveryDetails.getCountry(), is(COUNTRY));
+        assertThat(createdDeliveryDetails.getForename(), is(FORENAME));
+        assertThat(createdDeliveryDetails.getLocality(), is(LOCALITY));
+        assertThat(createdDeliveryDetails.getPoBox(), is(PO_BOX));
+        assertThat(createdDeliveryDetails.getPostalCode(), is(POSTAL_CODE));
+        assertThat(createdDeliveryDetails.getPremises(), is(PREMISES));
+        assertThat(createdDeliveryDetails.getRegion(), is(REGION));
+        assertThat(createdDeliveryDetails.getSurname(), is(SURNAME));
     }
 
     @Test
@@ -148,25 +155,44 @@ public class CheckoutServiceTest {
 
         serviceUnderTest.createCheckout(new Certificate(), ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
-        verify(checkoutRepository).save(argCaptor.capture());
+        verify(checkoutRepository).save(checkoutCaptor.capture());
 
         verify(etagGeneratorService, times(1)).generateEtag();
         verify(linksGeneratorService, times(1)).generateCheckoutLinks(any(String.class));
-        assertEquals(LINKS_SELF, argCaptor.getValue().getData().getLinks().getSelf());
-        assertEquals(LINKS_PAYMENT, argCaptor.getValue().getData().getLinks().getPayment());
-        assertEquals(ETAG, argCaptor.getValue().getData().getEtag());
+        assertEquals(LINKS_SELF, checkout().getData().getLinks().getSelf());
+        assertEquals(LINKS_PAYMENT, checkout().getData().getLinks().getPayment());
+        assertEquals(ETAG, checkout().getData().getEtag());
     }
 
-    private void verifyCreationTimestampsWithinExecutionInterval(final Checkout itemCreated,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-        assertThat(itemCreated.getCreatedAt().isAfter(intervalStart) ||
-                itemCreated.getCreatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemCreated.getCreatedAt().isBefore(intervalEnd) ||
-                itemCreated.getCreatedAt().isEqual(intervalEnd), is(true));
-        assertThat(itemCreated.getUpdatedAt().isAfter(intervalStart) ||
-                itemCreated.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemCreated.getUpdatedAt().isBefore(intervalEnd) ||
-                itemCreated.getUpdatedAt().isEqual(intervalEnd), is(true));
+    @Test
+    @DisplayName("saveCheckout saves updated checkout correctly")
+    void saveCheckoutSavesUpdatedCheckout() {
+
+        // Given
+        final Checkout checkout = new Checkout();
+        checkout.setCreatedAt(LocalDateTime.now());
+        checkout.getData().setStatus(PaymentStatus.PAID);
+        when(etagGeneratorService.generateEtag()).thenReturn(ETAG);
+
+        timestamps.start();
+
+        // When
+        serviceUnderTest.saveCheckout(checkout);
+
+        timestamps.end();
+
+        // Then
+        verify(etagGeneratorService, times(1)).generateEtag();
+        verify(checkoutRepository).save(checkoutCaptor.capture());
+        assertThat(checkout().getData().getEtag(), is(ETAG));
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(checkout());
     }
+
+    /**
+     * @return the captured {@link Checkout}.
+     */
+    private Checkout checkout() {
+        return checkoutCaptor.getValue();
+    }
+
 }

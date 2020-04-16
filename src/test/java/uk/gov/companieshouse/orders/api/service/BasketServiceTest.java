@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -7,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
+import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 
 import java.time.LocalDateTime;
 
@@ -19,32 +21,32 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_
 @ExtendWith(MockitoExtension.class)
 public class BasketServiceTest {
 
+    private static final LocalDateTime CREATED_AT = LocalDateTime.of(2020, 1, 12, 9, 1);
+
     @InjectMocks
     private BasketService service;
 
     @Mock
     private BasketRepository repository;
 
-    private static final LocalDateTime CREATED_AT = LocalDateTime.of(2020, 01, 12, 9, 1);
+    private TimestampedEntityVerifier timestamps;
+
+    @BeforeEach
+    void setUp() {
+        timestamps = new TimestampedEntityVerifier();
+    }
 
     @Test
     public void saveBasketPopulatesCreatedAtAndUpdatedAtAndSavesItem() {
         final Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         service.saveBasket(basket);
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
-        assertThat(basket.getCreatedAt().isAfter(intervalStart) ||
-                basket.getCreatedAt().isEqual(intervalStart), is(true));
-        assertThat(basket.getCreatedAt().isBefore(intervalEnd) ||
-                basket.getCreatedAt().isEqual(intervalEnd), is(true));
-        assertThat(basket.getUpdatedAt().isAfter(intervalStart) ||
-                basket.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(basket.getUpdatedAt().isBefore(intervalEnd) ||
-                basket.getUpdatedAt().isEqual(intervalEnd), is(true));
+        timestamps.end();
+        timestamps.verifyCreationTimestampsWithinExecutionInterval(basket);
         verify(repository).save(basket);
     }
 
@@ -54,16 +56,13 @@ public class BasketServiceTest {
         basket.setCreatedAt(CREATED_AT);
         basket.setId(ERIC_IDENTITY_VALUE);
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         service.saveBasket(basket);
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
         assertThat(basket.getCreatedAt(), is(CREATED_AT));
-        assertThat(basket.getUpdatedAt().isAfter(intervalStart) ||
-                basket.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(basket.getUpdatedAt().isBefore(intervalEnd) ||
-                basket.getUpdatedAt().isEqual(intervalEnd), is(true));
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(basket);
         verify(repository).save(basket);
     }
 
@@ -75,23 +74,4 @@ public class BasketServiceTest {
         });
     }
 
-    /**
-     * Verifies that the item created at and updated at timestamps are within the expected interval
-     * for item creation.
-     * @param itemCreated the item created
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
-     */
-    private void verifyCreationTimestampsWithinExecutionInterval(final Basket itemCreated,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-        assertThat(itemCreated.getCreatedAt().isAfter(intervalStart) ||
-                itemCreated.getCreatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemCreated.getCreatedAt().isBefore(intervalEnd) ||
-                itemCreated.getCreatedAt().isEqual(intervalEnd), is(true));
-        assertThat(itemCreated.getUpdatedAt().isAfter(intervalStart) ||
-                itemCreated.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemCreated.getUpdatedAt().isBefore(intervalEnd) ||
-                itemCreated.getUpdatedAt().isEqual(intervalEnd), is(true));
-    }
 }

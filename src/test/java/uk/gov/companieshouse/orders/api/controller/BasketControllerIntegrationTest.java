@@ -2,6 +2,7 @@ package uk.gov.companieshouse.orders.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,8 @@ import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
-import uk.gov.companieshouse.orders.api.util.ResultCaptor;
+import uk.gov.companieshouse.orders.api.service.EtagGeneratorService;
+import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -30,10 +32,9 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -73,6 +74,8 @@ class BasketControllerIntegrationTest {
     private static final String POSTAGE_COST = "0";
     private static final String TOTAL_ITEM_COST = "70";
     static final String PAYMENT_KIND = "payment-details#payment-details";
+    private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
+    private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
 
     @Autowired
     private MockMvc mockMvc;
@@ -94,6 +97,16 @@ class BasketControllerIntegrationTest {
 
     @SpyBean
     private CheckoutService checkoutService;
+
+    @MockBean
+    private EtagGeneratorService etagGenerator;
+
+    private TimestampedEntityVerifier timestamps;
+
+    @BeforeEach
+    void setUp() {
+        timestamps = new TimestampedEntityVerifier();
+    }
 
     @AfterEach
     void tearDown() {
@@ -452,7 +465,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -482,7 +495,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -509,8 +522,12 @@ class BasketControllerIntegrationTest {
         basket.getData().getItems().add(basketItem);
         basketRepository.save(basket);
 
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkoutRepository.save(checkout);
+
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
@@ -530,12 +547,12 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Patch basket payment details updates updated_at field")
     public void patchBasketPaymentDetailsUpdatesUpdatedAt() throws Exception {
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        final LocalDateTime start = timestamps.start();
 
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        basket.setCreatedAt(intervalStart);
-        basket.setUpdatedAt(intervalStart);
+        basket.setCreatedAt(start);
+        basket.setUpdatedAt(start);
         BasketItem basketItem = new BasketItem();
         basketItem.setItemUri(ITEM_URI);
         basket.getData().getItems().add(basketItem);
@@ -546,7 +563,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -559,12 +576,54 @@ class BasketControllerIntegrationTest {
                 .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
                 .andExpect(status().isOk());
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get(), intervalStart, intervalEnd);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get());
     }
 
+    @Test
+    @DisplayName("Patch basket payment details updates checkout")
+    public void patchBasketPaymentDetailsUpdatesCheckout() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        final Checkout checkout = new Checkout();
+        checkout.setId(CHECKOUT_ID);
+        checkout.setCreatedAt(start);
+        checkout.setUpdatedAt(start);
+        final CheckoutData data = new CheckoutData();
+        data.setEtag(TOKEN_ETAG);
+        checkout.setData(data);
+        checkoutRepository.save(checkout);
+
+        final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
+        basketPaymentRequestDTO.setPaymentReference("reference");
+        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+
+        when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
+
+        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
+                .andExpect(status().isOk());
+
+        timestamps.end();
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(CHECKOUT_ID);
+        assertThat(retrievedCheckout.isPresent(), is(true));
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
+        assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
+    }
+
+
+    @Test
     @DisplayName("PAID patch basket payment request creates order")
     public void paidPatchBasketPaymentDetailsCreatesOrder() throws Exception {
         final Checkout checkout = new Checkout();
@@ -572,22 +631,24 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
                 .andExpect(status().isOk());
 
-        final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
 
-        assertOrderCreatedCorrectly(CHECKOUT_ID, intervalStart, intervalEnd);
+        assertOrderCreatedCorrectly(CHECKOUT_ID, timestamps);
     }
 
     @Test
@@ -603,11 +664,11 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
-        final LocalDateTime intervalStart = LocalDateTime.now();
+        timestamps.start();
 
         mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -619,8 +680,9 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final LocalDateTime intervalEnd = LocalDateTime.now();
+        timestamps.end();
 
-        final Order orderRetrieved = assertOrderCreatedCorrectly(CHECKOUT_ID, intervalStart, intervalEnd);
+        final Order orderRetrieved = assertOrderCreatedCorrectly(CHECKOUT_ID, timestamps);
         final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
         assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
         assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
@@ -635,7 +697,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
 
@@ -659,7 +721,7 @@ class BasketControllerIntegrationTest {
         checkoutRepository.save(checkout);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -683,7 +745,8 @@ class BasketControllerIntegrationTest {
         checkout.setId(CHECKOUT_ID);
         checkoutRepository.save(checkout);
 
-        final LocalDateTime preexistingOrderCreationTime = LocalDateTime.now();
+        final LocalDateTime preexistingOrderCreationTime = timestamps.start();
+        timestamps.end();
         final Order preexistingOrder = new Order();
         preexistingOrder.setId(CHECKOUT_ID);
         preexistingOrder.setCreatedAt(preexistingOrderCreationTime);
@@ -691,7 +754,7 @@ class BasketControllerIntegrationTest {
         orderRepository.save(preexistingOrder);
 
         BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt("paid-at");
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference("reference");
         basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
 
@@ -704,7 +767,7 @@ class BasketControllerIntegrationTest {
                 .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
                 .andExpect(status().isForbidden());
 
-        assertOrderCreatedCorrectly(CHECKOUT_ID, preexistingOrderCreationTime, preexistingOrderCreationTime);
+        assertOrderCreatedCorrectly(CHECKOUT_ID, timestamps);
     }
 
     @Test
@@ -794,55 +857,20 @@ class BasketControllerIntegrationTest {
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
-    private void verifyUpdatedAtTimestampWithinExecutionInterval(final Basket itemUpdated,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-
-        assertThat(itemUpdated.getUpdatedAt().isAfter(itemUpdated.getCreatedAt()) ||
-                itemUpdated.getUpdatedAt().isEqual(itemUpdated.getCreatedAt()), is(true));
-
-        assertThat(itemUpdated.getUpdatedAt().isAfter(intervalStart) ||
-                itemUpdated.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(itemUpdated.getUpdatedAt().isBefore(intervalEnd) ||
-                itemUpdated.getUpdatedAt().isEqual(intervalEnd), is(true));
-    }
-
-    /**
-     * Verifies that the order created at and updated at timestamps are within the expected interval
-     * for item creation.
-     * @param orderCreated the order created
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
-     */
-    private void verifyCreationTimestampsWithinExecutionInterval(final Order orderCreated,
-                                                                 final LocalDateTime intervalStart,
-                                                                 final LocalDateTime intervalEnd) {
-        assertThat(orderCreated.getCreatedAt().isAfter(intervalStart) ||
-                orderCreated.getCreatedAt().isEqual(intervalStart), is(true));
-        assertThat(orderCreated.getCreatedAt().isBefore(intervalEnd) ||
-                orderCreated.getCreatedAt().isEqual(intervalEnd), is(true));
-        assertThat(orderCreated.getUpdatedAt().isAfter(intervalStart) ||
-                orderCreated.getUpdatedAt().isEqual(intervalStart), is(true));
-        assertThat(orderCreated.getUpdatedAt().isBefore(intervalEnd) ||
-                orderCreated.getUpdatedAt().isEqual(intervalEnd), is(true));
-    }
-
     /**
      * Verifies that the order assumed to have been created by a PAID patch payment details request can be retrieved
      * from the database using its expected ID value.
      * @param expectedOrderId the expected ID of the newly created order
-     * @param intervalStart roughly the start of the test
-     * @param intervalEnd roughly the end of the test
+     * @param timestamps the timestamp verifier
      * @return the order retrieved from the database for further assertions
      */
     private Order assertOrderCreatedCorrectly(final String expectedOrderId,
-                                              final LocalDateTime intervalStart,
-                                              final LocalDateTime intervalEnd) {
+                                              final TimestampedEntityVerifier timestamps) {
         final Optional<Order> retrievedOrder = orderRepository.findById(expectedOrderId);
         assertThat(retrievedOrder.isPresent(), is(true));
         final Order order = retrievedOrder.get();
         assertThat(order.getId(), is(expectedOrderId));
-        verifyCreationTimestampsWithinExecutionInterval(order, intervalStart, intervalEnd);
+        timestamps.verifyCreationTimestampsWithinExecutionInterval(order);
         return order;
     }
 

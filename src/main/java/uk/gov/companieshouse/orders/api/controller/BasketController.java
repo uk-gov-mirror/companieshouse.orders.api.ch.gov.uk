@@ -190,21 +190,39 @@ public class BasketController {
                                                             final @PathVariable String id,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
-        if (basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
-            processSuccessfulPayment(requestId, id);
+        final Checkout updatedCheckout = updateCheckout(id, basketPaymentRequestDTO);
+        if (basketPaymentRequestDTO.getStatus() == PaymentStatus.PAID) {
+            processSuccessfulPayment(requestId, updatedCheckout);
         }
         return ResponseEntity.ok("");
     }
 
     /**
-     * Performs the actions required to process a successful payment.
-     * @param requestId the request ID
-     * @param checkoutId the checkout ID
+     * Updates the checkout identified with the payment status update provided.
+     * @param checkoutId the id of the checkout to be updated
+     * @param update the payment status update
+     * @return the updated checkout
      */
-    private void processSuccessfulPayment(final String requestId,
-                                          final String checkoutId) {
+    private Checkout updateCheckout(final String checkoutId, final BasketPaymentRequestDTO update) {
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
+        final CheckoutData data = checkout.getData();
+        data.setStatus(update.getStatus());
+        if (update.getStatus() == PaymentStatus.PAID) {
+            data.setPaidAt(update.getPaidAt());
+            data.setPaymentReference(update.getPaymentReference());
+        }
+        checkoutService.saveCheckout(checkout);
+        return checkout;
+    }
+
+    /**
+     * Performs the actions required to process a successful payment.
+     * @param requestId the request ID used for logging purposes
+     * @param checkout the checkout required to process the payment
+     */
+    private void processSuccessfulPayment(final String requestId,
+                                          final Checkout checkout) {
         final Order order = orderService.createOrder(checkout);
         trace("Created order: " + order, requestId);
         final Basket basket = basketService.clearBasket(checkout.getUserId());
