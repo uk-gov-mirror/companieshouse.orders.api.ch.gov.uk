@@ -16,11 +16,16 @@ public class CheckoutService {
     private final CheckoutRepository checkoutRepository;
     private final EtagGeneratorService etagGeneratorService;
     private final LinksGeneratorService linksGeneratorService;
+    private final CheckoutHelper checkoutHelper;
 
-    public CheckoutService(CheckoutRepository checkoutRepository, EtagGeneratorService etagGeneratorService, LinksGeneratorService linksGeneratorService) {
+    public CheckoutService(CheckoutRepository checkoutRepository,
+                           EtagGeneratorService etagGeneratorService,
+                           LinksGeneratorService linksGeneratorService,
+                           CheckoutHelper checkoutHelper) {
         this.checkoutRepository = checkoutRepository;
         this.etagGeneratorService = etagGeneratorService;
         this.linksGeneratorService = linksGeneratorService;
+        this.checkoutHelper = checkoutHelper;
     }
 
     public Checkout createCheckout(Item item, String userId, String email, DeliveryDetails deliveryDetails) {
@@ -44,7 +49,7 @@ public class CheckoutService {
         checkout.getData().setReference(objectId);
         checkout.getData().setKind("order");
         checkout.getData().setDeliveryDetails(deliveryDetails);
-        String totalOrderCostStr = CheckoutHelper.calculateTotalOrderCostForCheckout(checkout) + "";
+        String totalOrderCostStr = checkoutHelper.calculateTotalOrderCostForCheckout(checkout) + "";
         checkout.getData().setTotalOrderCost(totalOrderCostStr);
 
         return checkoutRepository.save(checkout);

@@ -3,6 +3,7 @@ package uk.gov.companieshouse.orders.api.util;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.CheckoutData;
@@ -17,8 +18,8 @@ import static org.hamcrest.core.Is.is;
 
 @ExtendWith(SpringExtension.class)
 public class CheckoutHelperTest {
-    private static final double EXPECTED_TOTAL_ORDER_COST_SUCCESS = 20;
-    private static final double EXPECTED_TOTAL_ORDER_COST_NO_ITEMCOSTS = 0;
+    private static final int EXPECTED_TOTAL_ORDER_COST_SUCCESS = 20;
+    private static final int EXPECTED_TOTAL_ORDER_COST_NO_ITEMCOSTS = 0;
     private static final String POSTAGE_COST = "5";
     private static final String DISCOUNT_APPLIED_1 = "0";
     private static final String ITEM_COST_1 = "5";
@@ -30,6 +31,8 @@ public class CheckoutHelperTest {
     private static final String ITEM_COST_3 = "5";
     private static final String CALCULATED_COST_3 = "5";
 
+    private final CheckoutHelper checkoutHelper = new CheckoutHelper();
+
     @Test
     @DisplayName("calculateTotalOrderCostForCheckout sums `total order cost` correctly")
     void calculateTotalOrderCostForCheckout(){
@@ -38,10 +41,10 @@ public class CheckoutHelperTest {
         checkout.setData(createCheckoutData());
 
         // When
-        double actualTotalOrderCost = CheckoutHelper.calculateTotalOrderCostForCheckout(checkout);
+        int actualTotalOrderCost = checkoutHelper.calculateTotalOrderCostForCheckout(checkout);
 
         // Then
-        assertThat(EXPECTED_TOTAL_ORDER_COST_SUCCESS, is(actualTotalOrderCost));
+        assertThat(actualTotalOrderCost, is(EXPECTED_TOTAL_ORDER_COST_SUCCESS));
     }
 
     @Test
@@ -52,10 +55,10 @@ public class CheckoutHelperTest {
         checkout.setData(new CheckoutData());
 
         // When
-        double actualTotalOrderCost = CheckoutHelper.calculateTotalOrderCostForCheckout(checkout);
+        int actualTotalOrderCost = checkoutHelper.calculateTotalOrderCostForCheckout(checkout);
 
         // Then
-        assertThat(EXPECTED_TOTAL_ORDER_COST_NO_ITEMCOSTS, is(actualTotalOrderCost));
+        assertThat(actualTotalOrderCost, is(EXPECTED_TOTAL_ORDER_COST_NO_ITEMCOSTS));
     }
 
     private CheckoutData createCheckoutData(){

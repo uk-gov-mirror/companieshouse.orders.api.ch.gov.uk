@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
+import uk.gov.companieshouse.orders.api.util.CheckoutHelper;
 import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 
 import java.time.LocalDateTime;
@@ -68,6 +69,9 @@ public class CheckoutServiceTest {
 
     @Mock
     LinksGeneratorService linksGeneratorService;
+
+    @Mock
+    CheckoutHelper checkoutHelper;
 
     @Captor
     ArgumentCaptor<Checkout> checkoutCaptor;
@@ -180,11 +184,12 @@ public class CheckoutServiceTest {
     @DisplayName("createCheckout populates `total order cost` correctly")
     void createCheckoutPopulatesTotalOrderCost() {
         Item certificateItem = createCertificateItem();
+        doCallRealMethod().when(checkoutHelper).calculateTotalOrderCostForCheckout(any());
         serviceUnderTest.createCheckout(certificateItem, ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(checkoutCaptor.capture());
 
-        assertThat(EXPECTED_TOTAL_ORDER_COST + "", is(checkout().getData().getTotalOrderCost()));
+        assertThat(checkout().getData().getTotalOrderCost(), is(EXPECTED_TOTAL_ORDER_COST + ""));
     }
 
     @Test
