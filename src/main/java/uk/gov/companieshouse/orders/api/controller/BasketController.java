@@ -194,7 +194,7 @@ public class BasketController {
         if (basketPaymentRequestDTO.getStatus() == PaymentStatus.PAID) {
             processSuccessfulPayment(requestId, updatedCheckout);
         }
-        return ResponseEntity.ok("");
+        return ResponseEntity.status(NO_CONTENT).body(null);
     }
 
     /**
