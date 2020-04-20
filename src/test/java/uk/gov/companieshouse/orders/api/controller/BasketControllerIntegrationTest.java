@@ -67,13 +67,13 @@ class BasketControllerIntegrationTest {
     private static final String CHECKOUT_ID = "1234";
     private static final String UNKNOWN_CHECKOUT_ID = "5555";
 
-    private static final String EXPECTED_TOTAL_ORDER_COST = "14.5";
+    private static final String EXPECTED_TOTAL_ORDER_COST = "15";
     private static final String DISCOUNT_APPLIED_1 = "0";
     private static final String ITEM_COST_1 = "5";
     private static final String CALCULATED_COST_1 = "5";
     private static final String DISCOUNT_APPLIED_2 = "10";
     private static final String ITEM_COST_2 = "5";
-    private static final String CALCULATED_COST_2 = "4.5";
+    private static final String CALCULATED_COST_2 = "5";
     private static final String DISCOUNT_APPLIED_3 = "0";
     private static final String ITEM_COST_3 = "5";
     private static final String CALCULATED_COST_3 = "5";

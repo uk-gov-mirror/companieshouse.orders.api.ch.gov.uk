@@ -45,14 +45,14 @@ public class CheckoutServiceTest {
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
 
-    private static final double EXPECTED_TOTAL_ORDER_COST = 20.0;
-    private static final String POSTAGE_COST = "5.5";
+    private static final int EXPECTED_TOTAL_ORDER_COST = 20;
+    private static final String POSTAGE_COST = "5";
     private static final String DISCOUNT_APPLIED_1 = "0";
     private static final String ITEM_COST_1 = "5";
     private static final String CALCULATED_COST_1 = "5";
     private static final String DISCOUNT_APPLIED_2 = "10";
     private static final String ITEM_COST_2 = "5";
-    private static final String CALCULATED_COST_2 = "4.5";
+    private static final String CALCULATED_COST_2 = "5";
     private static final String DISCOUNT_APPLIED_3 = "0";
     private static final String ITEM_COST_3 = "5";
     private static final String CALCULATED_COST_3 = "5";
@@ -185,20 +185,6 @@ public class CheckoutServiceTest {
         verify(checkoutRepository).save(checkoutCaptor.capture());
 
         assertThat(EXPECTED_TOTAL_ORDER_COST + "", is(checkout().getData().getTotalOrderCost()));
-    }
-
-    @Test
-    @DisplayName("calculateTotalOrderCostForCheckout sums `total order cost` correctly")
-    void calculateTotalOrderCostForCheckout(){
-        // Given
-        Checkout checkout = new Checkout();
-        checkout.setData(createCheckoutData());
-
-        // When
-        double actualTotalOrderCost = serviceUnderTest.calculateTotalOrderCostForCheckout(checkout);
-
-        // Then
-        assertThat(EXPECTED_TOTAL_ORDER_COST, is(actualTotalOrderCost));
     }
 
     @Test
