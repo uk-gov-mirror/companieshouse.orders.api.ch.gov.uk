@@ -67,6 +67,17 @@ class BasketControllerIntegrationTest {
     private static final String CHECKOUT_ID = "1234";
     private static final String UNKNOWN_CHECKOUT_ID = "5555";
 
+    private static final String EXPECTED_TOTAL_ORDER_COST = "14.5";
+    private static final String DISCOUNT_APPLIED_1 = "0";
+    private static final String ITEM_COST_1 = "5";
+    private static final String CALCULATED_COST_1 = "5";
+    private static final String DISCOUNT_APPLIED_2 = "10";
+    private static final String ITEM_COST_2 = "5";
+    private static final String CALCULATED_COST_2 = "4.5";
+    private static final String DISCOUNT_APPLIED_3 = "0";
+    private static final String ITEM_COST_3 = "5";
+    private static final String CALCULATED_COST_3 = "5";
+
     private static final List<ItemCosts> ITEM_COSTS =
              asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY),
@@ -214,6 +225,8 @@ class BasketControllerIntegrationTest {
         options.setForename(FORENAME);
         options.setSurname(SURNAME);
         certificate.setItemOptions(options);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
@@ -230,11 +243,13 @@ class BasketControllerIntegrationTest {
         final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
         assertTrue(retrievedCheckout.isPresent());
         assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
-        final Item item = retrievedCheckout.get().getData().getItems().get(0);
+        final CheckoutData checkoutData = retrievedCheckout.get().getData();
+        final Item item = checkoutData.getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
         final CertificateItemOptions retrievedOptions = item.getItemOptions();
         assertEquals(FORENAME, retrievedOptions.getForename());
         assertEquals(SURNAME, retrievedOptions.getSurname());
+        assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
     }
 
     @Test
@@ -807,6 +822,27 @@ class BasketControllerIntegrationTest {
                 .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
                 .andDo(MockMvcResultHandlers.print());
 
+    }
+
+    private List<ItemCosts> createItemCosts(){
+        List<ItemCosts> itemCosts = new ArrayList<>();
+        ItemCosts itemCosts1 = new ItemCosts();
+        itemCosts1.setDiscountApplied(DISCOUNT_APPLIED_1);
+        itemCosts1.setItemCost(ITEM_COST_1);
+        itemCosts1.setCalculatedCost(CALCULATED_COST_1);
+        itemCosts.add(itemCosts1);
+        ItemCosts itemCosts2 = new ItemCosts();
+        itemCosts2.setDiscountApplied(DISCOUNT_APPLIED_2);
+        itemCosts2.setItemCost(ITEM_COST_2);
+        itemCosts2.setCalculatedCost(CALCULATED_COST_2);
+        itemCosts.add(itemCosts2);
+        ItemCosts itemCosts3 = new ItemCosts();
+        itemCosts3.setDiscountApplied(DISCOUNT_APPLIED_3);
+        itemCosts3.setItemCost(ITEM_COST_3);
+        itemCosts3.setCalculatedCost(CALCULATED_COST_3);
+        itemCosts.add(itemCosts3);
+
+        return itemCosts;
     }
 
     private PaymentLinksDTO createPaymentLinksDTO(String checkoutId) {

@@ -184,7 +184,7 @@ public class CheckoutServiceTest {
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
         verify(checkoutRepository).save(checkoutCaptor.capture());
 
-        assertThat(checkout().getData().getTotalOrderCost(), is(EXPECTED_TOTAL_ORDER_COST + ""));
+        assertThat(EXPECTED_TOTAL_ORDER_COST + "", is(checkout().getData().getTotalOrderCost()));
     }
 
     @Test
@@ -198,7 +198,7 @@ public class CheckoutServiceTest {
         double actualTotalOrderCost = serviceUnderTest.calculateTotalOrderCostForCheckout(checkout);
 
         // Then
-        assertThat(actualTotalOrderCost, is(EXPECTED_TOTAL_ORDER_COST));
+        assertThat(EXPECTED_TOTAL_ORDER_COST, is(actualTotalOrderCost));
     }
 
     @Test
