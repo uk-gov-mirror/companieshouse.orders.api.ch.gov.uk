@@ -14,6 +14,8 @@ import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -44,6 +46,18 @@ public class CheckoutServiceTest {
     private static final String PREMISES = "premises";
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
+
+    private static final double EXPECTED_TOTAL_ORDER_COST = 20.0;
+    private static final String POSTAGE_COST = "5.5";
+    private static final String DISCOUNT_APPLIED_1 = "0";
+    private static final String ITEM_COST_1 = "5";
+    private static final String CALCULATED_COST_1 = "5";
+    private static final String DISCOUNT_APPLIED_2 = "10";
+    private static final String ITEM_COST_2 = "5";
+    private static final String CALCULATED_COST_2 = "4.5";
+    private static final String DISCOUNT_APPLIED_3 = "0";
+    private static final String ITEM_COST_3 = "5";
+    private static final String CALCULATED_COST_3 = "5";
 
     @InjectMocks
     CheckoutService serviceUnderTest;
@@ -165,6 +179,31 @@ public class CheckoutServiceTest {
     }
 
     @Test
+    @DisplayName("createCheckout populates `total order cost` correctly")
+    void createCheckoutPopulatesTotalOrderCost() {
+        Item certificateItem = createCertificateItem();
+        serviceUnderTest.createCheckout(certificateItem, ERIC_IDENTITY_VALUE,
+                ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
+        verify(checkoutRepository).save(checkoutCaptor.capture());
+
+        assertThat(checkout().getData().getTotalOrderCost(), is(EXPECTED_TOTAL_ORDER_COST + ""));
+    }
+
+    @Test
+    @DisplayName("calculateTotalOrderCostForCheckout sums `total order cost` correctly")
+    void calculateTotalOrderCostForCheckout(){
+        // Given
+        Checkout checkout = new Checkout();
+        checkout.setData(createCheckoutData());
+
+        // When
+        double actualTotalOrderCost = serviceUnderTest.calculateTotalOrderCostForCheckout(checkout);
+
+        // Then
+        assertThat(actualTotalOrderCost, is(EXPECTED_TOTAL_ORDER_COST));
+    }
+
+    @Test
     @DisplayName("saveCheckout saves updated checkout correctly")
     void saveCheckoutSavesUpdatedCheckout() {
 
@@ -195,4 +234,37 @@ public class CheckoutServiceTest {
         return checkoutCaptor.getValue();
     }
 
+    private CheckoutData createCheckoutData(){
+        List<Item> items = new ArrayList<>();
+        items.add(createCertificateItem());
+        CheckoutData checkoutData = new CheckoutData();
+        checkoutData.setItems(items);
+
+        return checkoutData;
+    }
+
+    private Item createCertificateItem(){
+        List<ItemCosts> itemCosts = new ArrayList<>();
+        ItemCosts itemCosts1 = new ItemCosts();
+        itemCosts1.setDiscountApplied(DISCOUNT_APPLIED_1);
+        itemCosts1.setItemCost(ITEM_COST_1);
+        itemCosts1.setCalculatedCost(CALCULATED_COST_1);
+        itemCosts.add(itemCosts1);
+        ItemCosts itemCosts2 = new ItemCosts();
+        itemCosts2.setDiscountApplied(DISCOUNT_APPLIED_2);
+        itemCosts2.setItemCost(ITEM_COST_2);
+        itemCosts2.setCalculatedCost(CALCULATED_COST_2);
+        itemCosts.add(itemCosts2);
+        ItemCosts itemCosts3 = new ItemCosts();
+        itemCosts3.setDiscountApplied(DISCOUNT_APPLIED_3);
+        itemCosts3.setItemCost(ITEM_COST_3);
+        itemCosts3.setCalculatedCost(CALCULATED_COST_3);
+        itemCosts.add(itemCosts3);
+
+        Item item = new Item();
+        item.setPostageCost(POSTAGE_COST);
+        item.setItemCosts(itemCosts);
+
+        return item;
+    }
 }

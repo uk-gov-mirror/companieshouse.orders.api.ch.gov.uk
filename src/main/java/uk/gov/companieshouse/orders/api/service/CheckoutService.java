@@ -2,14 +2,11 @@ package uk.gov.companieshouse.orders.api.service;
 
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
-import uk.gov.companieshouse.orders.api.model.ActionedBy;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
-import uk.gov.companieshouse.orders.api.model.Item;
-import uk.gov.companieshouse.orders.api.model.PaymentStatus;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -46,8 +43,28 @@ public class CheckoutService {
         checkout.getData().setReference(objectId);
         checkout.getData().setKind("order");
         checkout.getData().setDeliveryDetails(deliveryDetails);
+        String totalOrderCostStr = calculateTotalOrderCostForCheckout(checkout) + "";
+        checkout.getData().setTotalOrderCost(totalOrderCostStr);
 
         return checkoutRepository.save(checkout);
+    }
+
+    protected double calculateTotalOrderCostForCheckout(Checkout checkout){
+        CheckoutData checkoutData = checkout.getData();
+        List<Item> items = checkoutData.getItems();
+        double totalOrderCost = 0.0;
+        for (Item item : items){
+            List<ItemCosts> itemCosts = item.getItemCosts();
+            double totalCalculatedCosts = 0.0;
+            if (itemCosts != null) {
+                for (ItemCosts itemCost : itemCosts) {
+                    totalCalculatedCosts += Double.parseDouble(itemCost.getCalculatedCost());
+                }
+                totalOrderCost += totalCalculatedCosts + Double.parseDouble(item.getPostageCost());
+            }
+        }
+
+        return totalOrderCost;
     }
 
     public Optional<Checkout> getCheckoutById(String id) {
