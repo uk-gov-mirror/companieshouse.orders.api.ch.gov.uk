@@ -8,6 +8,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
+import reactor.core.publisher.Mono;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
@@ -16,12 +18,17 @@ import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
+import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -40,6 +47,12 @@ class OrdersApiAuthenticationTests {
 	private static final String POSTAL_CODE = "postal code";
 	private static final String PREMISES = "premises";
 	private static final String REGION = "region";
+	private static final List<ItemCosts> ITEM_COSTS =
+			asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
+					new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY),
+					new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY));
+	private static final String POSTAGE_COST = "0";
+	private static final String TOTAL_ITEM_COST = "70";
 
 	@Autowired
 	private WebTestClient webTestClient;
@@ -55,6 +68,9 @@ class OrdersApiAuthenticationTests {
 
 	@MockBean
 	private Checkout checkout;
+
+	@MockBean
+	private CheckoutData checkoutData;
 
 	@Test
 	@DisplayName("Add item accepts request with signed in user")
@@ -125,6 +141,9 @@ class OrdersApiAuthenticationTests {
 
 		final Certificate certificate = new Certificate();
 		certificate.setCompanyNumber(COMPANY_NUMBER);
+		certificate.setItemCosts(ITEM_COSTS);
+		certificate.setPostageCost(POSTAGE_COST);
+		certificate.setTotalItemCost(TOTAL_ITEM_COST);
 		final CertificateItemOptions options = new CertificateItemOptions();
 		options.setForename(FORENAME);
 		options.setSurname(SURNAME);
@@ -136,6 +155,10 @@ class OrdersApiAuthenticationTests {
 				any(Certificate.class), any(String.class), any(String.class), any(DeliveryDetails.class)))
 				.thenReturn(checkout);
 
+		CheckoutData checkoutDataResp = new CheckoutData();
+		checkoutDataResp.setTotalOrderCost("20");
+		when(checkout.getData()).thenReturn(checkoutDataResp);
+
 		// When and then
 		webTestClient.post().uri("/basket/checkouts")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -144,7 +167,8 @@ class OrdersApiAuthenticationTests {
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
 				.header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
 				.exchange()
-				.expectStatus().isOk();
+				.expectStatus().isAccepted()
+				.expectBody(Checkout.class);
 	}
 
 	@Test
