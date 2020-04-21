@@ -215,12 +215,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
     public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
@@ -255,15 +250,19 @@ class BasketControllerIntegrationTest {
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
     }
 
-    @Test
-    @DisplayName("Checkout basket returns 200 when total order cost is zero")
-    public void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
+    private Basket getBasket() {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         BasketItem basketItem = new BasketItem();
         basketItem.setItemUri(ITEM_URI);
         basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        return basket;
+    }
+
+    @Test
+    @DisplayName("Checkout basket returns 200 when total order cost is zero")
+    public void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
+        basketRepository.save(getBasket());
 
         Certificate certificate = new Certificate();
         certificate.setItemCosts(ITEM_COSTS_ZERO);
@@ -294,12 +293,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket returns 202 when total order cost is non-zero")
     public void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         final Certificate certificate = new Certificate();
         certificate.setItemCosts(ITEM_COSTS);
@@ -359,12 +353,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 400, when there is a failure getting the item")
     public void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
 
@@ -395,12 +384,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout with costs from Certificates API")
     public void checkoutBasketCheckoutContainsCosts() throws Exception {
-        final Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         final Certificate certificate = new Certificate();
         certificate.setItemCosts(ITEM_COSTS);
@@ -572,12 +556,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Patch basket payment details clears basket if status is paid")
     public void patchBasketPaymentDetailsClearsBasketStatusPaid() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         final Checkout checkout = new Checkout();
         checkout.setId(CHECKOUT_ID);
@@ -605,12 +584,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Patch basket payment details does not clear basket is status is not paid")
     public void patchBasketPaymentDetailsDoesNotClearBasketStatusNotPaid() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         final Checkout checkout = new Checkout();
         checkout.setId(CHECKOUT_ID);
