@@ -84,6 +84,9 @@ class BasketControllerIntegrationTest {
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY));
     private static final String POSTAGE_COST = "0";
     private static final String TOTAL_ITEM_COST = "70";
+    private static final List<ItemCosts> ITEM_COSTS_ZERO =
+            asList(new ItemCosts( "0", "0", "0", CERTIFICATE_SAME_DAY));
+    private static final String TOTAL_ITEM_COST_ZERO = "0";
     static final String PAYMENT_KIND = "payment-details#payment-details";
     private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
     private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
@@ -234,7 +237,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
-                .andExpect(status().isOk());
+                .andExpect(status().isAccepted());
 
         MvcResult result = resultActions.andReturn();
         String contentAsString = result.getResponse().getContentAsString();
@@ -250,6 +253,78 @@ class BasketControllerIntegrationTest {
         assertEquals(FORENAME, retrievedOptions.getForename());
         assertEquals(SURNAME, retrievedOptions.getSurname());
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
+    }
+
+    @Test
+    @DisplayName("Checkout basket returns 200 when total order cost is zero")
+    public void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        basketRepository.save(basket);
+
+        Certificate certificate = new Certificate();
+        certificate.setItemCosts(ITEM_COSTS_ZERO);
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isOk());
+
+        MvcResult result = resultActions.andReturn();
+        String contentAsString = result.getResponse().getContentAsString();
+        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+
+        assertEquals(1, checkoutRepository.count());
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        final Item retrievedItem = retrievedCheckout.get().getData().getItems().get(0);
+        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS_ZERO));
+        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
+        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST_ZERO));
+    }
+
+    @Test
+    @DisplayName("Checkout basket returns 202 when total order cost is non-zero")
+    public void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        basketRepository.save(basket);
+
+        final Certificate certificate = new Certificate();
+        certificate.setItemCosts(ITEM_COSTS);
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setTotalItemCost(TOTAL_ITEM_COST);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted());
+
+        MvcResult result = resultActions.andReturn();
+        String contentAsString = result.getResponse().getContentAsString();
+        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+
+        assertEquals(1, checkoutRepository.count());
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        final Item retrievedItem = retrievedCheckout.get().getData().getItems().get(0);
+        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
+        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
+        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
     }
 
     @Test
@@ -345,7 +420,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andExpect(content().json(mapper.writeValueAsString(expectedResponseBody)));
 
         MvcResult result = resultActions.andReturn();

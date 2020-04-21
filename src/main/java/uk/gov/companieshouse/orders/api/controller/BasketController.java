@@ -182,7 +182,9 @@ public class BasketController {
                 retrievedBasket.getData().getDeliveryDetails());
         trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(checkout.getData());
+        HttpStatus responseStatus = checkout.getData().getTotalOrderCost().equals("0") ? OK : ACCEPTED;
+
+        return ResponseEntity.status(responseStatus).body(checkout.getData());
     }
 
     @PatchMapping(PATCH_PAYMENT_DETAILS_URI)
