@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.companieshouse.orders.api.model.PaymentLinks;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
@@ -25,6 +26,7 @@ public class PaymentDetailsDTO {
     private PaymentLinks links;
 
     @JsonProperty("paid_at")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Date paidAt;
 
     @JsonProperty("payment_reference")
