@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.companieshouse.orders.api.model.PaymentLinks;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class PaymentDetailsDTO {
@@ -25,7 +25,7 @@ public class PaymentDetailsDTO {
     private PaymentLinks links;
 
     @JsonProperty("paid_at")
-    private LocalDateTime paidAt;
+    private Date paidAt;
 
     @JsonProperty("payment_reference")
     private String paymentReference;
@@ -69,11 +69,11 @@ public class PaymentDetailsDTO {
         this.links = links;
     }
 
-    public LocalDateTime getPaidAt() {
+    public Date getPaidAt() {
         return paidAt;
     }
 
-    public void setPaidAt(LocalDateTime paidAt) {
+    public void setPaidAt(Date paidAt) {
         this.paidAt = paidAt;
     }
 

@@ -1,10 +1,10 @@
 package uk.gov.companieshouse.orders.api.model;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 public class CheckoutData extends AbstractOrderData {
 
-    private LocalDateTime paidAt;
+    private Date paidAt;
 
     private ActionedBy checkedOutBy;
 
@@ -12,11 +12,11 @@ public class CheckoutData extends AbstractOrderData {
 
     private CheckoutLinks links;
 
-    public LocalDateTime getPaidAt() {
+    public Date getPaidAt() {
         return paidAt;
     }
 
-    public void setPaidAt(LocalDateTime paidAt) {
+    public void setPaidAt(Date paidAt) {
         this.paidAt = paidAt;
     }
 
