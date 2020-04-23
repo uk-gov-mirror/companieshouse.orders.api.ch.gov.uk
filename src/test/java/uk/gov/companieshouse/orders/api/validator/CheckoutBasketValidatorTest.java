@@ -39,7 +39,7 @@ public class CheckoutBasketValidatorTest {
         // Then
         assertThat(errors.isEmpty(), is(false));
         assertThat(errors.size(), is(1));
-        assertThat(errors.get(0), is(ErrorType.BASKET_ITEMS_MISSING.value));
+        assertThat(errors.get(0), is(ErrorType.BASKET_ITEMS_MISSING.getValue()));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class CheckoutBasketValidatorTest {
         // Then
         assertThat(errors.isEmpty(), is(false));
         assertThat(errors.size(), is(1));
-        assertThat(errors.get(0), is(ErrorType.BASKET_ITEM_INVALID.value));
+        assertThat(errors.get(0), is(ErrorType.BASKET_ITEM_INVALID.getValue()));
     }
 
     private Basket setupBasketWithMissingItems(){

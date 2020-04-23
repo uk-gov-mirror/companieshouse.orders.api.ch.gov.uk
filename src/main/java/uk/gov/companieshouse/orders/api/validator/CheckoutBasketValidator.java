@@ -22,7 +22,7 @@ public class CheckoutBasketValidator {
         List<String> errors = new ArrayList<>();
         List<BasketItem> basketItems = basket.getData().getItems();
         if (basketItems.isEmpty()) {
-            errors.add(ErrorType.BASKET_ITEMS_MISSING.value);
+            errors.add(ErrorType.BASKET_ITEMS_MISSING.getValue());
         }
         else {
             String itemUri = "";
@@ -31,7 +31,7 @@ public class CheckoutBasketValidator {
                 apiClientService.getItem(itemUri);
             } catch (Exception exception) {
                 LOGGER.error("Failed to get item " + itemUri, exception);
-                errors.add(ErrorType.BASKET_ITEM_INVALID.value);
+                errors.add(ErrorType.BASKET_ITEM_INVALID.getValue());
             }
         }
         return errors;

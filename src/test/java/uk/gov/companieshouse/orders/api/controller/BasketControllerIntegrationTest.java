@@ -560,7 +560,7 @@ class BasketControllerIntegrationTest {
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
-                        asList(ErrorType.BASKET_ITEM_INVALID.value));
+                        asList(ErrorType.BASKET_ITEM_INVALID.getValue()));
 
         mockMvc.perform(patch("/basket")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
