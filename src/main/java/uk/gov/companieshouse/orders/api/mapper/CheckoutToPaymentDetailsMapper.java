@@ -15,7 +15,6 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CheckoutToPaymentDetailsMapper {
 
-    @Mapping(source = "data.paidAt", target = "paidAt")
     @Mapping(source = "data.reference", target = "paymentReference")
     @Mapping(source = "data.status", target = "status")
     @Mapping(source = "data.links.payment", target = "links.self")

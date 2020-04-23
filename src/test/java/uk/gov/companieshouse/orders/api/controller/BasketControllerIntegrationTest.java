@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.dto.*;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
@@ -25,7 +26,9 @@ import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.service.EtagGeneratorService;
 import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
+import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -65,6 +68,7 @@ class BasketControllerIntegrationTest {
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
     private static final String CHECKOUT_ID = "1234";
+    private static final String PAYMENT_ID = "4321";
     private static final String UNKNOWN_CHECKOUT_ID = "5555";
 
     private static final List<ItemCosts> ITEM_COSTS =
@@ -458,231 +462,45 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details returns OK")
-    public void patchBasketPaymentDetailsReturnsOK() throws Exception {
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkoutRepository.save(checkout);
-
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
-
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("Patch basket payment details clears basket if status is paid")
-    public void patchBasketPaymentDetailsClearsBasketStatusPaid() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
-
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkout.setUserId(ERIC_IDENTITY_VALUE);
-        checkoutRepository.save(checkout);
-
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
-
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
-
-        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertTrue(retrievedBasket.get().getData().getItems().isEmpty());
-    }
-
-    @Test
-    @DisplayName("Patch basket payment details does not clear basket is status is not paid")
-    public void patchBasketPaymentDetailsDoesNotClearBasketStatusNotPaid() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
-
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkoutRepository.save(checkout);
-
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
-
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
-
-        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertFalse(retrievedBasket.get().getData().getItems().isEmpty());
-    }
-
-    @Test
-    @DisplayName("Patch basket payment details updates updated_at field")
-    public void patchBasketPaymentDetailsUpdatesUpdatedAt() throws Exception {
+    @DisplayName("Patch basket payment details success path for paid payments session")
+    public void patchBasketPaymentDetailsSuccessPaid() throws Exception {
         final LocalDateTime start = timestamps.start();
 
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        basket.setCreatedAt(start);
-        basket.setUpdatedAt(start);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        Checkout checkout = createCheckout();
+        PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
 
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkoutRepository.save(checkout);
-
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
-
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
-
-        timestamps.end();
-
-        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get());
-    }
-
-    @Test
-    @DisplayName("Patch basket payment details updates checkout")
-    public void patchBasketPaymentDetailsUpdatesCheckout() throws Exception {
-        final LocalDateTime start = timestamps.start();
-
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkout.setCreatedAt(start);
-        checkout.setUpdatedAt(start);
-        final CheckoutData data = new CheckoutData();
-        data.setEtag(TOKEN_ETAG);
-        checkout.setData(data);
-        checkoutRepository.save(checkout);
-
-        final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
-
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
         when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
 
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNoContent());
 
         timestamps.end();
 
-        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(CHECKOUT_ID);
+        // Check basket is empty
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get());
+        assertTrue(retrievedBasket.get().getData().getItems().isEmpty());
+
+        // Check checkout is correctly updated
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(checkout.getId());
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
         assertThat(retrievedCheckout.isPresent(), is(true));
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
         assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
         assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
-        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
-    }
 
-
-    @Test
-    @DisplayName("PAID patch basket payment request creates order")
-    public void paidPatchBasketPaymentDetailsCreatesOrder() throws Exception {
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkoutRepository.save(checkout);
-
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
-
-        timestamps.start();
-
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
-
-        timestamps.end();
-
-        assertOrderCreatedCorrectly(CHECKOUT_ID, timestamps);
-    }
-
-    @Test
-    @DisplayName("PAID patch basket payment request creates order with costs from the checkout")
-    public void paidPatchBasketPaymentDetailsOrderContainsCosts() throws Exception {
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        final Item item = new Item();
-        item.setItemCosts(ITEM_COSTS);
-        item.setPostageCost(POSTAGE_COST);
-        item.setTotalItemCost(TOTAL_ITEM_COST);
-        checkout.getData().setItems(singletonList(item));
-        checkoutRepository.save(checkout);
-
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
-
-        timestamps.start();
-
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
-
-        final LocalDateTime intervalEnd = LocalDateTime.now();
-        timestamps.end();
-
-        final Order orderRetrieved = assertOrderCreatedCorrectly(CHECKOUT_ID, timestamps);
+        // Assert order is created with correct information
+        final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
         final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
         assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
         assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
@@ -690,90 +508,57 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("FAILED patch basket payment request does not create an order")
-    public void failedPatchBasketPaymentDetailsCreatesNoOrder() throws Exception {
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkoutRepository.save(checkout);
+    @DisplayName("Patch basket payment details success path for failed payments session")
+    public void patchBasketPaymentDetailsSuccessFailed() throws Exception {
+        final LocalDateTime start = timestamps.start();
 
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.FAILED);
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.FAILED);
+        createBasket(start);
+        Checkout checkout = createCheckout();
 
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isOk());
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNoContent());
 
-        assertOrderNotCreated(CHECKOUT_ID);
-    }
-
-    @Test
-    @DisplayName("PAID patch basket payment request does not create order for unknown checkout ID")
-    public void paidPatchBasketPaymentDetailsDoesNotCreateUnknownOrder() throws Exception {
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkoutRepository.save(checkout);
-
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
-
-        mockMvc.perform(patch("/basket/checkouts/" + UNKNOWN_CHECKOUT_ID + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isNotFound());
-
-        assertOrderNotCreated(CHECKOUT_ID);
-        assertOrderNotCreated(UNKNOWN_CHECKOUT_ID);
-    }
-
-    @Test
-    @DisplayName("Duplicate PAID patch basket payment request does NOT recreate order")
-    public void duplicatePaidPatchBasketPaymentDetailsDoesNotRecreateOrder() throws Exception {
-        final Checkout checkout = new Checkout();
-        checkout.setId(CHECKOUT_ID);
-        checkoutRepository.save(checkout);
-
-        final LocalDateTime preexistingOrderCreationTime = timestamps.start();
         timestamps.end();
-        final Order preexistingOrder = new Order();
-        preexistingOrder.setId(CHECKOUT_ID);
-        preexistingOrder.setCreatedAt(preexistingOrderCreationTime);
-        preexistingOrder.setUpdatedAt(preexistingOrderCreationTime);
-        orderRepository.save(preexistingOrder);
 
-        BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
-        basketPaymentRequestDTO.setPaymentReference("reference");
-        basketPaymentRequestDTO.setStatus(PaymentStatus.PAID);
+        checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.FAILED);
+    }
 
-        mockMvc.perform(patch("/basket/checkouts/" + CHECKOUT_ID + "/payment")
+    @Test
+    @DisplayName("Patch basket payment details success path for no-funds payments session")
+    public void patchBasketPaymentDetailsSuccessNoFunds() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.NO_FUNDS);
+        createBasket(start);
+        Checkout checkout = createCheckout();
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(basketPaymentRequestDTO)))
-                .andExpect(status().isForbidden());
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNoContent());
 
-        assertOrderCreatedCorrectly(CHECKOUT_ID, timestamps);
+        timestamps.end();
+
+        checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.NO_FUNDS);
     }
 
     @Test
-    @DisplayName("Return not found when payment details do not exist")
+    @DisplayName("Patch basket payment details failure checkout id doesn't not exist")
     void getPaymentDetailsReturnsNotFound() throws Exception {
-        // When and then
+
         mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
@@ -784,29 +569,110 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Successfully gets payment details")
-    void getPaymentDetailsSuccessfully() throws Exception {
-        // When item(s) checked out
+    @DisplayName("Patch basket payment details failure doesn't return payment session")
+    public void patchBasketPaymentDetailsFailureReturningPaymentSession() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
         Checkout checkout = createCheckout();
 
-        PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO();
-        PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenThrow(new IOException());
 
-        // Then expect payment details
-        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
-                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
-                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
-                .andExpect(jsonPath("$.status", is("pending")))
-                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
-                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
-                .andDo(MockMvcResultHandlers.print());
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNotFound());
 
+        timestamps.end();
+
+        checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("Patch basket payment details failure returning payment session")
+    public void patchBasketPaymentDetailsFailureCheckingPaymentStatus() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        Checkout checkout = createCheckout();
+        PaymentApi paymentSession = createPaymentSession(checkout.getId(), "pending", "70.00");
+
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isBadRequest());
+
+        timestamps.end();
+
+        checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("Patch basket payment details failure checking payment total")
+    public void patchBasketPaymentDetailsFailureCheckingPaymentTotal() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        Checkout checkout = createCheckout();
+        PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.50");
+
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isBadRequest());
+
+        timestamps.end();
+
+        checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("Patch basket payment details failure checkout resource being updated is correct")
+    public void patchBasketPaymentDetailsFailureCheckingResourceUpdated() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        Checkout checkout = createCheckout();
+        PaymentApi paymentSession = createPaymentSession("invalid", "paid", "70.00");
+
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isBadRequest());
+
+        timestamps.end();
+
+        checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.PENDING);
     }
 
     private PaymentLinksDTO createPaymentLinksDTO(String checkoutId) {
@@ -848,6 +714,15 @@ class BasketControllerIntegrationTest {
         return paymentDetailsDTO;
     }
 
+    private BasketPaymentRequestDTO createBasketPaymentRequest(PaymentStatus paymentStatus) {
+        final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
+        basketPaymentRequestDTO.setPaymentReference(PAYMENT_ID);
+        basketPaymentRequestDTO.setStatus(paymentStatus);
+
+        return basketPaymentRequestDTO;
+    }
+
     private Checkout createCheckout() {
         final Item item = new Item();
         item.setItemCosts(ITEM_COSTS);
@@ -855,6 +730,29 @@ class BasketControllerIntegrationTest {
         item.setTotalItemCost(TOTAL_ITEM_COST);
 
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
+    }
+
+    private Basket createBasket(LocalDateTime start) {
+        final Basket basket = new Basket();
+        basket.setCreatedAt(start);
+        basket.setUpdatedAt(start);
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+
+        return basketRepository.save(basket);
+    }
+
+    private PaymentApi createPaymentSession(String checkoutId, String status, String total) {
+        final PaymentApi paymentSummary = new PaymentApi();
+        paymentSummary.setStatus(status);
+        paymentSummary.setAmount(total);
+        paymentSummary.setLinks(new HashMap<String, String>() {{
+            put("resource", "/basket/checkouts/" + checkoutId + "/payment");
+        }});
+
+        return paymentSummary;
     }
 
     /**
@@ -872,6 +770,27 @@ class BasketControllerIntegrationTest {
         assertThat(order.getId(), is(expectedOrderId));
         timestamps.verifyCreationTimestampsWithinExecutionInterval(order);
         return order;
+    }
+
+    /**
+     * Verifies that the patch request has not updated the basket, checkout, or created an order.
+     * @param checkoutId the ID for the checkout that is attempted to be updated
+     */
+    private void checkPatchHasNotUpdated(final String checkoutId, final PaymentStatus paymentStatus) {
+        // Check basket has not been emptied
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get());
+        assertFalse(retrievedBasket.get().getData().getItems().isEmpty());
+
+        // Check checkout has not been updated
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(checkoutId);
+        timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
+        assertThat(retrievedCheckout.isPresent(), is(true));
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(retrievedCheckout.get().getData().getStatus(), is(paymentStatus));
+
+        // Assert order has not been created
+        assertEquals(0, orderRepository.count());
     }
 
     /**

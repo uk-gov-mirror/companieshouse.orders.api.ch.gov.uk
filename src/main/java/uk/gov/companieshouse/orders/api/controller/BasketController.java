@@ -4,6 +4,7 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.dto.*;
@@ -19,6 +20,7 @@ import uk.gov.companieshouse.orders.api.service.OrderService;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
 import uk.gov.companieshouse.orders.api.validator.CheckoutBasketValidator;
 import uk.gov.companieshouse.orders.api.validator.DeliveryDetailsValidator;
+import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -187,25 +189,82 @@ public class BasketController {
 
     @PatchMapping(PATCH_PAYMENT_DETAILS_URI)
     public ResponseEntity<String> patchBasketPaymentDetails(final @RequestBody BasketPaymentRequestDTO basketPaymentRequestDTO,
+                                                            HttpServletRequest request,
                                                             final @PathVariable String id,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
         trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
-        final Checkout updatedCheckout = updateCheckout(id, basketPaymentRequestDTO);
-        if (basketPaymentRequestDTO.getStatus() == PaymentStatus.PAID) {
+
+        // Return checkout that is attempting to be updated
+        final Checkout checkout = checkoutService.getCheckoutById(id)
+                .orElseThrow(ResourceNotFoundException::new);
+        final CheckoutData checkoutData = checkout.getData();
+
+        // Check if payment was successful
+        if (basketPaymentRequestDTO.getStatus().equals(PaymentStatus.PAID)) {
+            PaymentApi paymentSession;
+
+            // Retrieve payment session from payments.api
+            try {
+                // Use header in request as header for request to payments.api
+                String passthroughHeader = request.getHeader(ApiSdkManager.getEricPassthroughTokenHeader());
+                paymentSession = apiClientService.getPaymentSummary(passthroughHeader, basketPaymentRequestDTO.getPaymentReference());
+            } catch (Exception exception) {
+                LOGGER.error("Failed to return payment " + basketPaymentRequestDTO.getPaymentReference() + " from payments api", exception);
+                return ResponseEntity.status(NOT_FOUND).body("Failed to return payment " + basketPaymentRequestDTO.getPaymentReference() + " from payments api");
+            }
+            trace("Payment summary successfully returned for " + basketPaymentRequestDTO.getPaymentReference(), requestId);
+
+            // Check payment is paid with payments API
+            if (!paymentSession.getStatus().equals("paid")) {
+                LOGGER.error("Payment is not set to paid in payments api for payment " + basketPaymentRequestDTO.getPaymentReference());
+                return ResponseEntity.status(BAD_REQUEST).body("Payment is not set to paid in payment api for payment " + basketPaymentRequestDTO.getPaymentReference());
+            }
+
+            // Check the amount paid in the payment session and the amount expected in the order are the same
+            if (Double.parseDouble(paymentSession.getAmount()) != calculateTotalAmountToBePaid(checkout)) {
+                LOGGER.error("Total amount paid for with payment session " + basketPaymentRequestDTO.getPaymentReference() + ": " + paymentSession.getAmount()
+                        + " does not match amount expected for order " + id + ": " + checkoutData.getTotalOrderCost());
+                return ResponseEntity.status(BAD_REQUEST).body("Total amount paid for with payment session " + basketPaymentRequestDTO.getPaymentReference() + ": "
+                        + paymentSession.getAmount() + " does not match amount expected for order " + id + ": " + checkoutData.getTotalOrderCost());
+            }
+
+            // Get the URI for the resource in the payments session
+            String paymentsResourceUri = paymentSession.getLinks().get("resource")
+                    .substring(paymentSession.getLinks().get("resource").lastIndexOf("/basket/checkouts/"));
+            // Check that the URI that has been requested to mark as paid, matches URI from the payments session
+            if (!paymentsResourceUri.equals(request.getRequestURI())) {
+                LOGGER.error("The URI that is attempted to be closed " + request.getRequestURI()
+                        + " does not match the URI that the payment session is created for " + paymentsResourceUri);
+                return ResponseEntity.status(BAD_REQUEST).body("The URI that is attempted to be closed " + request.getRequestURI()
+                        + " does not match the URI that the payment session is created for " + paymentsResourceUri);
+            }
+
+            trace("Payment confirmed as paid with payments API for payment session: " + basketPaymentRequestDTO.getPaymentReference()
+                    + " and order: " + id, requestId);
+
+            // Update the checkout of paid order
+            final Checkout updatedCheckout = updateCheckout(checkout, basketPaymentRequestDTO);
+
+            // Process successful payment
             processSuccessfulPayment(requestId, updatedCheckout);
+        } else {
+
+            // Update the checkout of non-paid order
+            updateCheckout(checkout, basketPaymentRequestDTO);
         }
+
+        trace("Order " + id + " has been marked as " + basketPaymentRequestDTO.getStatus() + " with payment id " + basketPaymentRequestDTO.getPaymentReference(), requestId);
+
         return ResponseEntity.status(NO_CONTENT).body(null);
     }
 
     /**
      * Updates the checkout identified with the payment status update provided.
-     * @param checkoutId the id of the checkout to be updated
+     * @param checkout the checkout to be updated
      * @param update the payment status update
      * @return the updated checkout
      */
-    private Checkout updateCheckout(final String checkoutId, final BasketPaymentRequestDTO update) {
-        final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
-                .orElseThrow(ResourceNotFoundException::new);
+    private Checkout updateCheckout(final Checkout checkout, final BasketPaymentRequestDTO update) {
         final CheckoutData data = checkout.getData();
         data.setStatus(update.getStatus());
         if (update.getStatus() == PaymentStatus.PAID) {
@@ -227,6 +286,17 @@ public class BasketController {
         trace("Created order: " + order, requestId);
         final Basket basket = basketService.clearBasket(checkout.getUserId());
         trace("Cleared basket: " + basket, requestId);
+    }
+
+    private Double calculateTotalAmountToBePaid(Checkout checkout) {
+        Double total = 0.00;
+        for (Item item : checkout.getData().getItems()) {
+            for (ItemCosts itemCosts : item.getItemCosts()) {
+                total += Double.parseDouble(itemCosts.getCalculatedCost());
+            }
+        }
+
+        return total;
     }
 
     /**
