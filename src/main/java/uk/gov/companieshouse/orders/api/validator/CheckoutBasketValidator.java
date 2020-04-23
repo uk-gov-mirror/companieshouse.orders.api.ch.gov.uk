@@ -1,18 +1,13 @@
 package uk.gov.companieshouse.orders.api.validator;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
-import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketItem;
-import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Component
 public class CheckoutBasketValidator {

@@ -7,15 +7,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.model.BasketData;
+import uk.gov.companieshouse.orders.api.model.BasketItem;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
-
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CheckoutBasketValidatorTest {
