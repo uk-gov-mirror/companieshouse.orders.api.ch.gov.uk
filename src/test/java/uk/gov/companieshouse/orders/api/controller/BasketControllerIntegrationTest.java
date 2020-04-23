@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.orders.api.dto.*;
+import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
@@ -77,6 +78,7 @@ class BasketControllerIntegrationTest {
     private static final String DISCOUNT_APPLIED_3 = "0";
     private static final String ITEM_COST_3 = "5";
     private static final String CALCULATED_COST_3 = "5";
+    private static final String INVALID_ITEM_URI = "invalid_uri";
 
     private static final List<ItemCosts> ITEM_COSTS =
              asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
@@ -325,7 +327,6 @@ class BasketControllerIntegrationTest {
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket is empty")
     public void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
         Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
 
         mockMvc.perform(post("/basket/checkouts")
@@ -532,6 +533,47 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Patch basket returns 400 when item uri is invalid")
+    public void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(INVALID_ITEM_URI);
+        basket.getData().setItems(Collections.singletonList(basketItem));
+        basketRepository.save(basket);
+
+        AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
+        DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
+        deliveryDetailsDTO.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
+        deliveryDetailsDTO.setPoBox(PO_BOX);
+        deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setRegion(REGION);
+        deliveryDetailsDTO.setSurname(SURNAME);
+        addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
+
+        when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
+
+        final ApiError expectedValidationError =
+                new ApiError(BAD_REQUEST,
+                        asList(ErrorType.BASKET_ITEM_INVALID.getValue()));
+
+        mockMvc.perform(patch("/basket")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
     @DisplayName("Patch basket payment details returns OK")
     public void patchBasketPaymentDetailsReturnsOK() throws Exception {
         final Checkout checkout = new Checkout();
@@ -685,7 +727,6 @@ class BasketControllerIntegrationTest {
         assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
         timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
     }
-
 
     @Test
     @DisplayName("PAID patch basket payment request creates order")
