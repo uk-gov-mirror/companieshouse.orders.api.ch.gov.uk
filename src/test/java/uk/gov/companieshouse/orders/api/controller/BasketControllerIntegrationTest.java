@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.dto.*;
+import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
@@ -71,12 +72,27 @@ class BasketControllerIntegrationTest {
     private static final String PAYMENT_ID = "4321";
     private static final String UNKNOWN_CHECKOUT_ID = "5555";
 
+    private static final String EXPECTED_TOTAL_ORDER_COST = "15";
+    private static final String DISCOUNT_APPLIED_1 = "0";
+    private static final String ITEM_COST_1 = "5";
+    private static final String CALCULATED_COST_1 = "5";
+    private static final String DISCOUNT_APPLIED_2 = "10";
+    private static final String ITEM_COST_2 = "5";
+    private static final String CALCULATED_COST_2 = "5";
+    private static final String DISCOUNT_APPLIED_3 = "0";
+    private static final String ITEM_COST_3 = "5";
+    private static final String CALCULATED_COST_3 = "5";
+    private static final String INVALID_ITEM_URI = "invalid_uri";
+
     private static final List<ItemCosts> ITEM_COSTS =
              asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY),
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY));
     private static final String POSTAGE_COST = "0";
     private static final String TOTAL_ITEM_COST = "70";
+    private static final List<ItemCosts> ITEM_COSTS_ZERO =
+            asList(new ItemCosts( "0", "0", "0", CERTIFICATE_SAME_DAY));
+    private static final String TOTAL_ITEM_COST_ZERO = "0";
     static final String PAYMENT_KIND = "payment-details#payment-details";
     private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
     private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
@@ -205,12 +221,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
     public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
@@ -218,6 +229,51 @@ class BasketControllerIntegrationTest {
         options.setForename(FORENAME);
         options.setSurname(SURNAME);
         certificate.setItemOptions(options);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted());
+
+        MvcResult result = resultActions.andReturn();
+        String contentAsString = result.getResponse().getContentAsString();
+        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
+        final CheckoutData checkoutData = retrievedCheckout.get().getData();
+        final Item item = checkoutData.getItems().get(0);
+        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        final CertificateItemOptions retrievedOptions = item.getItemOptions();
+        assertEquals(FORENAME, retrievedOptions.getForename());
+        assertEquals(SURNAME, retrievedOptions.getSurname());
+        assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
+    }
+
+    private Basket getBasket() {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(ITEM_URI);
+        basket.getData().getItems().add(basketItem);
+        return basket;
+    }
+
+    @Test
+    @DisplayName("Checkout basket returns 200 when total order cost is zero")
+    public void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
+        basketRepository.save(getBasket());
+
+        Certificate certificate = new Certificate();
+        certificate.setItemCosts(ITEM_COSTS_ZERO);
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
@@ -231,21 +287,50 @@ class BasketControllerIntegrationTest {
         String contentAsString = result.getResponse().getContentAsString();
         CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
 
+        assertEquals(1, checkoutRepository.count());
         final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
         assertTrue(retrievedCheckout.isPresent());
-        assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
-        final Item item = retrievedCheckout.get().getData().getItems().get(0);
-        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
-        final CertificateItemOptions retrievedOptions = item.getItemOptions();
-        assertEquals(FORENAME, retrievedOptions.getForename());
-        assertEquals(SURNAME, retrievedOptions.getSurname());
+        final Item retrievedItem = retrievedCheckout.get().getData().getItems().get(0);
+        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS_ZERO));
+        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
+        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST_ZERO));
+    }
+
+    @Test
+    @DisplayName("Checkout basket returns 202 when total order cost is non-zero")
+    public void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
+        basketRepository.save(getBasket());
+
+        final Certificate certificate = new Certificate();
+        certificate.setItemCosts(ITEM_COSTS);
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setTotalItemCost(TOTAL_ITEM_COST);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted());
+
+        MvcResult result = resultActions.andReturn();
+        String contentAsString = result.getResponse().getContentAsString();
+        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+
+        assertEquals(1, checkoutRepository.count());
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        final Item retrievedItem = retrievedCheckout.get().getData().getItems().get(0);
+        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
+        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
+        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
     }
 
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket is empty")
     public void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
         Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
 
         mockMvc.perform(post("/basket/checkouts")
@@ -273,12 +358,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 400, when there is a failure getting the item")
     public void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
-        Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
 
@@ -309,12 +389,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout with costs from Certificates API")
     public void checkoutBasketCheckoutContainsCosts() throws Exception {
-        final Basket basket = new Basket();
-        basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
-        basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
-        basketRepository.save(basket);
+        basketRepository.save(getBasket());
 
         final Certificate certificate = new Certificate();
         certificate.setItemCosts(ITEM_COSTS);
@@ -334,7 +409,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
-                .andExpect(status().isOk())
+                .andExpect(status().isAccepted())
                 .andExpect(content().json(mapper.writeValueAsString(expectedResponseBody)));
 
         MvcResult result = resultActions.andReturn();
@@ -449,6 +524,47 @@ class BasketControllerIntegrationTest {
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
                         asList("delivery_details.address_line_1: must not be blank"));
+
+        mockMvc.perform(patch("/basket")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("Patch basket returns 400 when item uri is invalid")
+    public void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(INVALID_ITEM_URI);
+        basket.getData().setItems(Collections.singletonList(basketItem));
+        basketRepository.save(basket);
+
+        AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
+        DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
+        deliveryDetailsDTO.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetailsDTO.setCountry(COUNTRY);
+        deliveryDetailsDTO.setForename(FORENAME);
+        deliveryDetailsDTO.setLocality(LOCALITY);
+        deliveryDetailsDTO.setPoBox(PO_BOX);
+        deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
+        deliveryDetailsDTO.setPremises(PREMISES);
+        deliveryDetailsDTO.setRegion(REGION);
+        deliveryDetailsDTO.setSurname(SURNAME);
+        addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
+
+        when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
+
+        final ApiError expectedValidationError =
+                new ApiError(BAD_REQUEST,
+                        asList(ErrorType.BASKET_ITEM_INVALID.getValue()));
 
         mockMvc.perform(patch("/basket")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -675,43 +791,25 @@ class BasketControllerIntegrationTest {
         checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.PENDING);
     }
 
-    private PaymentLinksDTO createPaymentLinksDTO(String checkoutId) {
-        PaymentLinksDTO paymentLinksDTO = new PaymentLinksDTO();
-        paymentLinksDTO.setSelf("/basket/checkouts/" + checkoutId + "/payment");
-        paymentLinksDTO.setResource("/basket/checkouts/" + checkoutId);
+    private List<ItemCosts> createItemCosts(){
+        List<ItemCosts> itemCosts = new ArrayList<>();
+        ItemCosts itemCosts1 = new ItemCosts();
+        itemCosts1.setDiscountApplied(DISCOUNT_APPLIED_1);
+        itemCosts1.setItemCost(ITEM_COST_1);
+        itemCosts1.setCalculatedCost(CALCULATED_COST_1);
+        itemCosts.add(itemCosts1);
+        ItemCosts itemCosts2 = new ItemCosts();
+        itemCosts2.setDiscountApplied(DISCOUNT_APPLIED_2);
+        itemCosts2.setItemCost(ITEM_COST_2);
+        itemCosts2.setCalculatedCost(CALCULATED_COST_2);
+        itemCosts.add(itemCosts2);
+        ItemCosts itemCosts3 = new ItemCosts();
+        itemCosts3.setDiscountApplied(DISCOUNT_APPLIED_3);
+        itemCosts3.setItemCost(ITEM_COST_3);
+        itemCosts3.setCalculatedCost(CALCULATED_COST_3);
+        itemCosts.add(itemCosts3);
 
-        return paymentLinksDTO;
-    }
-
-    private PaymentDetailsDTO createPaymentDetailsDTO(){
-        PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
-        paymentDetailsDTO.setStatus(PaymentStatus.PENDING);
-        paymentDetailsDTO.setKind(PAYMENT_KIND);
-        List<ItemDTO> itemDTOs = new ArrayList<>();
-        ItemDTO itemDTO1 = new ItemDTO();
-        itemDTO1.setAmount("50");
-        itemDTO1.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
-        itemDTO1.setClassOfPayment(Collections.singletonList("orderable-item"));
-        itemDTO1.setKind("cost#cost");
-        itemDTO1.setProductType("certificate-same-day");
-        itemDTOs.add(itemDTO1);
-        ItemDTO itemDTO2 = new ItemDTO();
-        itemDTO2.setAmount("10");
-        itemDTO2.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
-        itemDTO2.setClassOfPayment(Collections.singletonList("orderable-item"));
-        itemDTO2.setKind("cost#cost");
-        itemDTO2.setProductType("certificate-additional-copy");
-        itemDTOs.add(itemDTO2);
-        ItemDTO itemDTO3 = new ItemDTO();
-        itemDTO3.setAmount("10");
-        itemDTO3.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
-        itemDTO3.setClassOfPayment(Collections.singletonList("orderable-item"));
-        itemDTO3.setKind("cost#cost");
-        itemDTO3.setProductType("certificate-additional-copy");
-        itemDTOs.add(itemDTO3);
-        paymentDetailsDTO.setItems(itemDTOs);
-
-        return paymentDetailsDTO;
+        return itemCosts;
     }
 
     private BasketPaymentRequestDTO createBasketPaymentRequest(PaymentStatus paymentStatus) {
@@ -792,15 +890,4 @@ class BasketControllerIntegrationTest {
         // Assert order has not been created
         assertEquals(0, orderRepository.count());
     }
-
-    /**
-     * Verifies that the item that could have been created by the create item POST request cannot in fact be retrieved
-     * from the database.
-     * @param expectedOrderId the expected ID of the newly created order
-     */
-    private void assertOrderNotCreated(final String expectedOrderId) {
-        final Optional<Order> retrievedOrder = orderRepository.findById(expectedOrderId);
-        assertThat(retrievedOrder.isPresent(), is(false));
-    }
-
 }
