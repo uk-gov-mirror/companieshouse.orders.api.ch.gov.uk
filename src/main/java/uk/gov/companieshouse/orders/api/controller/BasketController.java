@@ -8,6 +8,7 @@ import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.dto.*;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
+import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToPaymentDetailsMapper;
 import uk.gov.companieshouse.orders.api.mapper.DeliveryDetailsMapper;
@@ -136,7 +137,12 @@ public class BasketController {
 
         Basket returnedBasket;
         if(retrievedBasket.isPresent()) {
-            retrievedBasket.get().getData().setDeliveryDetails(mappedDeliveryDetails);
+            Basket basket = retrievedBasket.get();
+            final List<String> basketErrors = checkoutBasketValidator.getValidationErrors(basket);
+            if (!basketErrors.isEmpty() && basketErrors.contains(ErrorType.BASKET_ITEM_INVALID.value)){
+                return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, basketErrors));
+            }
+            basket.getData().setDeliveryDetails(mappedDeliveryDetails);
             returnedBasket = basketService.saveBasket(retrievedBasket.get());
         } else {
             Basket basket = new Basket();
@@ -162,7 +168,7 @@ public class BasketController {
                 .orElseThrow(ConflictException::new);
 
         final List<String> errors = checkoutBasketValidator.getValidationErrors(retrievedBasket);
-        if (!errors.isEmpty()) {
+        if (!errors.isEmpty() && errors.contains(ErrorType.BASKET_ITEMS_MISSING.value)){
             return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, errors));
         }
 
