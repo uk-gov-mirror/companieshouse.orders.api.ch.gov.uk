@@ -578,7 +578,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details success path for paid payments session")
+    @DisplayName("Patch payment-details endpoint success path for paid payments session")
     public void patchBasketPaymentDetailsSuccessPaid() throws Exception {
         final LocalDateTime start = timestamps.start();
 
@@ -624,7 +624,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details success path for failed payments session")
+    @DisplayName("Patch payment-details endpoint success path for failed payments session")
     public void patchBasketPaymentDetailsSuccessFailed() throws Exception {
         final LocalDateTime start = timestamps.start();
 
@@ -648,7 +648,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details success path for no-funds payments session")
+    @DisplayName("Patch payment-details endpoint success path for no-funds payments session")
     public void patchBasketPaymentDetailsSuccessNoFunds() throws Exception {
         final LocalDateTime start = timestamps.start();
 
@@ -672,7 +672,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details failure checkout id doesn't not exist")
+    @DisplayName("Patch payment-details endpoint fails if the checkout id does not exist")
     void getPaymentDetailsReturnsNotFound() throws Exception {
 
         mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
@@ -685,7 +685,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details failure doesn't return payment session")
+    @DisplayName("Patch payment-details endpoint fails if it doesn't return payment session")
     public void patchBasketPaymentDetailsFailureReturningPaymentSession() throws Exception {
         final LocalDateTime start = timestamps.start();
 
@@ -711,7 +711,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details failure returning payment session")
+    @DisplayName("Patch payment details endpoints fails if status on payments service is not paid")
     public void patchBasketPaymentDetailsFailureCheckingPaymentStatus() throws Exception {
         final LocalDateTime start = timestamps.start();
 
@@ -738,7 +738,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details failure checking payment total")
+    @DisplayName("Patch payment details endpoints fails if payment total on payments service is different")
     public void patchBasketPaymentDetailsFailureCheckingPaymentTotal() throws Exception {
         final LocalDateTime start = timestamps.start();
 
@@ -765,7 +765,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch basket payment details failure checkout resource being updated is correct")
+    @DisplayName("Patch payment details endpoints fails if checkout resource is different to the one on payments service")
     public void patchBasketPaymentDetailsFailureCheckingResourceUpdated() throws Exception {
         final LocalDateTime start = timestamps.start();
 

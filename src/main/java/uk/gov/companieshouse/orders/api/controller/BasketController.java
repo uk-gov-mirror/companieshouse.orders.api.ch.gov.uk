@@ -230,10 +230,10 @@ public class BasketController {
 
             // Check the amount paid in the payment session and the amount expected in the order are the same
             if (Double.parseDouble(paymentSession.getAmount()) != calculateTotalAmountToBePaid(checkout)) {
-                LOGGER.error("Total amount paid for with payment session " + basketPaymentRequestDTO.getPaymentReference() + ": " + paymentSession.getAmount()
-                        + " does not match amount expected for order " + id + ": " + checkoutData.getTotalOrderCost());
-                return ResponseEntity.status(BAD_REQUEST).body("Total amount paid for with payment session " + basketPaymentRequestDTO.getPaymentReference() + ": "
-                        + paymentSession.getAmount() + " does not match amount expected for order " + id + ": " + checkoutData.getTotalOrderCost());
+                String errorMessage = "Total amount paid for with payment session " + basketPaymentRequestDTO.getPaymentReference() + ": " + paymentSession.getAmount()
+                        + " does not match amount expected for order " + id + ": " + checkoutData.getTotalOrderCost();
+                LOGGER.error(errorMessage);
+                return ResponseEntity.status(BAD_REQUEST).body(errorMessage);
             }
 
             // Get the URI for the resource in the payments session
@@ -241,10 +241,10 @@ public class BasketController {
                     .substring(paymentSession.getLinks().get("resource").lastIndexOf("/basket/checkouts/"));
             // Check that the URI that has been requested to mark as paid, matches URI from the payments session
             if (!paymentsResourceUri.equals(request.getRequestURI())) {
-                LOGGER.error("The URI that is attempted to be closed " + request.getRequestURI()
-                        + " does not match the URI that the payment session is created for " + paymentsResourceUri);
-                return ResponseEntity.status(BAD_REQUEST).body("The URI that is attempted to be closed " + request.getRequestURI()
-                        + " does not match the URI that the payment session is created for " + paymentsResourceUri);
+                String errorMessage = "The URI that is attempted to be closed " + request.getRequestURI()
+                        + " does not match the URI that the payment session is created for " + paymentsResourceUri;
+                LOGGER.error(errorMessage);
+                return ResponseEntity.status(BAD_REQUEST).body(errorMessage);
             }
 
             trace("Payment confirmed as paid with payments API for payment session: " + basketPaymentRequestDTO.getPaymentReference()
