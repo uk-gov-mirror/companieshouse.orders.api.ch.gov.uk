@@ -36,6 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -556,7 +557,7 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setSurname(SURNAME);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
-        when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
+        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
