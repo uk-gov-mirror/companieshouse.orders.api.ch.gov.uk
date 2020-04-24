@@ -18,6 +18,10 @@ public class CheckoutBasketValidator {
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
     private ApiClientService apiClientService;
 
+    public CheckoutBasketValidator(ApiClientService apiClientService) {
+        this.apiClientService = apiClientService;
+    }
+
     public List<String> getValidationErrors(final Basket basket) {
         List<String> errors = new ArrayList<>();
         List<BasketItem> basketItems = basket.getData().getItems();
@@ -35,9 +39,5 @@ public class CheckoutBasketValidator {
             }
         }
         return errors;
-    }
-
-    public void setApiClientService(ApiClientService apiClientService) {
-        this.apiClientService = apiClientService;
     }
 }
