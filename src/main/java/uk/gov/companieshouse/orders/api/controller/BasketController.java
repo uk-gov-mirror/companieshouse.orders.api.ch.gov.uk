@@ -296,7 +296,13 @@ public class BasketController {
         trace("Cleared basket: " + basket, requestId);
     }
 
+    /**
+     * Performs the calculation to work out the total to be paid for this checkout.
+     * @param checkout the checkout required to calculate the total to be paid.
+     * @return the total to be paid
+     */
     private Double calculateTotalAmountToBePaid(Checkout checkout) {
+        // total is type Double to compare with decimal value that is returned from payments.api 
         Double total = 0.00;
         for (Item item : checkout.getData().getItems()) {
             for (ItemCosts itemCosts : item.getItemCosts()) {
