@@ -3,6 +3,7 @@ package uk.gov.companieshouse.orders.api.util;
 import uk.gov.companieshouse.orders.api.model.TimestampedEntity;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
@@ -23,19 +24,19 @@ public class TimestampedEntityVerifier {
      */
     private LocalDateTime intervalEnd;
 
-    /** Use to record the start of the test, prior to the invocation of the method under test.
+    /** Use to record the start of the test, rounded down to the closest millisecond, prior to the invocation of the method under test.
      * @return the recorded start timestamp
      */
     public LocalDateTime start() {
-        intervalStart = LocalDateTime.now();
+        intervalStart = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
         return intervalStart;
     }
 
-    /** Use to record the end of the test, after the invocation of the method under test.
+    /** Use to record the end of the test, rounded up to the closest millisecond, after the invocation of the method under test.
      * @return the recorded end timestamp
      */
     public LocalDateTime end() {
-        intervalEnd = LocalDateTime.now();
+        intervalEnd = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS).plusNanos(1000000);
         return intervalEnd;
     }
 
