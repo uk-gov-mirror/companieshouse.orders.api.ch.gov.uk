@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.validator;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
@@ -37,6 +38,7 @@ public class CheckoutBasketValidator {
         return errors;
     }
 
+    @Autowired
     public void setApiClientService(ApiClientService apiClientService) {
         this.apiClientService = apiClientService;
     }
