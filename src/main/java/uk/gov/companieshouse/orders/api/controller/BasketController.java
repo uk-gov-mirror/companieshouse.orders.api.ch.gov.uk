@@ -176,8 +176,13 @@ public class BasketController {
                 .orElseThrow(ConflictException::new);
 
         final List<String> errors = checkoutBasketValidator.getValidationErrors(retrievedBasket);
-        if (!errors.isEmpty() && errors.contains(ErrorType.BASKET_ITEMS_MISSING.getValue())){
-            return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, errors));
+        if (!errors.isEmpty()){
+            if (errors.contains(ErrorType.BASKET_ITEMS_MISSING.getValue())) {
+                return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, errors));
+            }
+            else if (errors.contains(ErrorType.BASKET_ITEMS_MISSING.getValue())){
+                return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, errors));
+            }
         }
 
         Item item;

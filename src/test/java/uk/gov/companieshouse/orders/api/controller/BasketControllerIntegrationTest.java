@@ -588,6 +588,31 @@ class BasketControllerIntegrationTest {
                 .andDo(MockMvcResultHandlers.print());
     }
 
+    @DisplayName("Add item to basket returns 400 when item uri is invalid")
+    public void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(INVALID_ITEM_URI);
+        basket.getData().setItems(Collections.singletonList(basketItem));
+        basketRepository.save(basket);
+
+        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+
+        final ApiError expectedValidationError =
+                new ApiError(BAD_REQUEST,
+                        asList(ErrorType.BASKET_ITEM_INVALID.getValue()));
+
+        mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
+                .andDo(MockMvcResultHandlers.print());
+    }
+
     @Test
     @DisplayName("Patch payment-details endpoint success path for paid payments session")
     public void patchBasketPaymentDetailsSuccessPaid() throws Exception {
