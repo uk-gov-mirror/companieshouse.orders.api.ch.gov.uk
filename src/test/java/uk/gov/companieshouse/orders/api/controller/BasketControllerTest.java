@@ -98,7 +98,7 @@ class BasketControllerTest {
         final String checkout_id = "123456789";
         final String payment_id = "987654321";
         final String eric_header = "EricHeader";
-        final LocalDateTime paidAt = LocalDateTime.now();
+        final Date paidAt = new Date();
 
         final MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(ApiSdkManager.getEricPassthroughTokenHeader(), eric_header);

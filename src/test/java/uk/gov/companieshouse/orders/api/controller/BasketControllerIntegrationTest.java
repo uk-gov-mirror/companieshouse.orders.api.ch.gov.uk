@@ -816,7 +816,7 @@ class BasketControllerIntegrationTest {
 
     private BasketPaymentRequestDTO createBasketPaymentRequest(PaymentStatus paymentStatus) {
         final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
+        basketPaymentRequestDTO.setPaidAt(new Date());
         basketPaymentRequestDTO.setPaymentReference(PAYMENT_ID);
         basketPaymentRequestDTO.setStatus(paymentStatus);
 
