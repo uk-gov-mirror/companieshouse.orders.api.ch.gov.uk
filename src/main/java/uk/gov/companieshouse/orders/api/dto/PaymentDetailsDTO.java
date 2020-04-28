@@ -35,6 +35,9 @@ public class PaymentDetailsDTO {
     @JsonProperty("status")
     private PaymentStatus status;
 
+    @JsonProperty("company_number")
+    private String companyNumber;
+
     public String getDescription() {
         return description;
     }
@@ -93,5 +96,13 @@ public class PaymentDetailsDTO {
 
     public void setStatus(PaymentStatus status) {
         this.status = status;
+    }
+
+    public String getCompanyNumber() {
+        return companyNumber;
+    }
+
+    public void setCompanyNumber(String companyNumber) {
+        this.companyNumber = companyNumber;
     }
 }

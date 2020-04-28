@@ -137,6 +137,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         assertThat(target.getKind(), is(EXPECTED_KIND));
         assertThat(target.getStatus(), is(source.getData().getStatus()));
         assertThat(target.getPaymentReference(), is(source.getData().getReference()));
+        assertThat(target.getCompanyNumber(), is(COMPANY_NUMBER));
 
         testLinks(source, target);
         testItems(source, target);

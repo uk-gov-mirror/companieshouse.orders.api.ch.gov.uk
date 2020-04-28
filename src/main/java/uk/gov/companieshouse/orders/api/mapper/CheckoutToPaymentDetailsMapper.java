@@ -52,5 +52,6 @@ public interface CheckoutToPaymentDetailsMapper {
 
         paymentDetailsDTO.setItems(itemDTOs);
         paymentDetailsDTO.setKind("payment-details#payment-details");
+        paymentDetailsDTO.setCompanyNumber(item.getCompanyNumber());
     }
 }

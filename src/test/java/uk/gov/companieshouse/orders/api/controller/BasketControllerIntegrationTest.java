@@ -854,6 +854,7 @@ class BasketControllerIntegrationTest {
         item.setItemCosts(ITEM_COSTS);
         item.setPostageCost(POSTAGE_COST);
         item.setTotalItemCost(TOTAL_ITEM_COST);
+        item.setCompanyNumber(COMPANY_NUMBER);
 
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
@@ -954,6 +955,8 @@ class BasketControllerIntegrationTest {
         itemDTO3.setProductType("certificate-additional-copy");
         itemDTOs.add(itemDTO3);
         paymentDetailsDTO.setItems(itemDTOs);
+
+        paymentDetailsDTO.setCompanyNumber(COMPANY_NUMBER);
 
         return paymentDetailsDTO;
     }
