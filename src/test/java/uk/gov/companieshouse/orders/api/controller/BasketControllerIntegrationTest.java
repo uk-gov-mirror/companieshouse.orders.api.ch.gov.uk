@@ -674,7 +674,7 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch payment-details endpoint fails if the checkout id does not exist")
+    @DisplayName("Get payment details endpoint fails if the checkout id does not exist")
     void getPaymentDetailsReturnsNotFound() throws Exception {
 
         mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
@@ -684,6 +684,32 @@ class BasketControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("Successfully gets payment details")
+    void getPaymentDetailsSuccessfully() throws Exception {
+        // When item(s) checked out
+        Checkout checkout = createCheckout();
+
+        PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO();
+        PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
+
+        // Then expect payment details
+        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
+                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
+                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
+                .andExpect(jsonPath("$.status", is("pending")))
+                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
+                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
+                .andDo(MockMvcResultHandlers.print());
+
     }
 
     @Test
@@ -891,5 +917,44 @@ class BasketControllerIntegrationTest {
 
         // Assert order has not been created
         assertEquals(0, orderRepository.count());
+    }
+
+    private PaymentLinksDTO createPaymentLinksDTO(String checkoutId) {
+        PaymentLinksDTO paymentLinksDTO = new PaymentLinksDTO();
+        paymentLinksDTO.setSelf("/basket/checkouts/" + checkoutId + "/payment");
+        paymentLinksDTO.setResource("/basket/checkouts/" + checkoutId);
+
+        return paymentLinksDTO;
+    }
+
+    private PaymentDetailsDTO createPaymentDetailsDTO() {
+        PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
+        paymentDetailsDTO.setStatus(PaymentStatus.PENDING);
+        paymentDetailsDTO.setKind(PAYMENT_KIND);
+        List<ItemDTO> itemDTOs = new ArrayList<>();
+        ItemDTO itemDTO1 = new ItemDTO();
+        itemDTO1.setAmount("50");
+        itemDTO1.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
+        itemDTO1.setClassOfPayment(Collections.singletonList("orderable-item"));
+        itemDTO1.setKind("cost#cost");
+        itemDTO1.setProductType("certificate-same-day");
+        itemDTOs.add(itemDTO1);
+        ItemDTO itemDTO2 = new ItemDTO();
+        itemDTO2.setAmount("10");
+        itemDTO2.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
+        itemDTO2.setClassOfPayment(Collections.singletonList("orderable-item"));
+        itemDTO2.setKind("cost#cost");
+        itemDTO2.setProductType("certificate-additional-copy");
+        itemDTOs.add(itemDTO2);
+        ItemDTO itemDTO3 = new ItemDTO();
+        itemDTO3.setAmount("10");
+        itemDTO3.setAvailablePaymentMethods(Collections.singletonList("credit-card"));
+        itemDTO3.setClassOfPayment(Collections.singletonList("orderable-item"));
+        itemDTO3.setKind("cost#cost");
+        itemDTO3.setProductType("certificate-additional-copy");
+        itemDTOs.add(itemDTO3);
+        paymentDetailsDTO.setItems(itemDTOs);
+
+        return paymentDetailsDTO;
     }
 }
