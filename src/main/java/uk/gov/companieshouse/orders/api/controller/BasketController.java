@@ -198,7 +198,8 @@ public class BasketController {
 
         CheckoutData checkoutData = checkout.getData();
         HttpHeaders headers = new HttpHeaders();
-        if (!checkoutData.getTotalOrderCost().equals("0")) {
+        int totalOrderCost = Integer.parseInt(checkoutData.getTotalOrderCost());
+        if (totalOrderCost > 0) {
             headers.add(PAYMENT_REQUIRED_HEADER, COSTS_LINK);
             return new ResponseEntity<>(checkoutData, headers, ACCEPTED);
         }
