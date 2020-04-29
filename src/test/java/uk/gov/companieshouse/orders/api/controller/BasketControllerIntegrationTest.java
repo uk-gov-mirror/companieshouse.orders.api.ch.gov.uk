@@ -30,6 +30,7 @@ import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -97,6 +98,7 @@ class BasketControllerIntegrationTest {
     static final String PAYMENT_KIND = "payment-details#payment-details";
     private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
     private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
+    private static final Date PAID_AT_DATE = new GregorianCalendar(2021, 0, 1).getTime();
 
     @Autowired
     private MockMvc mockMvc;
@@ -687,12 +689,12 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Successfully gets payment details")
+    @DisplayName("Get payment details endpoint successfully gets payment details")
     void getPaymentDetailsSuccessfully() throws Exception {
         // When item(s) checked out
         Checkout checkout = createCheckout();
 
-        PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO();
+        PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PENDING);
         PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
 
         // Then expect payment details
@@ -706,6 +708,35 @@ class BasketControllerIntegrationTest {
                 .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
                 .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
                 .andExpect(jsonPath("$.status", is("pending")))
+                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
+                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    @Test
+    @DisplayName("Get payment details endpoint successfully gets paid payment details for reconciliation")
+    void getsPaidPaymentDetailsSuccessfully() throws Exception {
+
+        // Given item(s) checked out and paid for
+        final Checkout checkout = createCheckout();
+        payForOrder(checkout);
+
+        final PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PAID);
+        final PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
+
+        // Then expect payment details
+        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
+                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
+                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
+                .andExpect(jsonPath("$.status", is("paid")))
+                .andExpect(jsonPath("$.paid_at", is(paymentsApiParsableDateTime(PAID_AT_DATE))))
                 .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
                 .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
                 .andDo(MockMvcResultHandlers.print());
@@ -928,9 +959,9 @@ class BasketControllerIntegrationTest {
         return paymentLinksDTO;
     }
 
-    private PaymentDetailsDTO createPaymentDetailsDTO() {
+    private PaymentDetailsDTO createPaymentDetailsDTO(final PaymentStatus status) {
         PaymentDetailsDTO paymentDetailsDTO = new PaymentDetailsDTO();
-        paymentDetailsDTO.setStatus(PaymentStatus.PENDING);
+        paymentDetailsDTO.setStatus(status);
         paymentDetailsDTO.setKind(PAYMENT_KIND);
         List<ItemDTO> itemDTOs = new ArrayList<>();
         ItemDTO itemDTO1 = new ItemDTO();
@@ -959,5 +990,25 @@ class BasketControllerIntegrationTest {
         paymentDetailsDTO.setCompanyNumber(COMPANY_NUMBER);
 
         return paymentDetailsDTO;
+    }
+
+    /**
+     * Emulates part of the impact of successful payment on the checkout state.
+     * @param checkout the checkout to be updated to reflect successful payment
+     */
+    private void payForOrder(final Checkout checkout) {
+        final CheckoutData data = checkout.getData();
+        data.setStatus(PaymentStatus.PAID);
+        data.setPaidAt(PAID_AT_DATE);
+        checkoutService.saveCheckout(checkout);
+    }
+
+    /**
+     * Renders the date/time as a String formatted in a way that should be parsable by the Payments API.
+     * @param dateTime the date/time to be rendered
+     * @return the date/time as a String
+     */
+    private String paymentsApiParsableDateTime(final Date dateTime) {
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(dateTime);
     }
 }
