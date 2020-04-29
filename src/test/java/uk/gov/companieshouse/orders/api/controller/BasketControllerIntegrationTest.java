@@ -46,6 +46,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
@@ -586,6 +587,28 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
                 .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket items are missing")
+    public void checkoutBasketfFailsToCreateCheckoutIfBasketHasNoItems() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        basketRepository.save(basket);
+
+        when(apiClientService.getItem(null)).thenThrow(new Exception());
+        final ApiError expectedValidationError =
+                new ApiError(CONFLICT,
+                        asList(ErrorType.BASKET_ITEMS_MISSING.getValue()));
+
+        mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .andExpect(status().isConflict())
+                .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)));
+
+        assertEquals(0, checkoutRepository.count());
     }
 
     @Test
