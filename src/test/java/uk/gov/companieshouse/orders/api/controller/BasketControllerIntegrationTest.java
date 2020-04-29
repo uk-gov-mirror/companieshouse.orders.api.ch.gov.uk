@@ -30,8 +30,9 @@ import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -98,7 +99,7 @@ class BasketControllerIntegrationTest {
     static final String PAYMENT_KIND = "payment-details#payment-details";
     private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
     private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
-    private static final Date PAID_AT_DATE = new GregorianCalendar(2021, 0, 1).getTime();
+    private static final LocalDateTime PAID_AT_DATE = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
 
     @Autowired
     private MockMvc mockMvc;
@@ -873,7 +874,7 @@ class BasketControllerIntegrationTest {
 
     private BasketPaymentRequestDTO createBasketPaymentRequest(PaymentStatus paymentStatus) {
         final BasketPaymentRequestDTO basketPaymentRequestDTO = new BasketPaymentRequestDTO();
-        basketPaymentRequestDTO.setPaidAt(new Date());
+        basketPaymentRequestDTO.setPaidAt(LocalDateTime.now());
         basketPaymentRequestDTO.setPaymentReference(PAYMENT_ID);
         basketPaymentRequestDTO.setStatus(paymentStatus);
 
@@ -1008,7 +1009,7 @@ class BasketControllerIntegrationTest {
      * @param dateTime the date/time to be rendered
      * @return the date/time as a String
      */
-    private String paymentsApiParsableDateTime(final Date dateTime) {
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(dateTime);
+    private String paymentsApiParsableDateTime(final LocalDateTime dateTime) {
+        return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").format(dateTime);
     }
 }

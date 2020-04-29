@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.Gson;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class BasketPaymentRequestDTO {
 
     @JsonProperty("paid_at")
-    private Date paidAt;
+    private LocalDateTime paidAt;
 
     @JsonProperty("payment_reference")
     private String paymentReference;
@@ -17,11 +17,11 @@ public class BasketPaymentRequestDTO {
     @JsonProperty("status")
     private PaymentStatus status;
 
-    public Date getPaidAt() {
+    public LocalDateTime getPaidAt() {
         return paidAt;
     }
 
-    public void setPaidAt(Date paidAt) {
+    public void setPaidAt(LocalDateTime paidAt) {
         this.paidAt = paidAt;
     }
 

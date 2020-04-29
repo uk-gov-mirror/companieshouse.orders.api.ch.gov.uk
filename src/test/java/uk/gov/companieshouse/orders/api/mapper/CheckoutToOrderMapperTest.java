@@ -9,7 +9,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.companieshouse.orders.api.model.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
@@ -129,7 +129,7 @@ public class CheckoutToOrderMapperTest {
 
     @Test
     void testCheckoutToOrderMapping() {
-        final Date time = new Date();
+        final LocalDateTime time = LocalDateTime.now();
         final Checkout checkout = new Checkout();
         checkout.setId(ID);
         checkout.setUserId(USER_ID);

@@ -18,11 +18,13 @@ import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Partially unit tests the {@link BasketController} class.
@@ -98,7 +100,7 @@ class BasketControllerTest {
         final String checkout_id = "123456789";
         final String payment_id = "987654321";
         final String eric_header = "EricHeader";
-        final Date paidAt = new Date();
+        final LocalDateTime paidAt = LocalDateTime.now();
 
         final MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(ApiSdkManager.getEricPassthroughTokenHeader(), eric_header);
