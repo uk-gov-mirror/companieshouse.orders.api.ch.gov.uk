@@ -90,7 +90,7 @@ class BasketControllerIntegrationTest {
     private static final String INVALID_ITEM_URI = "invalid_uri";
 
     private static final String PAYMENT_REQUIRED_HEADER = "x-payment-required";
-    private String COSTS_LINK = "payments.service/payments";
+    private static final String COSTS_LINK = "payments.service/payments";
 
     private static final List<ItemCosts> ITEM_COSTS =
              asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),

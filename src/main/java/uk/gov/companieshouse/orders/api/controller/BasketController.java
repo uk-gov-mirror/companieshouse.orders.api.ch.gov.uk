@@ -56,7 +56,7 @@ public class BasketController {
 
     private static final String PAYMENT_REQUIRED_HEADER = "x-payment-required";
     @Value("${uk.gov.companieshouse.payments.api.payments}")
-    private String COSTS_LINK;
+    private String costsLink;
 
     private final BasketMapper basketMapper;
     private final DeliveryDetailsMapper deliveryDetailsMapper;
@@ -200,7 +200,7 @@ public class BasketController {
         HttpHeaders headers = new HttpHeaders();
         int totalOrderCost = Integer.parseInt(checkoutData.getTotalOrderCost());
         if (totalOrderCost > 0) {
-            headers.add(PAYMENT_REQUIRED_HEADER, COSTS_LINK);
+            headers.add(PAYMENT_REQUIRED_HEADER, costsLink);
             return new ResponseEntity<>(checkoutData, headers, ACCEPTED);
         }
         else {
