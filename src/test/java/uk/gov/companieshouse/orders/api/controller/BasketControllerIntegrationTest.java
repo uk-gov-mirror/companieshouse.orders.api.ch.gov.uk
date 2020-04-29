@@ -12,12 +12,16 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
-import uk.gov.companieshouse.orders.api.dto.*;
+import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
@@ -36,6 +40,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
@@ -43,7 +48,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
@@ -69,9 +75,7 @@ class BasketControllerIntegrationTest {
     private static final String PREMISES = "premises";
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
-    private static final String CHECKOUT_ID = "1234";
     private static final String PAYMENT_ID = "4321";
-    private static final String UNKNOWN_CHECKOUT_ID = "5555";
 
     private static final String EXPECTED_TOTAL_ORDER_COST = "15";
     private static final String DISCOUNT_APPLIED_1 = "0";
@@ -85,6 +89,9 @@ class BasketControllerIntegrationTest {
     private static final String CALCULATED_COST_3 = "5";
     private static final String INVALID_ITEM_URI = "invalid_uri";
 
+    private static final String PAYMENT_REQUIRED_HEADER = "x-payment-required";
+    private static final String COSTS_LINK = "payments.service/payments";
+
     private static final List<ItemCosts> ITEM_COSTS =
              asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY),
@@ -94,8 +101,6 @@ class BasketControllerIntegrationTest {
     private static final List<ItemCosts> ITEM_COSTS_ZERO =
             asList(new ItemCosts( "0", "0", "0", CERTIFICATE_SAME_DAY));
     private static final String TOTAL_ITEM_COST_ZERO = "0";
-    static final String PAYMENT_KIND = "payment-details#payment-details";
-    private static final String TOKEN_ETAG = "9d39ea69b64c80ca42ed72328b48c303c4445e28";
     private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
 
     @Autowired
@@ -242,10 +247,12 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isAccepted());
 
         MvcResult result = resultActions.andReturn();
-        String contentAsString = result.getResponse().getContentAsString();
-        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+        MockHttpServletResponse response = result.getResponse();
+        assertThat(response.getHeader(PAYMENT_REQUIRED_HEADER), is(COSTS_LINK));
+        String contentAsString = response.getContentAsString();
+        CheckoutData responseCheckoutData = mapper.readValue(contentAsString, CheckoutData.class);
 
-        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
         assertTrue(retrievedCheckout.isPresent());
         assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
         final CheckoutData checkoutData = retrievedCheckout.get().getData();
@@ -285,11 +292,13 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         MvcResult result = resultActions.andReturn();
-        String contentAsString = result.getResponse().getContentAsString();
-        CheckoutData response = mapper.readValue(contentAsString, CheckoutData.class);
+        MockHttpServletResponse response = result.getResponse();
+        assertThat(response.getHeader(PAYMENT_REQUIRED_HEADER), isEmptyOrNullString());
+        String contentAsString = response.getContentAsString();
+        CheckoutData responseCheckoutData = mapper.readValue(contentAsString, CheckoutData.class);
 
         assertEquals(1, checkoutRepository.count());
-        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(response.getReference());
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
         assertTrue(retrievedCheckout.isPresent());
         final Item retrievedItem = retrievedCheckout.get().getData().getItems().get(0);
         assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS_ZERO));

@@ -1,6 +1,8 @@
 package uk.gov.companieshouse.orders.api.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,6 +53,10 @@ public class BasketController {
             "${uk.gov.companieshouse.orders.api.basket.checkouts}";
     public static final String PATCH_PAYMENT_DETAILS_URI =
             "${uk.gov.companieshouse.orders.api.basket.checkouts}/{id}/payment";
+
+    private static final String PAYMENT_REQUIRED_HEADER = "x-payment-required";
+    @Value("${uk.gov.companieshouse.payments.api.payments}")
+    private String costsLink;
 
     private final BasketMapper basketMapper;
     private final DeliveryDetailsMapper deliveryDetailsMapper;
@@ -190,9 +196,16 @@ public class BasketController {
                 retrievedBasket.getData().getDeliveryDetails());
         trace("Successfully created checkout with id "+checkout.getId(), requestId);
 
-        HttpStatus responseStatus = checkout.getData().getTotalOrderCost().equals("0") ? OK : ACCEPTED;
-
-        return ResponseEntity.status(responseStatus).body(checkout.getData());
+        CheckoutData checkoutData = checkout.getData();
+        HttpHeaders headers = new HttpHeaders();
+        int totalOrderCost = Integer.parseInt(checkoutData.getTotalOrderCost());
+        if (totalOrderCost > 0) {
+            headers.add(PAYMENT_REQUIRED_HEADER, costsLink);
+            return new ResponseEntity<>(checkoutData, headers, ACCEPTED);
+        }
+        else {
+            return new ResponseEntity<>(checkoutData, OK);
+        }
     }
 
     @PatchMapping(PATCH_PAYMENT_DETAILS_URI)
