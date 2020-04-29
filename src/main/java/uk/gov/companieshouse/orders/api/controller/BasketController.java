@@ -55,7 +55,7 @@ public class BasketController {
             "${uk.gov.companieshouse.orders.api.basket.checkouts}/{id}/payment";
 
     private static final String PAYMENT_REQUIRED_HEADER = "x-payment-required";
-    @Value("${uk.gov.companieshouse.orders.api.payments.uri}")
+    @Value("${uk.gov.companieshouse.payments.api.payments}")
     private String COSTS_LINK;
 
     private final BasketMapper basketMapper;
