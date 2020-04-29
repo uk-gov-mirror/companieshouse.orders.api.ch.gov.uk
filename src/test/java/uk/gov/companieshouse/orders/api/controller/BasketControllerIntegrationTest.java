@@ -46,6 +46,7 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
@@ -588,6 +589,7 @@ class BasketControllerIntegrationTest {
                 .andDo(MockMvcResultHandlers.print());
     }
 
+    @Test
     @DisplayName("Add item to basket returns 400 when item uri is invalid")
     public void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
         Basket basket = new Basket();

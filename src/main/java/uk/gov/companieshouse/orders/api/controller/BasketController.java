@@ -180,7 +180,7 @@ public class BasketController {
             if (errors.contains(ErrorType.BASKET_ITEMS_MISSING.getValue())) {
                 return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, errors));
             }
-            else if (errors.contains(ErrorType.BASKET_ITEMS_MISSING.getValue())){
+            else if (errors.contains(ErrorType.BASKET_ITEM_INVALID.getValue())){
                 return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, errors));
             }
         }
