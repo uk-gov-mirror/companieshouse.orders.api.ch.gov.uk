@@ -683,75 +683,6 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Get payment details endpoint fails if the checkout id does not exist")
-    void getPaymentDetailsReturnsNotFound() throws Exception {
-
-        mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andDo(MockMvcResultHandlers.print());
-    }
-
-    @Test
-    @DisplayName("Get payment details endpoint successfully gets payment details")
-    void getPaymentDetailsSuccessfully() throws Exception {
-        // When item(s) checked out
-        Checkout checkout = createCheckout();
-
-        PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PENDING);
-        PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
-
-        // Then expect payment details
-        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
-                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
-                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
-                .andExpect(jsonPath("$.status", is("pending")))
-                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
-                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
-                .andDo(MockMvcResultHandlers.print());
-
-    }
-
-    @Test
-    @DisplayName("Get payment details endpoint successfully gets paid payment details for reconciliation")
-    void getsPaidPaymentDetailsSuccessfully() throws Exception {
-
-        // Given item(s) checked out and paid for
-        final Checkout checkout = createCheckout();
-        payForOrder(checkout);
-
-        final PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PAID);
-        final PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
-
-        // Then expect payment details
-        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
-                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
-                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
-                .andExpect(jsonPath("$.status", is("paid")))
-                .andExpect(jsonPath("$.company_number", is(COMPANY_NUMBER)))
-                .andExpect(jsonPath("$.paid_at", is(paymentsApiParsableDateTime(PAID_AT_DATE))))
-                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
-                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
-                .andDo(MockMvcResultHandlers.print());
-
-    }
-
-    @Test
     @DisplayName("Patch payment-details endpoint fails if it doesn't return payment session")
     public void patchBasketPaymentDetailsFailureReturningPaymentSession() throws Exception {
         final LocalDateTime start = timestamps.start();
@@ -856,6 +787,75 @@ class BasketControllerIntegrationTest {
         timestamps.end();
 
         checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("Get payment details endpoint fails if the checkout id does not exist")
+    void getPaymentDetailsReturnsNotFound() throws Exception {
+
+        mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @DisplayName("Get payment details endpoint successfully gets payment details")
+    void getPaymentDetailsSuccessfully() throws Exception {
+        // When item(s) checked out
+        final Checkout checkout = createCheckout();
+
+        final PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PENDING);
+        final PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
+
+        // Then expect payment details
+        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
+                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
+                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
+                .andExpect(jsonPath("$.status", is("pending")))
+                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
+                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    @Test
+    @DisplayName("Get payment details endpoint successfully gets paid payment details for reconciliation")
+    void getsPaidPaymentDetailsSuccessfully() throws Exception {
+
+        // Given item(s) checked out and paid for
+        final Checkout checkout = createCheckout();
+        payForOrder(checkout);
+
+        final PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PAID);
+        final PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
+
+        // Then expect payment details
+        mockMvc.perform(get("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
+                .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
+                .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
+                .andExpect(jsonPath("$.status", is("paid")))
+                .andExpect(jsonPath("$.company_number", is(COMPANY_NUMBER)))
+                .andExpect(jsonPath("$.paid_at", is(paymentsApiParsableDateTime(PAID_AT_DATE))))
+                .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
+                .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
+                .andDo(MockMvcResultHandlers.print());
+
     }
 
     private List<ItemCosts> createItemCosts(){
