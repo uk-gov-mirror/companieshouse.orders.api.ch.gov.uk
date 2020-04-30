@@ -737,6 +737,7 @@ class BasketControllerIntegrationTest {
                 .andExpect(jsonPath("$.payment_reference", is(checkout.getId())))
                 .andExpect(jsonPath("$.kind", is("payment-details#payment-details")))
                 .andExpect(jsonPath("$.status", is("paid")))
+                .andExpect(jsonPath("$.company_number", is(COMPANY_NUMBER)))
                 .andExpect(jsonPath("$.paid_at", is(paymentsApiParsableDateTime(PAID_AT_DATE))))
                 .andExpect(jsonPath("$.links.self", is(mapper.convertValue(paymentLinksDTO.getSelf(), String.class))))
                 .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
