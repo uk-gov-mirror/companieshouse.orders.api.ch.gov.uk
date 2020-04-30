@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.companieshouse.orders.api.model.PaymentLinks;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
@@ -25,6 +26,7 @@ public class PaymentDetailsDTO {
     private PaymentLinks links;
 
     @JsonProperty("paid_at")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime paidAt;
 
     @JsonProperty("payment_reference")
@@ -32,6 +34,9 @@ public class PaymentDetailsDTO {
 
     @JsonProperty("status")
     private PaymentStatus status;
+
+    @JsonProperty("company_number")
+    private String companyNumber;
 
     public String getDescription() {
         return description;
@@ -91,5 +96,13 @@ public class PaymentDetailsDTO {
 
     public void setStatus(PaymentStatus status) {
         this.status = status;
+    }
+
+    public String getCompanyNumber() {
+        return companyNumber;
+    }
+
+    public void setCompanyNumber(String companyNumber) {
+        this.companyNumber = companyNumber;
     }
 }

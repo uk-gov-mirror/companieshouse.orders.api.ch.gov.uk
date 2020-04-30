@@ -10,6 +10,8 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
 import uk.gov.companieshouse.orders.api.model.*;
 
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +31,7 @@ public class CheckoutToPaymentDetailsMapperTest {
 
     static final DeliveryDetails DELIVERY_DETAILS = new DeliveryDetails();
     static final String REFERENCE = "5e73592e5821a83750274f02";
-    static final PaymentStatus STATUS = PaymentStatus.PENDING;
+    static final PaymentStatus STATUS = PaymentStatus.PAID;
     static final CheckoutLinks CHECKOUT_LINKS = new CheckoutLinks();
     static final ActionedBy CHECKED_OUT_BY = new ActionedBy();
     static final String ITEM_ID = "CHS00000000000000001";
@@ -68,6 +70,7 @@ public class CheckoutToPaymentDetailsMapperTest {
     static final String POSTAGE_COST = "0";
     static final String TOTAL_ITEM_COST = "35";
     static final boolean POSTAL_DELIVERY = true;
+    private static final LocalDateTime PAID_AT_DATE = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
     static {
         final ItemCosts ITEM_COSTS_1 = new ItemCosts(DISCOUNT_APPLIED_1, ITEM_COST_1, CALCULATED_COST_1, PRODUCT_TYPE_1);
         final ItemCosts ITEM_COSTS_2 = new ItemCosts(DISCOUNT_APPLIED_2, ITEM_COST_2, CALCULATED_COST_2, PRODUCT_TYPE_2);
@@ -109,6 +112,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         CHECKOUT_DATA.setStatus(STATUS);
         CHECKOUT_DATA.setLinks(CHECKOUT_LINKS);
         CHECKOUT_DATA.setItems(ITEMS);
+        CHECKOUT_DATA.setPaidAt(PAID_AT_DATE);
 
     }
     static final String COMPANY_NUMBER_KEY = "company_number";
@@ -137,6 +141,8 @@ public class CheckoutToPaymentDetailsMapperTest {
         assertThat(target.getKind(), is(EXPECTED_KIND));
         assertThat(target.getStatus(), is(source.getData().getStatus()));
         assertThat(target.getPaymentReference(), is(source.getData().getReference()));
+        assertThat(target.getCompanyNumber(), is(COMPANY_NUMBER));
+        assertThat(target.getPaidAt(), is(PAID_AT_DATE));
 
         testLinks(source, target);
         testItems(source, target);
