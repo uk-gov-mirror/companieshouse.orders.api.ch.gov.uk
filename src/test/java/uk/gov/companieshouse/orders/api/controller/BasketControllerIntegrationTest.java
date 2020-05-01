@@ -143,12 +143,18 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Add Item successfully adds an item to the basket, if the basket does not exist")
+    @DisplayName("Add Item successfully adds an item to the basket and returns item if the basket does not exist")
     public void addItemSuccessfullyAddsItemToBasketIfBasketDoesNotExist() throws Exception {
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(ITEM_URI);
 
-        mockMvc.perform(post("/basket/items")
+        Certificate certificate = new Certificate();
+        certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        ResultActions resultActions = mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
@@ -156,13 +162,23 @@ class BasketControllerIntegrationTest {
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk());
 
+        MvcResult result = resultActions.andReturn();
+        MockHttpServletResponse response = result.getResponse();
+        String contentAsString = response.getContentAsString();
+        BasketItemDTO basketItemDTOResp = mapper.readValue(contentAsString, BasketItemDTO.class);
+
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+        assertThat(COMPANY_NUMBER, is(basketItemDTOResp.getCompanyNumber()));
+        assertThat(DISCOUNT_APPLIED_1, is(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied()));
+        assertThat(ITEM_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getItemCost()));
+        assertThat(CALCULATED_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost()));
+        assertThat(POSTAGE_COST, is(basketItemDTOResp.getPostageCost()));
         assertEquals(1, retrievedBasket.get().getData().getItems().size());
     }
 
     @Test
-    @DisplayName("Add item successfully adds an item to the basket, if the basket exists")
+    @DisplayName("Add item successfully adds an item to the basket and returns item if the basket exists")
     public void addItemSuccessfullyAddsAnItemToBasketIfBasketAlreadyExists() throws Exception {
         Basket basket = new Basket();
         basketRepository.save(basket);
@@ -170,7 +186,13 @@ class BasketControllerIntegrationTest {
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(ITEM_URI);
 
-        mockMvc.perform(post("/basket/items")
+        Certificate certificate = new Certificate();
+        certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        ResultActions resultActions = mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
@@ -178,9 +200,47 @@ class BasketControllerIntegrationTest {
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk());
 
-        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+        MvcResult result = resultActions.andReturn();
+        MockHttpServletResponse response = result.getResponse();
+        String contentAsString = response.getContentAsString();
+        BasketItemDTO basketItemDTOResp = mapper.readValue(contentAsString, BasketItemDTO.class);
 
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertThat(COMPANY_NUMBER, is(basketItemDTOResp.getCompanyNumber()));
+        assertThat(DISCOUNT_APPLIED_1, is(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied()));
+        assertThat(ITEM_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getItemCost()));
+        assertThat(CALCULATED_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost()));
+        assertThat(POSTAGE_COST, is(basketItemDTOResp.getPostageCost()));
+        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+    }
+
+    @Test
+    @DisplayName("Add item returns 400 when invalid item passed in request")
+    public void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketItem basketItem = new BasketItem();
+        basketItem.setItemUri(INVALID_ITEM_URI);
+        basket.getData().setItems(Collections.singletonList(basketItem));
+        basketRepository.save(basket);
+
+        AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(INVALID_ITEM_URI);
+        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+
+        final ApiError expectedValidationError =
+                new ApiError(BAD_REQUEST,
+                        asList(ErrorType.BASKET_ITEM_INVALID.getValue()));
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
+                .andDo(MockMvcResultHandlers.print());
     }
 
     @Test

@@ -15,6 +15,7 @@ import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToPaymentDetailsMapper;
 import uk.gov.companieshouse.orders.api.mapper.DeliveryDetailsMapper;
+import uk.gov.companieshouse.orders.api.mapper.ItemMapper;
 import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
@@ -58,6 +59,7 @@ public class BasketController {
     @Value("${uk.gov.companieshouse.payments.api.payments}")
     private String costsLink;
 
+    private final ItemMapper itemMapper;
     private final BasketMapper basketMapper;
     private final DeliveryDetailsMapper deliveryDetailsMapper;
     private final CheckoutToPaymentDetailsMapper checkoutToPaymentDetailsMapper;
@@ -68,7 +70,8 @@ public class BasketController {
     private final ApiClientService apiClientService;
     private final OrderService orderService;
 
-    public BasketController(final BasketMapper mapper,
+    public BasketController(final ItemMapper itemMapper,
+                            final BasketMapper basketMapper,
                             final DeliveryDetailsMapper deliveryDetailsMapper,
                             final CheckoutToPaymentDetailsMapper checkoutDataMapper,
                             final BasketService basketService,
@@ -77,8 +80,9 @@ public class BasketController {
                             final ApiClientService apiClientService,
                             final DeliveryDetailsValidator deliveryDetailsValidator,
                             final OrderService orderService){
+        this.itemMapper = itemMapper;
         this.deliveryDetailsMapper = deliveryDetailsMapper;
-        this.basketMapper = mapper;
+        this.basketMapper = basketMapper;
         this.checkoutToPaymentDetailsMapper = checkoutDataMapper;
         this.basketService = basketService;
         this.checkoutService = checkoutService;
@@ -105,27 +109,35 @@ public class BasketController {
     }
 
     @PostMapping(ADD_ITEM_URI)
-    public ResponseEntity<AddToBasketResponseDTO> addItemToBasket(final @Valid @RequestBody AddToBasketRequestDTO addToBasketRequestDTO,
+    public ResponseEntity<?> addItemToBasket(final @Valid @RequestBody AddToBasketRequestDTO addToBasketRequestDTO,
                                                                   HttpServletRequest request,
                                                                   final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
         trace("ENTERING addItemToBasket(" + addToBasketRequestDTO + ")", requestId);
+        String itemUri = addToBasketRequestDTO.getItemUri();
+        Item item;
+        try {
+            item = apiClientService.getItem(itemUri);
+        } catch (Exception exception) {
+            LOGGER.error("Failed to get item " + itemUri, exception);
+            return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, ErrorType.BASKET_ITEM_INVALID.getValue()));
+        }
 
         final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
         Basket mappedBasket = basketMapper.addToBasketRequestDTOToBasket(addToBasketRequestDTO);
 
-        Basket returnedBasket;
         if(retrievedBasket.isPresent()) {
             retrievedBasket.get().getData().setItems(mappedBasket.getData().getItems());
-            returnedBasket = basketService.saveBasket(retrievedBasket.get());
+            basketService.saveBasket(retrievedBasket.get());
         } else {
             mappedBasket.setId(EricHeaderHelper.getIdentity(request));
-            returnedBasket = basketService.saveBasket(mappedBasket);
+            basketService.saveBasket(mappedBasket);
         }
 
-        final AddToBasketResponseDTO addToBasketResponseDTO = basketMapper.basketToAddToBasketDTO(returnedBasket);
+        BasketItemDTO basketItemDTO = itemMapper.itemToBasketItemDTO(item);
+
         trace("EXITING addItemToBasket() with " + addToBasketRequestDTO, requestId);
-        return ResponseEntity.status(HttpStatus.OK).body(addToBasketResponseDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(basketItemDTO);
     }
 
     @PatchMapping(PATCH_BASKET_URI)
