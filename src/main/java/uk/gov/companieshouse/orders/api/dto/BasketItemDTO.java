@@ -8,7 +8,7 @@ import uk.gov.companieshouse.orders.api.model.ItemLinks;
 import java.util.List;
 import java.util.Map;
 
-public class BasketItemDTO {
+public class BasketItemDTO extends ItemDTO {
 
     @JsonProperty("company_name")
     private String companyName;
@@ -80,30 +80,6 @@ public class BasketItemDTO {
 
     public void setCustomerReference(String customerReference) {
         this.customerReference = customerReference;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getDescriptionIdentifier() {
-        return descriptionIdentifier;
-    }
-
-    public void setDescriptionIdentifier(String descriptionIdentifier) {
-        this.descriptionIdentifier = descriptionIdentifier;
-    }
-
-    public Map<String, String> getDescriptionValues() {
-        return descriptionValues;
-    }
-
-    public void setDescriptionValues(Map<String, String> descriptionValues) {
-        this.descriptionValues = descriptionValues;
     }
 
     public List<ItemCosts> getItemCosts() {

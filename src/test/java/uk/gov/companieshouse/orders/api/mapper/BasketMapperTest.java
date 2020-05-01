@@ -8,11 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
-import uk.gov.companieshouse.orders.api.dto.AddToBasketResponseDTO;
 import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
-
-import java.util.Arrays;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -41,17 +37,5 @@ public class BasketMapperTest {
 
         assertThat(item.getData(), is(notNullValue()));
         assertEquals(ITEM_URI, item.getData().getItems().get(0).getItemUri());
-    }
-
-    @Test
-    public void testBasketToAddToBasketResponseDTO() {
-        Basket basket = new Basket();
-        BasketItem item = new BasketItem();
-        item.setItemUri(ITEM_URI);
-        basket.getData().setItems(Arrays.asList(item));
-
-        AddToBasketResponseDTO addToBasketResponseDTO = basketMapper.basketToAddToBasketDTO(basket);
-
-        assertEquals(ITEM_URI, addToBasketResponseDTO.getItemUri());
     }
 }

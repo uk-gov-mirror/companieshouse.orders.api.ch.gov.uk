@@ -30,7 +30,6 @@ public class ItemMapperTest {
     private static final String ITEM_URI = "/item-uri";
     private static final String KIND = "test kind";
     private static final boolean POSTAL_DELIVERY = true;
-    private static final int QUANTITY = 1;
 
     private static final String TOTAL_ITEM_COST = "15";
     private static final String DISCOUNT_APPLIED_1 = "0";
