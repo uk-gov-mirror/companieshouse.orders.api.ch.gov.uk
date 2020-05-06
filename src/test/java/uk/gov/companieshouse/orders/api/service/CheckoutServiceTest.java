@@ -42,7 +42,6 @@ public class CheckoutServiceTest {
     private static final String LOCALITY = "locality";
     private static final String PO_BOX = "po box";
     private static final String POSTAL_CODE = "postal code";
-    private static final String PREMISES = "premises";
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
 
@@ -138,7 +137,6 @@ public class CheckoutServiceTest {
         deliveryDetails.setLocality(LOCALITY);
         deliveryDetails.setPoBox(PO_BOX);
         deliveryDetails.setPostalCode(POSTAL_CODE);
-        deliveryDetails.setPremises(PREMISES);
         deliveryDetails.setRegion(REGION);
         deliveryDetails.setSurname(SURNAME);
 
@@ -154,7 +152,6 @@ public class CheckoutServiceTest {
         assertThat(createdDeliveryDetails.getLocality(), is(LOCALITY));
         assertThat(createdDeliveryDetails.getPoBox(), is(PO_BOX));
         assertThat(createdDeliveryDetails.getPostalCode(), is(POSTAL_CODE));
-        assertThat(createdDeliveryDetails.getPremises(), is(PREMISES));
         assertThat(createdDeliveryDetails.getRegion(), is(REGION));
         assertThat(createdDeliveryDetails.getSurname(), is(SURNAME));
     }

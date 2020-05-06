@@ -71,7 +71,6 @@ class BasketControllerIntegrationTest {
     private static final String LOCALITY = "locality";
     private static final String PO_BOX = "po box";
     private static final String POSTAL_CODE = "postal code";
-    private static final String PREMISES = "premises";
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
     private static final String PAYMENT_ID = "4321";
@@ -512,7 +511,6 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setLocality(LOCALITY);
         deliveryDetailsDTO.setPoBox(PO_BOX);
         deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
-        deliveryDetailsDTO.setPremises(PREMISES);
         deliveryDetailsDTO.setRegion(REGION);
         deliveryDetailsDTO.setSurname(SURNAME);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
@@ -534,7 +532,6 @@ class BasketControllerIntegrationTest {
         assertEquals(LOCALITY, getDeliveryDetails.getLocality());
         assertEquals(PO_BOX, getDeliveryDetails.getPoBox());
         assertEquals(POSTAL_CODE, getDeliveryDetails.getPostalCode());
-        assertEquals(PREMISES, getDeliveryDetails.getPremises());
         assertEquals(REGION, getDeliveryDetails.getRegion());
         assertEquals(SURNAME, getDeliveryDetails.getSurname());
     }
@@ -552,7 +549,6 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setLocality(LOCALITY);
         deliveryDetailsDTO.setPoBox(PO_BOX);
         deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
-        deliveryDetailsDTO.setPremises(PREMISES);
         deliveryDetailsDTO.setRegion(REGION);
         deliveryDetailsDTO.setSurname(SURNAME);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
@@ -574,7 +570,6 @@ class BasketControllerIntegrationTest {
         assertEquals(LOCALITY, getDeliveryDetails.getLocality());
         assertEquals(PO_BOX, getDeliveryDetails.getPoBox());
         assertEquals(POSTAL_CODE, getDeliveryDetails.getPostalCode());
-        assertEquals(PREMISES, getDeliveryDetails.getPremises());
         assertEquals(REGION, getDeliveryDetails.getRegion());
         assertEquals(SURNAME, getDeliveryDetails.getSurname());
     }
@@ -587,7 +582,6 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setAddressLine1("");
         deliveryDetailsDTO.setAddressLine2(ADDRESS_LINE_2);
         deliveryDetailsDTO.setCountry(COUNTRY);
-        deliveryDetailsDTO.setPremises(PREMISES);
         deliveryDetailsDTO.setSurname(SURNAME);
         deliveryDetailsDTO.setForename(FORENAME);
         deliveryDetailsDTO.setLocality(LOCALITY);
@@ -627,7 +621,6 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setLocality(LOCALITY);
         deliveryDetailsDTO.setPoBox(PO_BOX);
         deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
-        deliveryDetailsDTO.setPremises(PREMISES);
         deliveryDetailsDTO.setRegion(REGION);
         deliveryDetailsDTO.setSurname(SURNAME);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);

@@ -32,10 +32,6 @@ public class DeliveryDetailsDTO {
     @JsonProperty("postal_code")
     private String postalCode;
 
-    @NotBlank
-    @JsonProperty("premises")
-    private String premises;
-
     @JsonProperty("region")
     private String region;
 
@@ -97,14 +93,6 @@ public class DeliveryDetailsDTO {
 
     public void setPostalCode(String postalCode) {
         this.postalCode = postalCode;
-    }
-
-    public String getPremises() {
-        return premises;
-    }
-
-    public void setPremises(String premises) {
-        this.premises = premises;
     }
 
     public String getRegion() {
