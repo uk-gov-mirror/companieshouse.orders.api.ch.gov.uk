@@ -24,8 +24,6 @@ public class DeliveryDetails {
 
     private String postalCode;
 
-    private String premises;
-
     private String region;
 
     private String surname;
@@ -85,14 +83,6 @@ public class DeliveryDetails {
 
     public void setPostalCode(String postalCode) {
         this.postalCode = postalCode;
-    }
-
-    public String getPremises() {
-        return premises;
-    }
-
-    public void setPremises(String premises) {
-        this.premises = premises;
     }
 
     public String getRegion() {

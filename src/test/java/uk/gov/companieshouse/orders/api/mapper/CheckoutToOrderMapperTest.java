@@ -103,7 +103,6 @@ public class CheckoutToOrderMapperTest {
         DELIVERY_DETAILS = new DeliveryDetails();
         DELIVERY_DETAILS.setForename("George");
         DELIVERY_DETAILS.setSurname("Best");
-        DELIVERY_DETAILS.setPremises("Premises");
         DELIVERY_DETAILS.setAddressLine1("Line 1");
         DELIVERY_DETAILS.setAddressLine2("Line 2");
         DELIVERY_DETAILS.setLocality("Locality");

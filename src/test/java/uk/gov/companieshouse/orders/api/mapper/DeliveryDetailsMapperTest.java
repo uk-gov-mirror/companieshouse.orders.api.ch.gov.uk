@@ -25,7 +25,6 @@ public class DeliveryDetailsMapperTest {
     private static final String LOCALITY = "locality";
     private static final String PO_BOX = "po box";
     private static final String POSTAL_CODE = "postal code";
-    private static final String PREMISES = "premises";
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
 
@@ -48,7 +47,6 @@ public class DeliveryDetailsMapperTest {
         deliveryDetailsDTO.setLocality(LOCALITY);
         deliveryDetailsDTO.setPoBox(PO_BOX);
         deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
-        deliveryDetailsDTO.setPremises(PREMISES);
         deliveryDetailsDTO.setRegion(REGION);
         deliveryDetailsDTO.setSurname(SURNAME);
         dto.setDeliveryDetails(deliveryDetailsDTO);
@@ -62,7 +60,6 @@ public class DeliveryDetailsMapperTest {
         assertEquals(LOCALITY, deliveryDetails.getLocality());
         assertEquals(PO_BOX, deliveryDetails.getPoBox());
         assertEquals(POSTAL_CODE, deliveryDetails.getPostalCode());
-        assertEquals(PREMISES, deliveryDetails.getPremises());
         assertEquals(REGION, deliveryDetails.getRegion());
         assertEquals(SURNAME, deliveryDetails.getSurname());
     }
@@ -79,7 +76,6 @@ public class DeliveryDetailsMapperTest {
         deliveryDetails.setLocality(LOCALITY);
         deliveryDetails.setPoBox(PO_BOX);
         deliveryDetails.setPostalCode(POSTAL_CODE);
-        deliveryDetails.setPremises(PREMISES);
         deliveryDetails.setRegion(REGION);
         deliveryDetails.setSurname(SURNAME);
 
@@ -92,7 +88,6 @@ public class DeliveryDetailsMapperTest {
         assertEquals(LOCALITY, addDeliveryDetailsResponseDTO.getLocality());
         assertEquals(PO_BOX, addDeliveryDetailsResponseDTO.getPoBox());
         assertEquals(POSTAL_CODE, addDeliveryDetailsResponseDTO.getPostalCode());
-        assertEquals(PREMISES, addDeliveryDetailsResponseDTO.getPremises());
         assertEquals(REGION, addDeliveryDetailsResponseDTO.getRegion());
         assertEquals(SURNAME, addDeliveryDetailsResponseDTO.getSurname());
     }

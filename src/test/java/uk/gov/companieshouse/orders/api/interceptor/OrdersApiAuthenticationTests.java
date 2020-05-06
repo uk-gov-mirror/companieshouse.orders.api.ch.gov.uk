@@ -45,7 +45,6 @@ class OrdersApiAuthenticationTests {
 	private static final String LOCALITY = "locality";
 	private static final String PO_BOX = "po box";
 	private static final String POSTAL_CODE = "postal code";
-	private static final String PREMISES = "premises";
 	private static final String REGION = "region";
 	private static final List<ItemCosts> ITEM_COSTS =
 			asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
@@ -211,7 +210,6 @@ class OrdersApiAuthenticationTests {
 		deliveryDetailsDTO.setLocality(LOCALITY);
 		deliveryDetailsDTO.setPoBox(PO_BOX);
 		deliveryDetailsDTO.setPostalCode(POSTAL_CODE);
-		deliveryDetailsDTO.setPremises(PREMISES);
 		deliveryDetailsDTO.setRegion(REGION);
 		deliveryDetailsDTO.setSurname(SURNAME);
 		addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);

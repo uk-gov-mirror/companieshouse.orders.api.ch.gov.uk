@@ -21,7 +21,6 @@ class DeliveryDetailsValidatorTest {
     private static final String FORENAME = "forename";
     private static final String LOCALITY = "locality";
     private static final String PO_BOX = "po box";
-    private static final String PREMISES = "premises";
     private static final String SURNAME = "surname";
 
     @BeforeEach
@@ -41,7 +40,6 @@ class DeliveryDetailsValidatorTest {
         deliveryDetailsDTO.setLocality(LOCALITY);
         deliveryDetailsDTO.setPoBox(PO_BOX);
         deliveryDetailsDTO.setPostalCode("");
-        deliveryDetailsDTO.setPremises(PREMISES);
         deliveryDetailsDTO.setRegion("");
         deliveryDetailsDTO.setSurname(SURNAME);
         dto.setDeliveryDetails(deliveryDetailsDTO);
