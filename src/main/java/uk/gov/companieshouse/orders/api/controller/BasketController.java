@@ -48,7 +48,7 @@ public class BasketController {
             + CHECKOUT_ID_PATH_VARIABLE + "}/payment";
     public static final String ADD_ITEM_URI =
             "${uk.gov.companieshouse.orders.api.basket.items}";
-    public static final String PATCH_BASKET_URI =
+    public static final String BASKET_URI =
             "${uk.gov.companieshouse.orders.api.basket}";
     public static final String CHECKOUT_BASKET_URI =
             "${uk.gov.companieshouse.orders.api.basket.checkouts}";
@@ -140,7 +140,18 @@ public class BasketController {
         return ResponseEntity.status(HttpStatus.OK).body(basketItemDTO);
     }
 
-    @PatchMapping(PATCH_BASKET_URI)
+    @GetMapping(BASKET_URI)
+    public ResponseEntity<Basket> getBasket(HttpServletRequest request,
+                                            final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
+
+        trace("ENTERING getBasket", requestId);
+
+        final Optional<Basket> basket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
+
+        return ResponseEntity.status(HttpStatus.OK).body(basket.orElse(null));
+    }
+
+    @PatchMapping(BASKET_URI)
     public ResponseEntity<?> addDeliveryDetailsToBasket(final @Valid @RequestBody AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO,
                                                                  HttpServletRequest request,
                                                                  final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){

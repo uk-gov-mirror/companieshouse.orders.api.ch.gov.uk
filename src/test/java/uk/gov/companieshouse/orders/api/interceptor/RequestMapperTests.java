@@ -71,7 +71,7 @@ public class RequestMapperTests {
         givenRequest(PATCH, "/basket");
 
         // When and then
-        assertThat(requestMapperUnderTest.getRequestMapping(request).getName(), is(PATCH_BASKET));
+        assertThat(requestMapperUnderTest.getRequestMapping(request).getName(), is(BASKET));
     }
 
     @Test

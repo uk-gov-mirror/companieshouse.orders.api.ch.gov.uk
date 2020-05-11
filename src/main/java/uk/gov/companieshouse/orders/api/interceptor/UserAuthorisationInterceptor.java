@@ -54,7 +54,7 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
             switch (match.getName()) {
                 case ADD_ITEM:
                 case CHECKOUT_BASKET:
-                case PATCH_BASKET:
+                case BASKET:
                     return true; // no authorisation required
                 case GET_PAYMENT_DETAILS:
                     return getRequestClientIsAuthorised(request, response, this::getPaymentDetailsUserIsResourceOwner);

@@ -39,7 +39,7 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter {
             switch (match.getName()) {
                 case ADD_ITEM:
                 case CHECKOUT_BASKET:
-                case PATCH_BASKET:
+                case BASKET:
                     return hasSignedInUser(request, response);
                 case GET_PAYMENT_DETAILS:
                 case GET_ORDER:
