@@ -150,8 +150,10 @@ public class BasketController {
 
         Basket basket;
         if(retrievedBasket.isPresent()) {
+            trace("Basket retrieved successfully", requestId);
             basket = retrievedBasket.get();
         } else {
+            trace("No basket present, creating a basket", requestId);
             Basket newBasket = new Basket();
             newBasket.setId(EricHeaderHelper.getIdentity((request)));
             basket = basketService.saveBasket(newBasket);

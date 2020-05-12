@@ -84,6 +84,17 @@ public class UserAuthenticationInterceptorTests {
     }
 
     @Test
+    @DisplayName("preHandle rejects get basket request that lacks required headers")
+    void preHandleRejectsUnauthenticatedGetBasketRequest() {
+
+        // Given
+        givenRequest(GET, "/basket");
+
+        // When and then
+        thenRequestIsRejected();
+    }
+
+    @Test
     @DisplayName("preHandle rejects patch basket request that lacks required headers")
     void preHandleRejectsUnauthenticatedPatchBasketRequest() {
 
