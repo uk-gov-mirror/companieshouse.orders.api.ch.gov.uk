@@ -21,13 +21,13 @@ public class RequestMapper implements InitializingBean {
     static final String ADD_ITEM = "addItem";
     static final String CHECKOUT_BASKET = "checkoutBasket";
     static final String GET_PAYMENT_DETAILS = "getPaymentDetails";
-    static final String PATCH_BASKET = "patchBasket";
+    static final String BASKET = "basket";
     static final String PATCH_PAYMENT_DETAILS = "patchPaymentDetails";
     static final String GET_ORDER = "getOrder";
 
     private final String addItemUri;
     private final String checkoutBasketUri;
-    private final String patchBasketUri;
+    private final String basketUri;
     private final String getPaymentDetailsUri;
     private final String getOrderUri;
     private final String patchPaymentDetailsUri;
@@ -42,8 +42,8 @@ public class RequestMapper implements InitializingBean {
             final String addItemUri,
             @Value(CHECKOUT_BASKET_URI)
             final String checkoutBasketUri,
-            @Value(PATCH_BASKET_URI)
-            final String patchBasketUri,
+            @Value(BASKET_URI)
+            final String basketUri,
             @Value(GET_PAYMENT_DETAILS_URI)
             final String getPaymentDetailsUri,
             @Value(GET_ORDER_URI)
@@ -52,7 +52,7 @@ public class RequestMapper implements InitializingBean {
             final String patchPaymentDetailsUri) {
         this.addItemUri = addItemUri;
         this.checkoutBasketUri = checkoutBasketUri;
-        this.patchBasketUri = patchBasketUri;
+        this.basketUri = basketUri;
         this.getPaymentDetailsUri = getPaymentDetailsUri;
         this.getOrderUri = getOrderUri;
         this.patchPaymentDetailsUri = patchPaymentDetailsUri;
@@ -90,9 +90,14 @@ public class RequestMapper implements InitializingBean {
                         new PatternsRequestCondition(getPaymentDetailsUri),
                         new RequestMethodsRequestCondition(RequestMethod.GET),
                         null, null, null, null, null);
+        final RequestMappingInfo getBasket =
+            new RequestMappingInfo(BASKET,
+                new PatternsRequestCondition(basketUri),
+                new RequestMethodsRequestCondition(RequestMethod.GET),
+                null, null, null, null, null);
         final RequestMappingInfo patchBasket =
-                new RequestMappingInfo(PATCH_BASKET,
-                        new PatternsRequestCondition(patchBasketUri),
+                new RequestMappingInfo(BASKET,
+                        new PatternsRequestCondition(basketUri),
                         new RequestMethodsRequestCondition(RequestMethod.PATCH),
                         null, null, null, null, null);
         final RequestMappingInfo patchPaymentDetails =
@@ -107,7 +112,7 @@ public class RequestMapper implements InitializingBean {
                         null, null, null, null, null);
 
         knownRequests = asList(
-                addItem, checkoutBasket, getPaymentDetails, patchBasket, patchPaymentDetails, getOrder
+                addItem, checkoutBasket, getPaymentDetails, getBasket, patchBasket, patchPaymentDetails, getOrder
         );
 
     }

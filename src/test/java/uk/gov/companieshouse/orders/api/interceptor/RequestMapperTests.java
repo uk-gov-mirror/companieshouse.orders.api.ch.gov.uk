@@ -64,6 +64,17 @@ public class RequestMapperTests {
     }
 
     @Test
+    @DisplayName("getRequestMappingInfo gets the get basket request mapping")
+    void getRequestMappingInfoGetsGetBasket() {
+
+        // Given
+        givenRequest(GET, "/basket");
+
+        // When and then
+        assertThat(requestMapperUnderTest.getRequestMapping(request).getName(), is(BASKET));
+    }
+
+    @Test
     @DisplayName("getRequestMappingInfo gets the patch basket request mapping")
     void getRequestMappingInfoGetsPatchBasket() {
 
@@ -71,7 +82,7 @@ public class RequestMapperTests {
         givenRequest(PATCH, "/basket");
 
         // When and then
-        assertThat(requestMapperUnderTest.getRequestMapping(request).getName(), is(PATCH_BASKET));
+        assertThat(requestMapperUnderTest.getRequestMapping(request).getName(), is(BASKET));
     }
 
     @Test
