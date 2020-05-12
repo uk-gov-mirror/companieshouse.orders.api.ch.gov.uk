@@ -141,14 +141,23 @@ public class BasketController {
     }
 
     @GetMapping(BASKET_URI)
-    public ResponseEntity<Basket> getBasket(HttpServletRequest request,
+    public ResponseEntity<BasketData> getBasket(HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
 
         trace("ENTERING getBasket", requestId);
 
-        final Optional<Basket> basket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
+        final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
-        return ResponseEntity.status(HttpStatus.OK).body(basket.orElse(null));
+        Basket basket;
+        if(retrievedBasket.isPresent()) {
+            basket = retrievedBasket.get();
+        } else {
+            Basket newBasket = new Basket();
+            newBasket.setId(EricHeaderHelper.getIdentity((request)));
+            basket = basketService.saveBasket(newBasket);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(basket.getData());
     }
 
     @PatchMapping(BASKET_URI)
