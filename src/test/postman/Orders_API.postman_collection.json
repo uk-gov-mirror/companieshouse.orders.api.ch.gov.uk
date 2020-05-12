@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "07392165-d6d9-4830-b3a3-59395f5cc4de",
+		"_postman_id": "1c78c5ce-be05-46d2-b1bd-bd0cf9f3b97f",
 		"name": "Orders API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -325,6 +325,46 @@
 								"description": "Adds delivery details to basket"
 							},
 							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Get basket",
+					"item": [
+						{
+							"name": "Get basket",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": ""
+								}
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "e8c0519a-bc23-4aab-8dbd-f0d2732fd33d",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "3c936319-9da4-4b73-be0d-f66ce031dab5",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
 						}
 					],
 					"protocolProfileBehavior": {},
