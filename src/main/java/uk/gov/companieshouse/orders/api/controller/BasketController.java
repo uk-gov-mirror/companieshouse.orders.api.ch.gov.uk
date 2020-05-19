@@ -5,18 +5,36 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-import uk.gov.companieshouse.orders.api.dto.*;
+import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.BasketItemDTO;
+import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
+import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToPaymentDetailsMapper;
 import uk.gov.companieshouse.orders.api.mapper.DeliveryDetailsMapper;
 import uk.gov.companieshouse.orders.api.mapper.ItemMapper;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.ApiError;
+import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.CheckoutData;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
+import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.ItemCosts;
+import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
@@ -28,13 +46,21 @@ import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.springframework.http.HttpStatus.*;
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.*;
+import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.LOG_MESSAGE_DATA_KEY;
+import static uk.gov.companieshouse.orders.api.OrdersApiApplication.REQUEST_ID_HEADER_NAME;
 
 @RestController
 public class BasketController {
@@ -141,7 +167,7 @@ public class BasketController {
     }
 
     @GetMapping(BASKET_URI)
-    public ResponseEntity<BasketData> getBasket(HttpServletRequest request,
+    public ResponseEntity<?> getBasket(HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
 
         trace("ENTERING getBasket", requestId);
@@ -157,6 +183,21 @@ public class BasketController {
             Basket newBasket = new Basket();
             newBasket.setId(EricHeaderHelper.getIdentity((request)));
             basket = basketService.saveBasket(newBasket);
+        }
+
+        Item item;
+        String itemUri = null;
+        try {
+            itemUri = basket.getData().getItems().get(0).getItemUri();
+            item = apiClientService.getItem(itemUri);
+
+            List<Item> items = new ArrayList<>();
+            items.add(item);
+
+            basket.getData().setItems(items);
+        } catch (Exception exception) {
+            LOGGER.error("Failed to get item "+itemUri, exception);
+            return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "Failed to retrieve item"));
         }
 
         return ResponseEntity.status(HttpStatus.OK).body(basket.getData());

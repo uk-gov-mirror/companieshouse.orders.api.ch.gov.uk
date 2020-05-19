@@ -10,7 +10,7 @@ public class BasketData {
 
     private String etag;
 
-    private List<BasketItem> items = new ArrayList<>();
+    private List<Item> items = new ArrayList<>();
 
     private String kind;
 
@@ -35,11 +35,11 @@ public class BasketData {
         this.etag = etag;
     }
 
-    public List<BasketItem> getItems() {
+    public List<Item> getItems() {
         return items;
     }
 
-    public void setItems(List<BasketItem> items) {
+    public void setItems(List<Item> items) {
         this.items = items;
     }
 

@@ -30,7 +30,6 @@ import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
 import uk.gov.companieshouse.orders.api.model.Checkout;
@@ -258,7 +257,7 @@ class BasketControllerIntegrationTest {
     public void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
@@ -285,7 +284,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Add item successfully replaces an item in the basket")
     public void addItemSuccessfullyReplacesAnItemInTheBasket() throws Exception {
-        BasketItem item = new BasketItem();
+        Item item = new Item();
         item.setItemUri(ITEM_URI_OLD);
         BasketData basketData = new BasketData();
         basketData.setItems(Arrays.asList(item));
@@ -367,7 +366,7 @@ class BasketControllerIntegrationTest {
     private Basket getBasket() {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(ITEM_URI);
         basket.getData().getItems().add(basketItem);
         return basket;
@@ -701,7 +700,7 @@ class BasketControllerIntegrationTest {
     public void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
@@ -763,7 +762,7 @@ class BasketControllerIntegrationTest {
     public void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
@@ -1099,7 +1098,7 @@ class BasketControllerIntegrationTest {
         basket.setCreatedAt(start);
         basket.setUpdatedAt(start);
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(ITEM_URI);
         basket.getData().getItems().add(basketItem);
 
