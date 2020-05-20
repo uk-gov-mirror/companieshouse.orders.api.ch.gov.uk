@@ -183,6 +183,7 @@ public class BasketController {
             Basket newBasket = new Basket();
             newBasket.setId(EricHeaderHelper.getIdentity((request)));
             basket = basketService.saveBasket(newBasket);
+            return ResponseEntity.status(HttpStatus.OK).body(basket.getData());
         }
 
         Item item;
