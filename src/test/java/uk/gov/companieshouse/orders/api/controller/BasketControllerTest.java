@@ -6,16 +6,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.Basket;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.CheckoutData;
+import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.ItemCosts;
+import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.service.OrderService;
+import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
+import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,8 +33,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 
 /**
  * Partially unit tests the {@link BasketController} class.
@@ -52,6 +65,25 @@ class BasketControllerTest {
 
     @Mock
     private ApiClientService apiClientService;
+
+    @Mock
+    private HttpServletRequest httpServletRequest;
+
+    @Mock
+    private EricHeaderHelper ericHeaderHelper;
+
+    @Test
+    @DisplayName("Return 400 Bad Request if Items cannot be returned in GET basket")
+    void returnBadRequestGetItems() throws Exception {
+
+        Optional<Basket> basket = createBasket();
+
+        when(basketService.getBasketById(any())).thenReturn(basket);
+
+        ResponseEntity<?> responseEntity = controllerUnderTest.getBasket(httpServletRequest, "requestId");
+
+        assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+    }
 
     @Test
     @DisplayName("Patch payment details PAID status update is saved to checkout")
@@ -158,4 +190,13 @@ class BasketControllerTest {
         when(checkoutData.getItems()).thenReturn(items);
     }
 
+    private Optional<Basket> createBasket() {
+        TimestampedEntityVerifier timestamps = new TimestampedEntityVerifier();
+        final LocalDateTime start = timestamps.start();
+        final Basket basket = new Basket();
+        basket.setCreatedAt(start);
+        basket.setUpdatedAt(start);
+        basket.setId(ERIC_IDENTITY_VALUE);
+        return Optional.of(basket);
+    }
 }
