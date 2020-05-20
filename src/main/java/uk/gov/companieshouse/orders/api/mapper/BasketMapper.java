@@ -5,7 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
+import uk.gov.companieshouse.orders.api.model.Item;
 
 import java.util.Arrays;
 
@@ -15,7 +15,7 @@ public interface BasketMapper {
 
     @AfterMapping
     default void fillBasket(AddToBasketRequestDTO addToBasketRequestDTO, @MappingTarget Basket basket) {
-        BasketItem item = new BasketItem();
+        Item item = new Item();
         item.setItemUri(addToBasketRequestDTO.getItemUri());
         basket.getData().setItems(Arrays.asList(item));
     }

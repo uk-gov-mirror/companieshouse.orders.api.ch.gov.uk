@@ -51,11 +51,11 @@ public class Basket implements TimestampedEntity {
         this.data = data;
     }
 
-    public void setItems(List<BasketItem> items) {
+    public void setItems(List<Item> items) {
         data.setItems(items);
     }
 
-    public List<BasketItem> getItems() {
+    public List<Item> getItems() {
         return data.getItems();
     }
 

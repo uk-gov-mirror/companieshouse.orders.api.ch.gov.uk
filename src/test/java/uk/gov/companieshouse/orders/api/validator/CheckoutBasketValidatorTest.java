@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
+import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 
 import java.util.Collections;
@@ -67,7 +67,7 @@ public class CheckoutBasketValidatorTest {
     private Basket setupBasketWithInvalidItem(){
         Basket basket = new Basket();
         BasketData basketData = new BasketData();
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
         basketData.setItems(Collections.singletonList(basketItem));
         basket.setData(basketData);

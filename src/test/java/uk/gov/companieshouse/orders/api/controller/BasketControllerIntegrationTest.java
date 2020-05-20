@@ -30,7 +30,6 @@ import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
 import uk.gov.companieshouse.orders.api.model.Checkout;
@@ -58,6 +57,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
@@ -103,7 +103,8 @@ class BasketControllerIntegrationTest {
     private static final String ITEM_URI = "/orderable/certificates/12345678";
     private static final String ITEM_URI_OLD = "/orderable/certificates/11111111";
 
-    private static final String COMPANY_NUMBER = "00006400";
+    private static final String COMPANY_NAME = "companyName";
+    private static final String COMPANY_NUMBER = "00000000";
     private static final String ADDRESS_LINE_1 = "address line 1";
     private static final String ADDRESS_LINE_2 = "address line 2";
     private static final String COUNTRY = "country";
@@ -114,6 +115,19 @@ class BasketControllerIntegrationTest {
     private static final String REGION = "region";
     private static final String SURNAME = "surname";
     private static final String PAYMENT_ID = "4321";
+
+    private static final String CUSTOMER_REFERENCE  ="customerReference";
+    private static final String DESCRIPTION = "description";
+    private static final String DESCRIPTION_IDENTIFIER = "descriptionIdentifier";
+    private static final Map<String, String> DESCRIPTION_VALUES = new HashMap<String, String>() {{
+        put("descriptionKey1", "descriptionValue1");
+        put("descriptionKey2", "descriptionValue2");
+    }};
+    private static final String ETAG = "etag";
+    private static final String KIND = "kind";
+    private static final Boolean POSTAL_DELIVERY = true;
+    private static final Integer QUANTITY = 1;
+    private static final LocalDateTime SATISFIED_AT = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
 
     private static final String EXPECTED_TOTAL_ORDER_COST = "15";
     private static final String DISCOUNT_APPLIED_1 = "0";
@@ -258,7 +272,7 @@ class BasketControllerIntegrationTest {
     public void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
@@ -285,7 +299,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Add item successfully replaces an item in the basket")
     public void addItemSuccessfullyReplacesAnItemInTheBasket() throws Exception {
-        BasketItem item = new BasketItem();
+        Item item = new Item();
         item.setItemUri(ITEM_URI_OLD);
         BasketData basketData = new BasketData();
         basketData.setItems(Arrays.asList(item));
@@ -367,7 +381,7 @@ class BasketControllerIntegrationTest {
     private Basket getBasket() {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(ITEM_URI);
         basket.getData().getItems().add(basketItem);
         return basket;
@@ -552,10 +566,14 @@ class BasketControllerIntegrationTest {
         deliveryDetails.setSurname(SURNAME);
         deliveryDetails.setLocality(LOCALITY);
 
-        basketData.setDeliveryDetails(deliveryDetails);
-        basket.setData(basketData);
+        basket.getData().setDeliveryDetails(deliveryDetails);
 
         basketRepository.save(basket);
+
+        final Certificate certificate = new Certificate();
+        certificate.setItemCosts(ITEM_COSTS);
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setTotalItemCost(TOTAL_ITEM_COST);
 
         mockMvc.perform(get("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -566,19 +584,43 @@ class BasketControllerIntegrationTest {
 
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
+        final Item item = retrievedBasket.get().getData().getItems().get(0);
         assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
         assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
         assertEquals(COUNTRY, getDeliveryDetails.getCountry());
         assertEquals(FORENAME, getDeliveryDetails.getForename());
         assertEquals(LOCALITY, getDeliveryDetails.getLocality());
         assertEquals(SURNAME, getDeliveryDetails.getSurname());
+
+        assertEquals(ITEM_URI, item.getItemUri());
+        assertEquals(COMPANY_NAME, item.getCompanyName());
+        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        assertEquals(CUSTOMER_REFERENCE, item.getCustomerReference());
+        assertEquals(DESCRIPTION, item.getDescription());
+        assertEquals(DESCRIPTION_IDENTIFIER, item.getDescriptionIdentifier());
+        assertEquals(DESCRIPTION_VALUES, item.getDescriptionValues());
+        assertEquals(ITEM_COSTS, item.getItemCosts());
+        assertEquals(ETAG, item.getEtag());
+        assertEquals(KIND, item.getKind());
+        assertEquals(POSTAL_DELIVERY, item.isPostalDelivery());
+        assertEquals(QUANTITY, item.getQuantity());
+        assertEquals(SATISFIED_AT, item.getSatisfiedAt());
+        assertEquals(POSTAGE_COST, item.getPostageCost());
+        assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
     }
 
     @Test
     @DisplayName("Create new basket when GET basket returns no basket")
     void createNewBasketOnNoBasketReturned() throws Exception {
+
+        Certificate certificate = new Certificate();
+        certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
+
         mockMvc.perform(get("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
             .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
@@ -701,7 +743,7 @@ class BasketControllerIntegrationTest {
     public void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
@@ -763,7 +805,7 @@ class BasketControllerIntegrationTest {
     public void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
@@ -1099,8 +1141,23 @@ class BasketControllerIntegrationTest {
         basket.setCreatedAt(start);
         basket.setUpdatedAt(start);
         basket.setId(ERIC_IDENTITY_VALUE);
-        BasketItem basketItem = new BasketItem();
+        Item basketItem = new Item();
         basketItem.setItemUri(ITEM_URI);
+        basketItem.setCompanyName(COMPANY_NAME);
+        basketItem.setCompanyNumber(COMPANY_NUMBER);
+        basketItem.setCustomerReference(CUSTOMER_REFERENCE);
+        basketItem.setDescription(DESCRIPTION);
+        basketItem.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        basketItem.setDescriptionValues(DESCRIPTION_VALUES);
+        basketItem.setItemCosts(ITEM_COSTS);
+        basketItem.setEtag(ETAG);
+        basketItem.setKind(KIND);
+        basketItem.setPostalDelivery(POSTAL_DELIVERY);
+        basketItem.setQuantity(QUANTITY);
+        basketItem.setSatisfiedAt(SATISFIED_AT);
+        basketItem.setPostageCost(POSTAGE_COST);
+        basketItem.setTotalItemCost(TOTAL_ITEM_COST);
+
         basket.getData().getItems().add(basketItem);
 
         return basketRepository.save(basket);

@@ -5,7 +5,7 @@ import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.BasketItem;
+import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class CheckoutBasketValidator {
 
     public List<String> getValidationErrors(final Basket basket) {
         List<String> errors = new ArrayList<>();
-        List<BasketItem> basketItems = basket.getData().getItems();
+        List<Item> basketItems = basket.getData().getItems();
         if (basketItems.isEmpty()) {
             errors.add(ErrorType.BASKET_ITEMS_MISSING.getValue());
         }
