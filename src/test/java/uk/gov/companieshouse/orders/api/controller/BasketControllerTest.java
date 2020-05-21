@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,12 +74,33 @@ class BasketControllerTest {
     private EricHeaderHelper ericHeaderHelper;
 
     @Test
+    @DisplayName("Return 200 OK for when no items are present in GET basket")
+    void returnOKWhenNoItemsPresentRequestGetItems() throws Exception {
+
+        Optional<Basket> basket = createBasket();
+
+        when(basketService.getBasketById(any())).thenReturn(basket);
+
+        ResponseEntity<?> responseEntity = controllerUnderTest.getBasket(httpServletRequest, "requestId");
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    }
+
+    @Test
     @DisplayName("Return 400 Bad Request if Items cannot be returned in GET basket")
     void returnBadRequestGetItems() throws Exception {
 
         Optional<Basket> basket = createBasket();
 
+        List<Item> items = new ArrayList<>();
+        Item item = new Item();
+        item.setDescription("description");
+        items.add(item);
+
+        basket.get().getData().setItems(items);
+
         when(basketService.getBasketById(any())).thenReturn(basket);
+        when(apiClientService.getItem(any())).thenThrow(Exception.class);
 
         ResponseEntity<?> responseEntity = controllerUnderTest.getBasket(httpServletRequest, "requestId");
 
