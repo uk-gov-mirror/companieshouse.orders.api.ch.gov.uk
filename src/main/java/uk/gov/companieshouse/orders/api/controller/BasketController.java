@@ -186,6 +186,10 @@ public class BasketController {
             return ResponseEntity.status(HttpStatus.OK).body(basket.getData());
         }
 
+        if(basket.getData().getItems().size() == 0) {
+            return ResponseEntity.status(HttpStatus.OK).body(basket.getData());
+        }
+
         Item item;
         String itemUri = null;
         try {
