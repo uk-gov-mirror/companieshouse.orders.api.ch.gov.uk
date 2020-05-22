@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
@@ -187,6 +189,16 @@ public class CheckoutServiceTest {
         verify(checkoutRepository).save(checkoutCaptor.capture());
 
         assertThat(checkout().getData().getTotalOrderCost(), is(EXPECTED_TOTAL_ORDER_COST + ""));
+    }
+
+    @Test
+    @DisplayName("createCheckout populates `id` in the format ORD-######-######")
+    void createCheckoutPopulatesTotalIdCorrectly() {
+        Item certificateItem = createCertificateItem();
+        serviceUnderTest.createCheckout(certificateItem, ERIC_IDENTITY_VALUE,
+                ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
+        verify(checkoutRepository).save(checkoutCaptor.capture());
+        assertTrue(checkout().getId().matches("^ORD-\\d{6}-\\d{6}$")); ;
     }
 
     @Test
