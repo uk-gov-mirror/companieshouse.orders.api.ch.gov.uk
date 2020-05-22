@@ -193,7 +193,7 @@ public class CheckoutServiceTest {
 
     @Test
     @DisplayName("createCheckout populates `id` in the format ORD-######-######")
-    void createCheckoutPopulatesTotalIdCorrectly() {
+    void createCheckoutPopulatesIdCorrectly() {
         Item certificateItem = createCertificateItem();
         serviceUnderTest.createCheckout(certificateItem, ERIC_IDENTITY_VALUE,
                 ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
