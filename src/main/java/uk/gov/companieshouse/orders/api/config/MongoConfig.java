@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.orders.api.config;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.ConverterFactory;
@@ -11,10 +13,9 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import uk.gov.companieshouse.orders.api.converter.EnumToStringConverterFactory;
+import uk.gov.companieshouse.orders.api.converter.LocalDateTimeToStringConverterFactory;
 import uk.gov.companieshouse.orders.api.converter.StringToEnumConverterFactory;
-
-import java.util.ArrayList;
-import java.util.List;
+import uk.gov.companieshouse.orders.api.converter.StringToLocalDateTimeConverterFactory;
 
 @Configuration
 public class MongoConfig {
@@ -38,6 +39,8 @@ public class MongoConfig {
         final List<ConverterFactory<?, ?>> converters = new ArrayList<>();
         converters.add(new StringToEnumConverterFactory());
         converters.add(new EnumToStringConverterFactory());
+        converters.add(new LocalDateTimeToStringConverterFactory());
+        converters.add(new StringToLocalDateTimeConverterFactory());
         mappingConverter.setCustomConversions(new MongoCustomConversions(converters));
 
         return mappingConverter;
