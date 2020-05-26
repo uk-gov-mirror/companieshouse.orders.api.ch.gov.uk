@@ -11,14 +11,14 @@ public class StringToLocalDateTimeConverterFactory  implements ConverterFactory<
     
     @Override
     public <T extends LocalDateTime> Converter<String, T> getConverter(Class<T> targetType) {
-        return new LocalDateTimeToStringConverter(targetType);
+        return new StringToLocalDateTimeConverter(targetType);
     }
     
-    private class LocalDateTimeToStringConverter<T extends String> implements Converter<String, LocalDateTime> {
+    private class StringToLocalDateTimeConverter<T extends String> implements Converter<String, LocalDateTime> {
                 
         private Class<T> string;
         
-        public LocalDateTimeToStringConverter(Class<T> string) {
+        public StringToLocalDateTimeConverter(Class<T> string) {
             this.string = string;
         }
 
