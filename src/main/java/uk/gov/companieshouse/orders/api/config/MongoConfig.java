@@ -13,9 +13,7 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import uk.gov.companieshouse.orders.api.converter.EnumToStringConverterFactory;
-import uk.gov.companieshouse.orders.api.converter.LocalDateTimeToStringConverterFactory;
 import uk.gov.companieshouse.orders.api.converter.StringToEnumConverterFactory;
-import uk.gov.companieshouse.orders.api.converter.StringToLocalDateTimeConverterFactory;
 
 @Configuration
 public class MongoConfig {
@@ -39,8 +37,6 @@ public class MongoConfig {
         final List<ConverterFactory<?, ?>> converters = new ArrayList<>();
         converters.add(new StringToEnumConverterFactory());
         converters.add(new EnumToStringConverterFactory());
-        converters.add(new LocalDateTimeToStringConverterFactory());
-        converters.add(new StringToLocalDateTimeConverterFactory());
         mappingConverter.setCustomConversions(new MongoCustomConversions(converters));
 
         return mappingConverter;
