@@ -10,6 +10,7 @@ public enum PaymentStatus {
     PENDING,
     EXPIRED,
     IN_PROGRESS,
+    CANCELLED,
     NO_FUNDS;
 
     @JsonValue
