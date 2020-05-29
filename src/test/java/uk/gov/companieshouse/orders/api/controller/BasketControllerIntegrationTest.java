@@ -897,6 +897,30 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Patch payment-details endpoint success path for cancelled payments session")
+    public void patchBasketPaymentDetailsSuccessCancelled() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.CANCELLED);
+        createBasket(start);
+        Checkout checkout = createCheckout();
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNoContent());
+
+        timestamps.end();
+
+        checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.CANCELLED);
+    }
+
+    @Test
     @DisplayName("Patch payment-details endpoint success path for no-funds payments session")
     public void patchBasketPaymentDetailsSuccessNoFunds() throws Exception {
         final LocalDateTime start = timestamps.start();
