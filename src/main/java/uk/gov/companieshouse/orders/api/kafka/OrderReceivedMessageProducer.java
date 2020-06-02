@@ -1,15 +1,15 @@
 package uk.gov.companieshouse.orders.api.kafka;
 
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.kafka.exceptions.SerializationException;
 import uk.gov.companieshouse.kafka.message.Message;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
-
-import java.util.concurrent.ExecutionException;
-
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 
 @Service
 public class OrderReceivedMessageProducer {
@@ -31,8 +31,11 @@ public class OrderReceivedMessageProducer {
      */
     public void sendMessage(final OrderReceived orderReceived)
             throws SerializationException, ExecutionException, InterruptedException {
-        LOGGER.trace("Sending message to kafka producer");
         Message message = ordersAvroSerializer.createMessage(orderReceived);
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.TOPIC, message.getTopic());
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.OFFSET, message.getOffset());
+        LOGGER.info("Sending message to kafka producer", logMap);
         ordersKafkaProducer.sendMessage(message);
     }
 }

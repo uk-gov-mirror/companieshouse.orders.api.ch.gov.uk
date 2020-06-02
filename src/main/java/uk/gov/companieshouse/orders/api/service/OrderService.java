@@ -1,5 +1,10 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.kafka.exceptions.SerializationException;
@@ -8,16 +13,11 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
 import uk.gov.companieshouse.orders.api.exception.ForbiddenException;
 import uk.gov.companieshouse.orders.api.kafka.OrderReceivedMessageProducer;
+import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
 
 @Service
 public class OrderService {
@@ -47,24 +47,30 @@ public class OrderService {
      * @return the resulting order
      */
     public Order createOrder(final Checkout checkout) {
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.CHECKOUT_ID, checkout.getId());
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.USER_ID, checkout.getUserId());
+        LOGGER.info("Creating order", logMap);
         final Order mappedOrder = mapper.checkoutToOrder(checkout);
         setCreationDateTimes(mappedOrder);
         mappedOrder.getData().setLinks(linksGeneratorService.generateOrderLinks(mappedOrder.getId()));
 
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.ORDER_ID, mappedOrder.getId());
         final Optional<Order> order = repository.findById(mappedOrder.getId());
         order.ifPresent(
             o -> {
                    final String message = "Order ID " + o.getId() + " already exists. Will not update.";
-                   LOGGER.error(message);
+                   LOGGER.error(message, logMap);
                    throw new ForbiddenException(message);
             }
         );
 
         try {
-            LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId());
+            LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId(), logMap);
             sendOrderReceivedMessage(mappedOrder.getId());
         } catch (Exception e) {
-            LOGGER.error("Kafka 'order-received' message could not be sent for order - " + mappedOrder.getId());
+            logMap.put(LoggingUtils.EXCEPTION, e);
+            LOGGER.error("Kafka 'order-received' message could not be sent for order - " + mappedOrder.getId(), logMap);
         }
 
         return repository.save(mappedOrder);

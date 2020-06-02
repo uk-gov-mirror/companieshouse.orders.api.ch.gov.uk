@@ -7,6 +7,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import uk.gov.companieshouse.api.util.security.AuthorisationUtil;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.model.AbstractOrder;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
@@ -20,7 +21,7 @@ import java.util.function.Function;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.web.servlet.HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 import static uk.gov.companieshouse.orders.api.controller.BasketController.CHECKOUT_ID_PATH_VARIABLE;
 import static uk.gov.companieshouse.orders.api.controller.OrderController.ORDER_ID_PATH_VARIABLE;
 import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.*;
@@ -81,14 +82,16 @@ public class UserAuthorisationInterceptor extends HandlerInterceptorAdapter {
             final HttpServletRequest request,
             final HttpServletResponse response,
             final BiPredicate<HttpServletRequest, HttpServletResponse> isResourceOwner) {
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
         final String identityType = EricHeaderHelper.getIdentityType(request);
+        logMap.put(LoggingUtils.IDENTITY_TYPE, identityType);
         if (API_KEY_IDENTITY_TYPE.equals(identityType)) {
             LOGGER.infoRequest(request,
-                    "UserAuthorisationInterceptor: client is presenting an API key", null);
+                    "UserAuthorisationInterceptor: client is presenting an API key", logMap);
             return clientIsAuthorisedInternalApi(request, response);
         } else {
             LOGGER.infoRequest(request,
-                    "UserAuthorisationInterceptor: client is presenting signed in user credentials", null);
+                    "UserAuthorisationInterceptor: client is presenting signed in user credentials", logMap);
             return isResourceOwner.test(request, response);
         }
     }

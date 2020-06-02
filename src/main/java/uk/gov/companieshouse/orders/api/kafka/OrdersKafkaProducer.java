@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.orders.api.kafka;
 
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,10 +13,7 @@ import uk.gov.companieshouse.kafka.producer.CHKafkaProducer;
 import uk.gov.companieshouse.kafka.producer.ProducerConfig;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-
-import java.util.concurrent.ExecutionException;
-
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 
 @Service
 public class OrdersKafkaProducer implements InitializingBean {
@@ -29,7 +29,10 @@ public class OrdersKafkaProducer implements InitializingBean {
      * @throws InterruptedException
      */
     public void sendMessage(final Message message) throws ExecutionException, InterruptedException {
-        LOGGER.trace("Sending message to kafka");
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.TOPIC, message.getTopic());
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.OFFSET, message.getOffset());
+        LOGGER.info("Sending message to kafka", logMap);
         chKafkaProducer.send(message);
     }
 
