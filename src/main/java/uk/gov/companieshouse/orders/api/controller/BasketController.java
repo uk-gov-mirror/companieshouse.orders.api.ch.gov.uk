@@ -157,7 +157,9 @@ public class BasketController {
             LOGGER.errorRequest(request, "Failed to get item from API", logMap);
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, ErrorType.BASKET_ITEM_INVALID.getValue()));
         }
-        LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
+        if(item != null) {            
+            LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
+        }
 
         final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
@@ -214,7 +216,9 @@ public class BasketController {
             item = apiClientService.getItem(itemUri);
 
             logMap.put(LoggingUtils.ITEM_URI, itemUri);
-            LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
+            if(item != null) {                
+                LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
+            }
             List<Item> items = new ArrayList<>();
             items.add(item);
 
@@ -313,7 +317,9 @@ public class BasketController {
             itemUri = retrievedBasket.getData().getItems().get(0).getItemUri();
             LoggingUtils.logIfNotNull(logMap, LoggingUtils.ITEM_URI, itemUri);
             item = apiClientService.getItem(itemUri);
-            LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
+            if(item != null) {                
+                LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
+            }
         } catch (Exception exception) {
             logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
             logMap.put(LoggingUtils.EXCEPTION, exception);

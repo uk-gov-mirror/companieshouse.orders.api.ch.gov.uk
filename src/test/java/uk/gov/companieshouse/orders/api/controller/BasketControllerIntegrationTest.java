@@ -571,6 +571,7 @@ class BasketControllerIntegrationTest {
         basketRepository.save(basket);
 
         final Certificate certificate = new Certificate();
+        certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
