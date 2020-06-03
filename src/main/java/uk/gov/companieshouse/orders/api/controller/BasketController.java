@@ -22,6 +22,7 @@ import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
+import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToPaymentDetailsMapper;
 import uk.gov.companieshouse.orders.api.mapper.DeliveryDetailsMapper;
@@ -58,8 +59,7 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.LOG_MESSAGE_DATA_KEY;
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.REQUEST_ID_HEADER_NAME;
 
 @RestController
@@ -121,7 +121,9 @@ public class BasketController {
     @GetMapping(GET_PAYMENT_DETAILS_URI)
     public ResponseEntity<Object> getPaymentDetails(final @PathVariable(CHECKOUT_ID_PATH_VARIABLE) String checkoutId,
                                                     final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
-        trace("ENTERING getPaymentDetails(" + checkoutId + ")", requestId);
+        Map<String, Object> logMap = LoggingUtils.createLogMapWithRequestId(requestId);
+        logMap.put(LoggingUtils.CHECKOUT_ID, checkoutId);
+        LOGGER.info("Getting payment details", logMap);
 
         final Checkout checkout = checkoutService.getCheckoutById(checkoutId)
                 .orElseThrow(ResourceNotFoundException::new);
@@ -129,7 +131,9 @@ public class BasketController {
 
         PaymentDetailsDTO paymentDetailsDTO = checkoutToPaymentDetailsMapper.checkoutToPaymentDetailsMapper(checkout);
         checkoutToPaymentDetailsMapper.updateDTOWithPaymentDetails(checkoutData, paymentDetailsDTO);
-        trace("EXITING getPaymentDetails() with " + paymentDetailsDTO, requestId);
+       
+        logMap.put(LoggingUtils.STATUS, OK);
+        LOGGER.info("Payment details returned", logMap);
 
         return ResponseEntity.status(OK).body(paymentDetailsDTO);
     }
@@ -138,15 +142,22 @@ public class BasketController {
     public ResponseEntity<?> addItemToBasket(final @Valid @RequestBody AddToBasketRequestDTO addToBasketRequestDTO,
                                                                   HttpServletRequest request,
                                                                   final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
-        trace("ENTERING addItemToBasket(" + addToBasketRequestDTO + ")", requestId);
+        Map<String, Object> logMap = LoggingUtils.createLogMapWithRequestId(requestId);
+        LOGGER.infoRequest(request, "Adding item to basket", logMap);
+        
         String itemUri = addToBasketRequestDTO.getItemUri();
+        logMap.put(LoggingUtils.ITEM_URI, itemUri);
         Item item;
         try {
             item = apiClientService.getItem(itemUri);
         } catch (Exception exception) {
-            LOGGER.error("Failed to get item " + itemUri, exception);
+            logMap.put(LoggingUtils.EXCEPTION, exception);
+            logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+            logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.BASKET_ITEM_INVALID.getValue());
+            LOGGER.errorRequest(request, "Failed to get item from API", logMap);
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, ErrorType.BASKET_ITEM_INVALID.getValue()));
         }
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
 
         final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
@@ -162,7 +173,9 @@ public class BasketController {
 
         BasketItemDTO basketItemDTO = itemMapper.itemToBasketItemDTO(item);
 
-        trace("EXITING addItemToBasket() with " + addToBasketRequestDTO, requestId);
+        logMap.put(LoggingUtils.BASKET_ID, mappedBasket.getId());
+        logMap.put(LoggingUtils.STATUS, HttpStatus.OK);
+        LOGGER.infoRequest(request, "Item added to basket", logMap);
         return ResponseEntity.status(HttpStatus.OK).body(basketItemDTO);
     }
 
@@ -170,16 +183,18 @@ public class BasketController {
     public ResponseEntity<?> getBasket(HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
 
-        trace("ENTERING getBasket", requestId);
+        Map<String, Object> logMap = LoggingUtils.createLogMapWithRequestId(requestId);
+        LOGGER.infoRequest(request, "Getting basket", logMap);
 
         final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
         Basket basket;
         if(retrievedBasket.isPresent()) {
-            trace("Basket retrieved successfully", requestId);
+            LOGGER.infoRequest(request, "Basket present", logMap);
             basket = retrievedBasket.get();
         } else {
-            trace("No basket present, creating a basket", requestId);
+            logMap.put(LoggingUtils.STATUS, HttpStatus.OK);
+            LOGGER.infoRequest(request, "No basket present, creating a basket", logMap);
             Basket newBasket = new Basket();
             newBasket.setId(EricHeaderHelper.getIdentity((request)));
             basket = basketService.saveBasket(newBasket);
@@ -187,6 +202,8 @@ public class BasketController {
         }
 
         if(basket.getData().getItems().size() == 0) {
+            logMap.put(LoggingUtils.STATUS, HttpStatus.OK);
+            LOGGER.infoRequest(request, "Basket has 0 items", logMap);
             return ResponseEntity.status(HttpStatus.OK).body(basket.getData());
         }
 
@@ -196,15 +213,21 @@ public class BasketController {
             itemUri = basket.getData().getItems().get(0).getItemUri();
             item = apiClientService.getItem(itemUri);
 
+            logMap.put(LoggingUtils.ITEM_URI, itemUri);
+            LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
             List<Item> items = new ArrayList<>();
             items.add(item);
 
             basket.getData().setItems(items);
         } catch (Exception exception) {
-            LOGGER.error("Failed to get item "+itemUri, exception);
+            logMap.put(LoggingUtils.EXCEPTION, exception);
+            logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+            LOGGER.errorRequest(request, "Failed to get item ", logMap);
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "Failed to retrieve item"));
         }
 
+        logMap.put(LoggingUtils.STATUS, HttpStatus.OK);
+        LOGGER.infoRequest(request, "Basket retrieved and returned", logMap);
         return ResponseEntity.status(HttpStatus.OK).body(basket.getData());
     }
 
@@ -212,7 +235,8 @@ public class BasketController {
     public ResponseEntity<?> addDeliveryDetailsToBasket(final @Valid @RequestBody AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO,
                                                                  HttpServletRequest request,
                                                                  final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId){
-        trace("ENTERING addDeliveryDetailsToBasket(" + addDeliveryDetailsRequestDTO + ")", requestId);
+        Map<String, Object> logMap = LoggingUtils.createLogMapWithRequestId(requestId);
+        LOGGER.infoRequest(request, "Adding delivery details to basket", logMap);
 
         final Optional<Basket> retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request));
 
@@ -220,14 +244,21 @@ public class BasketController {
 
         final List<String> errors = deliveryDetailsValidator.getValidationErrors(addDeliveryDetailsRequestDTO);
         if (!errors.isEmpty()) {
+            logMap.put(LoggingUtils.VALIDATION_ERRORS, errors);
+            logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+            LOGGER.errorRequest(request, "Validation errors in delivery details", logMap);
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, errors));
         }
 
         Basket returnedBasket;
         if(retrievedBasket.isPresent()) {
             Basket basket = retrievedBasket.get();
+            LoggingUtils.logIfNotNull(logMap, LoggingUtils.BASKET_ID, basket.getId());
             final List<String> basketErrors = checkoutBasketValidator.getValidationErrors(basket);
             if (!basketErrors.isEmpty() && basketErrors.contains(ErrorType.BASKET_ITEM_INVALID.getValue())){
+                logMap.put(LoggingUtils.VALIDATION_ERRORS, basketErrors);
+                logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.BASKET_ITEM_INVALID.getValue());
+                logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
                 return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, basketErrors));
             }
             basket.getData().setDeliveryDetails(mappedDeliveryDetails);
@@ -238,7 +269,8 @@ public class BasketController {
             basket.getData().setDeliveryDetails(mappedDeliveryDetails);
             returnedBasket = basketService.saveBasket(basket);
         }
-        trace("EXITING addDeliveryDetailToBasket() with " + addDeliveryDetailsRequestDTO, requestId);
+        logMap.put(LoggingUtils.STATUS, HttpStatus.OK);
+        LOGGER.infoRequest(request, "Delivery details added to basket", logMap);
         return ResponseEntity.status(HttpStatus.OK).body(returnedBasket.getData());
     }
 
@@ -246,9 +278,12 @@ public class BasketController {
     public ResponseEntity<?> checkoutBasket(@RequestBody(required = false) String json,
                                             HttpServletRequest request,
                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
-        trace("Entering checkoutBasket", requestId);
+        Map<String, Object> logMap = LoggingUtils.createLogMapWithRequestId(requestId);
+        LOGGER.infoRequest(request, "Checkout basket request", logMap);
 
         if(json!=null) {
+            logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+            LOGGER.errorRequest(request, "The request body must be empty", logMap);
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "The body must be empty"));
         }
 
@@ -257,10 +292,17 @@ public class BasketController {
 
         final List<String> errors = checkoutBasketValidator.getValidationErrors(retrievedBasket);
         if (!errors.isEmpty()){
+            logMap.put(LoggingUtils.VALIDATION_ERRORS, errors);
             if (errors.contains(ErrorType.BASKET_ITEMS_MISSING.getValue())) {
+                logMap.put(LoggingUtils.STATUS, CONFLICT);
+                logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.BASKET_ITEMS_MISSING.getValue());
+                LOGGER.errorRequest(request, "Validation error - basket items missing", logMap);
                 return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, errors));
             }
             else if (errors.contains(ErrorType.BASKET_ITEM_INVALID.getValue())){
+                logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+                logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.BASKET_ITEM_INVALID.getValue());
+                LOGGER.errorRequest(request, "Validation error - basket item invalid", logMap);
                 return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, errors));
             }
         }
@@ -269,9 +311,13 @@ public class BasketController {
         String itemUri = null;
         try {
             itemUri = retrievedBasket.getData().getItems().get(0).getItemUri();
+            LoggingUtils.logIfNotNull(logMap, LoggingUtils.ITEM_URI, itemUri);
             item = apiClientService.getItem(itemUri);
+            LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
         } catch (Exception exception) {
-            LOGGER.error("Failed to get item "+itemUri, exception);
+            logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+            logMap.put(LoggingUtils.EXCEPTION, exception);
+            LOGGER.errorRequest(request, "Failed to retrieve item from api client", logMap);
             return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, "Failed to retrieve item"));
         }
 
@@ -279,16 +325,21 @@ public class BasketController {
                 EricHeaderHelper.getIdentity(request),
                 EricHeaderHelper.getAuthorisedUser(request),
                 retrievedBasket.getData().getDeliveryDetails());
-        trace("Successfully created checkout with id "+checkout.getId(), requestId);
+        logMap.put(LoggingUtils.CHECKOUT_ID, checkout.getId());
+        LOGGER.infoRequest(request, "Checkout successfully created", logMap);
 
         CheckoutData checkoutData = checkout.getData();
         HttpHeaders headers = new HttpHeaders();
         int totalOrderCost = Integer.parseInt(checkoutData.getTotalOrderCost());
         if (totalOrderCost > 0) {
+            logMap.put(LoggingUtils.STATUS, ACCEPTED);
+            LOGGER.infoRequest(request, "Basket checkout completed requiring payment", logMap);
             headers.add(PAYMENT_REQUIRED_HEADER, costsLink);
             return new ResponseEntity<>(checkoutData, headers, ACCEPTED);
         }
         else {
+            logMap.put(LoggingUtils.STATUS,  OK);
+            LOGGER.infoRequest(request, "Basket checkout completed no payment required", logMap);
             return new ResponseEntity<>(checkoutData, OK);
         }
     }
@@ -298,7 +349,12 @@ public class BasketController {
                                                             HttpServletRequest request,
                                                             final @PathVariable String id,
                                                             final @RequestHeader(REQUEST_ID_HEADER_NAME) String requestId) {
-        trace("ENTERING patchBasketPaymentDetails(" + basketPaymentRequestDTO + ", " + id + ", " + requestId + ")", requestId);
+        Map<String, Object> logMap = LoggingUtils.createLogMapWithRequestId(requestId);
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.CHECKOUT_ID, id);
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.ORDER_ID, id);
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.PAYMENT_STATUS, basketPaymentRequestDTO.getStatus());
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.PAYMENT_REF, basketPaymentRequestDTO.getPaymentReference());
+        LOGGER.infoRequest(request, "Patching basket payment details", logMap);
 
         // Return checkout that is attempting to be updated
         final Checkout checkout = checkoutService.getCheckoutById(id)
@@ -315,22 +371,26 @@ public class BasketController {
                 String passthroughHeader = request.getHeader(ApiSdkManager.getEricPassthroughTokenHeader());
                 paymentSession = apiClientService.getPaymentSummary(passthroughHeader, basketPaymentRequestDTO.getPaymentReference());
             } catch (Exception exception) {
-                LOGGER.error("Failed to return payment " + basketPaymentRequestDTO.getPaymentReference() + " from payments api", exception);
+                logMap.put(LoggingUtils.EXCEPTION, exception);
+                logMap.put(LoggingUtils.STATUS, NOT_FOUND);
+                LOGGER.errorRequest(request, "Failed to return payment from payments api", logMap);
                 return ResponseEntity.status(NOT_FOUND).body("Failed to return payment " + basketPaymentRequestDTO.getPaymentReference() + " from payments api");
             }
-            trace("Payment summary successfully returned for " + basketPaymentRequestDTO.getPaymentReference(), requestId);
-
+            LOGGER.infoRequest(request, "Payment summary successfully returned", logMap);
+            
             // Check payment is paid with payments API
             if (!paymentSession.getStatus().equals("paid")) {
-                LOGGER.error("Payment is not set to paid in payments api for payment " + basketPaymentRequestDTO.getPaymentReference());
+                LOGGER.errorRequest(request, "Payment is not set to paid in payments api", logMap);
                 return ResponseEntity.status(BAD_REQUEST).body("Payment is not set to paid in payment api for payment " + basketPaymentRequestDTO.getPaymentReference());
             }
 
             // Check the amount paid in the payment session and the amount expected in the order are the same
             if (Double.parseDouble(paymentSession.getAmount()) != calculateTotalAmountToBePaid(checkout)) {
+                LoggingUtils.logIfNotNull(logMap, LoggingUtils.ORDER_TOTAL_COST, checkoutData.getTotalOrderCost());
+                logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+                LOGGER.errorRequest(request, "Total amount paid with payment session does not match amount expected", logMap);
                 String errorMessage = "Total amount paid for with payment session " + basketPaymentRequestDTO.getPaymentReference() + ": " + paymentSession.getAmount()
                         + " does not match amount expected for order " + id + ": " + checkoutData.getTotalOrderCost();
-                LOGGER.error(errorMessage);
                 return ResponseEntity.status(BAD_REQUEST).body(errorMessage);
             }
 
@@ -339,14 +399,15 @@ public class BasketController {
                     .substring(paymentSession.getLinks().get("resource").lastIndexOf("/basket/checkouts/"));
             // Check that the URI that has been requested to mark as paid, matches URI from the payments session
             if (!paymentsResourceUri.equals(request.getRequestURI())) {
+                logMap.put(LoggingUtils.PAYMENT_URI, paymentsResourceUri);
+                logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
+                LOGGER.errorRequest(request, "URI attemped to be closed does not match payment session URI", logMap);
                 String errorMessage = "The URI that is attempted to be closed " + request.getRequestURI()
                         + " does not match the URI that the payment session is created for " + paymentsResourceUri;
-                LOGGER.error(errorMessage);
                 return ResponseEntity.status(BAD_REQUEST).body(errorMessage);
             }
 
-            trace("Payment confirmed as paid with payments API for payment session: " + basketPaymentRequestDTO.getPaymentReference()
-                    + " and order: " + id, requestId);
+            LOGGER.infoRequest(request, "Payment confirmed as paid with payments api", logMap);
 
             // Update the checkout of paid order
             final Checkout updatedCheckout = updateCheckout(checkout, basketPaymentRequestDTO);
@@ -357,10 +418,12 @@ public class BasketController {
 
             // Update the checkout of non-paid order
             updateCheckout(checkout, basketPaymentRequestDTO);
+            LOGGER.infoRequest(request, "Checkout updated for order not requiring any payment", logMap);
         }
 
-        trace("Order " + id + " has been marked as " + basketPaymentRequestDTO.getStatus() + " with payment id " + basketPaymentRequestDTO.getPaymentReference(), requestId);
-
+        logMap.put(LoggingUtils.STATUS, NO_CONTENT);
+        LOGGER.infoRequest(request, "Basket payment details updated", logMap);
+        
         return ResponseEntity.status(NO_CONTENT).body(null);
     }
 
@@ -388,10 +451,11 @@ public class BasketController {
      */
     private void processSuccessfulPayment(final String requestId,
                                           final Checkout checkout) {
-        final Order order = orderService.createOrder(checkout);
-        trace("Created order: " + order, requestId);
-        final Basket basket = basketService.clearBasket(checkout.getUserId());
-        trace("Cleared basket: " + basket, requestId);
+        Map<String, Object> logMap = LoggingUtils.createLogMapWithRequestId(requestId);
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.USER_ID, checkout.getId());
+        orderService.createOrder(checkout);
+        basketService.clearBasket(checkout.getUserId());
+        LOGGER.info("Process successful payment, order created and basket cleared", logMap);
     }
 
     /**
@@ -409,16 +473,5 @@ public class BasketController {
         }
 
         return total;
-    }
-
-    /**
-     * Utility method that logs each message with the request ID for log tracing/analysis.
-     * @param message the message to log
-     * @param requestId the request ID
-     */
-    private void trace(final String message, final String requestId) {
-        final Map<String, Object> logData = new HashMap<>();
-        logData.put(LOG_MESSAGE_DATA_KEY, message);
-        LOGGER.traceContext(requestId, "X Request ID header", logData);
     }
 }

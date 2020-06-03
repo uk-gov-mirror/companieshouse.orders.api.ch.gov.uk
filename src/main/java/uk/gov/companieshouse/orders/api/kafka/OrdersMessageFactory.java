@@ -11,7 +11,7 @@ import uk.gov.companieshouse.orders.OrderReceived;
 
 import java.util.Date;
 
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 
 @Service
 public class OrdersMessageFactory {

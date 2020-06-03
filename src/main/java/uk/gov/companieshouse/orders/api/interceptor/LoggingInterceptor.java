@@ -10,7 +10,7 @@ import uk.gov.companieshouse.logging.util.RequestLogger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 
 public class LoggingInterceptor extends HandlerInterceptorAdapter implements RequestLogger {
 

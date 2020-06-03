@@ -3,7 +3,6 @@ package uk.gov.companieshouse.orders.api.kafka;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.test.context.TestPropertySource;
 import uk.gov.companieshouse.kafka.consumer.CHKafkaConsumerGroup;
 import uk.gov.companieshouse.kafka.consumer.ConsumerConfig;
 import uk.gov.companieshouse.kafka.message.Message;
@@ -13,7 +12,7 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 
 @Service
 public class OrdersMessageConsumer implements InitializingBean {

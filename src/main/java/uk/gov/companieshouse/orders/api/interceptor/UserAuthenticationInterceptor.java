@@ -1,23 +1,28 @@
 package uk.gov.companieshouse.orders.api.interceptor;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.ADD_ITEM;
+import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.BASKET;
+import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.CHECKOUT_BASKET;
+import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.GET_ORDER;
+import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.GET_PAYMENT_DETAILS;
+import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.PATCH_PAYMENT_DETAILS;
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
+import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.API_KEY_IDENTITY_TYPE;
+import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.OAUTH2_IDENTITY_TYPE;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.util.EricHeaderHelper;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static uk.gov.companieshouse.orders.api.OrdersApiApplication.APPLICATION_NAMESPACE;
-import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.*;
-import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.API_KEY_IDENTITY_TYPE;
-import static uk.gov.companieshouse.orders.api.util.EricHeaderHelper.OAUTH2_IDENTITY_TYPE;
 
 @Service
 public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter {
@@ -104,8 +109,11 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter {
     private String getAuthorisedIdentityType(final HttpServletRequest request,
                                              final HttpServletResponse response) {
         final String identityType = EricHeaderHelper.getIdentityType(request);
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
+        logMap.put(LoggingUtils.IDENTITY_TYPE, identityType);
         if (identityType == null) {
-            LOGGER.infoRequest(request, "UserAuthenticationInterceptor error: no authorised identity type provided", null);
+            logMap.put(LoggingUtils.STATUS, UNAUTHORIZED);
+            LOGGER.infoRequest(request, "UserAuthenticationInterceptor error: no authorised identity type provided", logMap);
             response.setStatus(UNAUTHORIZED.value());
         }
         return identityType;
@@ -146,11 +154,14 @@ public class UserAuthenticationInterceptor extends HandlerInterceptorAdapter {
                                         final HttpServletResponse response,
                                         final String actualIdentityType,
                                         final List<String> requiredIdentityTypes) {
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
+        logMap.put(LoggingUtils.IDENTITY_TYPE, actualIdentityType);
         final String identity = EricHeaderHelper.getIdentity(request);
         if (!requiredIdentityTypes.contains(actualIdentityType)|| identity == null) {
+            logMap.put(LoggingUtils.STATUS, UNAUTHORIZED);
             LOGGER.infoRequest(request,
                     "UserAuthenticationInterceptor error: no authorised identity (provided identity type: " +
-                            actualIdentityType + ", required (any of): " + requiredIdentityTypes + ")", null);
+                            actualIdentityType + ", required (any of): " + requiredIdentityTypes + ")", logMap);
             response.setStatus(UNAUTHORIZED.value());
             return false;
         }
