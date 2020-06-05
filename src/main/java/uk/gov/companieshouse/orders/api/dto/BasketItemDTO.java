@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public class BasketItemDTO extends ItemDTO {
+    @JsonProperty("id")
+    private String id;
 
     @JsonProperty("company_name")
     private String companyName;
@@ -57,6 +59,10 @@ public class BasketItemDTO extends ItemDTO {
 
     @JsonProperty("total_item_cost")
     private String totalItemCost;
+
+    public String getId() { return id; }
+
+    public void setId(String id) { this.id = id; }
 
     public String getCompanyName() {
         return companyName;

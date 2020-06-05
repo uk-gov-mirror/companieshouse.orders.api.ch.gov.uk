@@ -21,6 +21,7 @@ import static org.hamcrest.Matchers.*;
 @SpringJUnitConfig(ItemMapperTest.Config.class)
 public class ItemMapperTest {
 
+    private static final String ID = "ID00000001";
     private static final String COMPANY_NUMBER = "00006400";
     private static final String COMPANY_NAME = "Test Test Ltd";
     private static final String CUSTOMER_REFERENCE = "Testing Reference";
@@ -53,6 +54,7 @@ public class ItemMapperTest {
 
     private Item createCertificate(){
         Certificate certificate = new Certificate();
+        certificate.setId(ID);
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setCompanyName(COMPANY_NAME);
         certificate.setCustomerReference(CUSTOMER_REFERENCE);
@@ -97,6 +99,7 @@ public class ItemMapperTest {
         BasketItemDTO basketItemDTO = itemMapperUnderTest.itemToBasketItemDTO(itemToConvert);
         List<ItemCosts> itemCosts = basketItemDTO.getItemCosts();
 
+        assertThat(ID, is(basketItemDTO.getId()));
         assertThat(COMPANY_NAME, is(basketItemDTO.getCompanyName()));
         assertThat(COMPANY_NUMBER, is(basketItemDTO.getCompanyNumber()));
         assertThat(CUSTOMER_REFERENCE, is(basketItemDTO.getCustomerReference()));
