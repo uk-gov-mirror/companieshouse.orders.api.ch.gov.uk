@@ -15,7 +15,6 @@ public interface ItemMapper {
 
     @AfterMapping
     default void setDescription(Item item, @MappingTarget BasketItemDTO basketItemDTO){
-        basketItemDTO.setId(item.getId());
         basketItemDTO.setDescription(item.getDescription());
         basketItemDTO.setDescriptionIdentifier(item.getDescriptionIdentifier());
         basketItemDTO.setDescriptionValues(item.getDescriptionValues());
