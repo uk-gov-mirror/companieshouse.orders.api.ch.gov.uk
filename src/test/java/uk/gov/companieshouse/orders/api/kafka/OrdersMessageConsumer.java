@@ -20,7 +20,7 @@ public class OrdersMessageConsumer implements InitializingBean {
     private static final String ORDER_RECEIVED_TOPIC = "order-received";
     private static final String GROUP_NAME = "order-received-consumers";
     private CHKafkaConsumerGroup consumerGroup;
-    @Value("${kafka.broker.addresses}")
+    @Value("${spring.kafka.consumer.bootstrap-servers}")
     private String kafkaBrokerAddresses;
 
     public void connect() {
