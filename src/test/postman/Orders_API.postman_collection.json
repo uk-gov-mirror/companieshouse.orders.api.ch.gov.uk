@@ -39,7 +39,7 @@
 					"name": "Add item to basket",
 					"item": [
 						{
-							"name": "Add item to basket",
+							"name": "Add certificate item to basket",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -58,6 +58,45 @@
 								"body": {
 									"mode": "raw",
 									"raw": "{\n\t\"item_uri\": \"/orderable/certificates/CHS00000000000000001\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add certified copy item to basket",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certified-copies/CCD-857115-929072\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
