@@ -34,7 +34,6 @@ import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
-import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
@@ -48,7 +47,6 @@ import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,8 +57,8 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 import static uk.gov.companieshouse.orders.api.OrdersApiApplication.REQUEST_ID_HEADER_NAME;
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 
 @RestController
 public class BasketController {
@@ -308,6 +306,12 @@ public class BasketController {
                 logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.BASKET_ITEM_INVALID.getValue());
                 LOGGER.errorRequest(request, "Validation error - basket item invalid", logMap);
                 return ResponseEntity.status(BAD_REQUEST).body(new ApiError(BAD_REQUEST, errors));
+            }
+            else if (errors.contains(ErrorType.DELIVERY_DETAILS_MISSING.getValue())){
+                logMap.put(LoggingUtils.STATUS, CONFLICT);
+                logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.DELIVERY_DETAILS_MISSING.getValue());
+                LOGGER.errorRequest(request, "Validation error - delivery details missing", logMap);
+                return ResponseEntity.status(CONFLICT).body(new ApiError(CONFLICT, errors));
             }
         }
 

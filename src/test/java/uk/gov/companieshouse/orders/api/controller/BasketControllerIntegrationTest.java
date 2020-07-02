@@ -46,6 +46,7 @@ import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.service.EtagGeneratorService;
 import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
+import uk.gov.companieshouse.orders.api.validator.DeliveryDetailsValidator;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import java.io.IOException;
@@ -180,6 +181,9 @@ class BasketControllerIntegrationTest {
 
     @MockBean
     private EtagGeneratorService etagGenerator;
+
+    @Autowired
+    private DeliveryDetailsValidator deliveryDetailsValidator;
 
     private TimestampedEntityVerifier timestamps;
 
@@ -341,7 +345,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
     public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
-        basketRepository.save(getBasket());
+        basketRepository.save(getBasket(false));
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
@@ -351,6 +355,7 @@ class BasketControllerIntegrationTest {
         certificate.setItemOptions(options);
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
+        certificate.setPostalDelivery(false);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
@@ -378,24 +383,40 @@ class BasketControllerIntegrationTest {
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
     }
 
-    private Basket getBasket() {
+    private Basket getBasket(boolean isPostalDelivery) {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
+        BasketData basketData = new BasketData();
+        if (isPostalDelivery) {
+            DeliveryDetails deliveryDetails = new DeliveryDetails();
+            deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
+            deliveryDetails.setForename(FORENAME);
+            deliveryDetails.setSurname(SURNAME);
+            deliveryDetails.setCountry(COUNTRY);
+            deliveryDetails.setLocality(LOCALITY);
+            deliveryDetails.setRegion(REGION);
+            basketData.setDeliveryDetails(deliveryDetails);
+        }
+
         Item basketItem = new Item();
         basketItem.setItemUri(ITEM_URI);
-        basket.getData().getItems().add(basketItem);
+
+        basketItem.setPostalDelivery(isPostalDelivery);
+        basketData.setItems(Collections.singletonList(basketItem));
+        basket.setData(basketData);
         return basket;
     }
 
     @Test
     @DisplayName("Checkout basket returns 200 when total order cost is zero")
     public void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
-        basketRepository.save(getBasket());
+        basketRepository.save(getBasket(false));
 
         Certificate certificate = new Certificate();
         certificate.setItemCosts(ITEM_COSTS_ZERO);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
+        certificate.setPostalDelivery(false);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
@@ -423,9 +444,10 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket returns 202 when total order cost is non-zero")
     public void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
-        basketRepository.save(getBasket());
+        basketRepository.save(getBasket(true));
 
         final Certificate certificate = new Certificate();
+        certificate.setPostalDelivery(true);
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
@@ -483,7 +505,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 400, when there is a failure getting the item")
     public void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
-        basketRepository.save(getBasket());
+        basketRepository.save(getBasket(false));
 
         when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
 
@@ -514,12 +536,13 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout with costs from Certificates API")
     public void checkoutBasketCheckoutContainsCosts() throws Exception {
-        basketRepository.save(getBasket());
+        basketRepository.save(getBasket(false));
 
         final Certificate certificate = new Certificate();
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
+        certificate.setPostalDelivery(false);
         when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
 
         final CheckoutData expectedResponseBody = new CheckoutData();
@@ -797,6 +820,36 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
                 .andExpect(status().isConflict())
                 .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)));
+
+        assertEquals(0, checkoutRepository.count());
+    }
+
+    @Test
+    @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, " +
+            "when delivery details are missing and postal delivery true")
+    public void checkoutBasketfFailsToCreateCheckoutWhenDeliverDetailsMissing() throws Exception {
+        Basket basket = new Basket();
+        basket.setId(ERIC_IDENTITY_VALUE);
+        BasketData basketData = new BasketData();
+        Item basketItem = new Item();
+        basketItem.setPostalDelivery(true);
+        basketItem.setItemUri(ITEM_URI);
+        basketData.setItems(Collections.singletonList(basketItem));
+        basket.setData(basketData);
+        basketRepository.save(basket);
+
+        Certificate certificate = new Certificate();
+        certificate.setPostalDelivery(true);
+        certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .andExpect(status().isConflict());
 
         assertEquals(0, checkoutRepository.count());
     }
