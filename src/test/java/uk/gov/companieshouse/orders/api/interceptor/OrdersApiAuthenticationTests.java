@@ -156,6 +156,7 @@ class OrdersApiAuthenticationTests {
 		certificate.setItemCosts(ITEM_COSTS);
 		certificate.setPostageCost(POSTAGE_COST);
 		certificate.setTotalItemCost(TOTAL_ITEM_COST);
+		certificate.setPostalDelivery(false);
 		final CertificateItemOptions options = new CertificateItemOptions();
 		options.setForename(FORENAME);
 		options.setSurname(SURNAME);

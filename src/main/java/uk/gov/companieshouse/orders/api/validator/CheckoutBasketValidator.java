@@ -41,15 +41,13 @@ public class CheckoutBasketValidator {
                 itemUri = item.getItemUri();
                 LoggingUtils.logIfNotNull(logMap, LoggingUtils.ITEM_URI, itemUri);
 
-                if (item.isPostalDelivery()) {
-                    if (!deliveryDetailsValidator.isValid(basket.getData().getDeliveryDetails())) {
-                        logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.DELIVERY_DETAILS_MISSING.getValue());
-                        LOGGER.error(ErrorType.DELIVERY_DETAILS_MISSING.getValue(), logMap);
-                        errors.add(ErrorType.DELIVERY_DETAILS_MISSING.getValue());
-                    }
-                }
+                item = apiClientService.getItem(itemUri);
 
-                apiClientService.getItem(itemUri);
+                if (item.isPostalDelivery() && !deliveryDetailsValidator.isValid(basket.getData().getDeliveryDetails())) {
+                    logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.DELIVERY_DETAILS_MISSING.getValue());
+                    LOGGER.error(ErrorType.DELIVERY_DETAILS_MISSING.getValue(), logMap);
+                    errors.add(ErrorType.DELIVERY_DETAILS_MISSING.getValue());
+                }
             } catch (Exception exception) {
                 logMap.put(LoggingUtils.EXCEPTION, exception);
                 logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.BASKET_ITEM_INVALID.getValue());
