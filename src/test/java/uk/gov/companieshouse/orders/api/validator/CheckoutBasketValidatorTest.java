@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 
@@ -25,6 +26,8 @@ public class CheckoutBasketValidatorTest {
     private static final String INVALID_ITEM_URI = "invalid_uri";
     @InjectMocks
     private CheckoutBasketValidator validatorUnderTest;
+    @Mock
+    private DeliveryDetailsValidator deliveryDetailsValidator;
 
     @Mock
     private ApiClientService apiClientService;
@@ -56,6 +59,32 @@ public class CheckoutBasketValidatorTest {
         assertThat(errors.get(0), is(ErrorType.BASKET_ITEM_INVALID.getValue()));
     }
 
+    @Test
+    @DisplayName("getValidationErrors returns error for missing delivery details for postal delivery")
+    public void getValidationErrorsReportsMissingDeliveryDetails() throws Exception {
+        // Given
+        Basket basket = setupBasketWithMissingDeliveryDetails();
+        // When
+        List<String> errors = validatorUnderTest.getValidationErrors(basket);
+        // Then
+        assertThat(errors.isEmpty(), is(false));
+        assertThat(errors.size(), is(1));
+        assertThat(errors.get(0), is(ErrorType.DELIVERY_DETAILS_MISSING.getValue()));
+    }
+
+    @Test
+    @DisplayName("getValidationErrors returns error for incomplete address details for postal delivery")
+    public void getValidationErrorsReportsIncompleteAddressDetails() throws Exception {
+        // Given
+        Basket basket = setupBasketWithMissingAddressDetails();
+        // When
+        List<String> errors = validatorUnderTest.getValidationErrors(basket);
+        // Then
+        assertThat(errors.isEmpty(), is(false));
+        assertThat(errors.size(), is(1));
+        assertThat(errors.get(0), is(ErrorType.DELIVERY_DETAILS_MISSING.getValue()));
+    }
+
     private Basket setupBasketWithMissingItems(){
         Basket basket = new Basket();
         BasketData basketData = new BasketData();
@@ -69,6 +98,31 @@ public class CheckoutBasketValidatorTest {
         BasketData basketData = new BasketData();
         Item basketItem = new Item();
         basketItem.setItemUri(INVALID_ITEM_URI);
+        basketItem.setPostalDelivery(false);
+        basketData.setItems(Collections.singletonList(basketItem));
+        basket.setData(basketData);
+
+        return basket;
+    }
+
+    private Basket setupBasketWithMissingDeliveryDetails(){
+        Basket basket = new Basket();
+        BasketData basketData = new BasketData();
+        Item basketItem = new Item();
+        basketItem.setPostalDelivery(true);
+        basketData.setItems(Collections.singletonList(basketItem));
+        basket.setData(basketData);
+
+        return basket;
+    }
+
+    private Basket setupBasketWithMissingAddressDetails(){
+        Basket basket = new Basket();
+        BasketData basketData = new BasketData();
+        DeliveryDetails deliveryDetails = new DeliveryDetails();
+        basketData.setDeliveryDetails(deliveryDetails);
+        Item basketItem = new Item();
+        basketItem.setPostalDelivery(true);
         basketData.setItems(Collections.singletonList(basketItem));
         basket.setData(basketData);
 

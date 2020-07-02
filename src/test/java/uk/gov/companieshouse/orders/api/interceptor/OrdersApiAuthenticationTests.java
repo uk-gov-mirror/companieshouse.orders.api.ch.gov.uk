@@ -147,6 +147,7 @@ class OrdersApiAuthenticationTests {
 		basket.setId(ERIC_IDENTITY_VALUE);
 		final Item basketItem = new Item();
 		basketItem.setItemUri(ITEM_URI);
+		basketItem.setPostalDelivery(false);
 		basket.getData().getItems().add(basketItem);
 		basket.getData().setDeliveryDetails(new DeliveryDetails());
 
