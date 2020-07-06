@@ -909,6 +909,7 @@ class BasketControllerIntegrationTest {
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedBasket.get());
         assertTrue(retrievedBasket.get().getData().getItems().isEmpty());
+        assertNotNull(retrievedBasket.get().getData().getDeliveryDetails());
 
         // Check checkout is correctly updated
         final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(checkout.getId());
@@ -1236,6 +1237,15 @@ class BasketControllerIntegrationTest {
         basketItem.setPostageCost(POSTAGE_COST);
         basketItem.setTotalItemCost(TOTAL_ITEM_COST);
 
+        DeliveryDetails deliveryDetails = new DeliveryDetails();
+        deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetails.setCountry(COUNTRY);
+        deliveryDetails.setForename(FORENAME);
+        deliveryDetails.setSurname(SURNAME);
+        deliveryDetails.setLocality(LOCALITY);
+
+        basket.getData().setDeliveryDetails(deliveryDetails);
         basket.getData().getItems().add(basketItem);
 
         return basketRepository.save(basket);
