@@ -87,7 +87,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         ITEM.setDescription(DESCRIPTION);
         ITEM.setDescriptionIdentifier(DESC_IDENTIFIER);
         ITEM.setDescriptionValues(DESC_VALUES);
-        ITEM.setItemOptions(ITEM_OPTIONS);
+        // TODO GCI-1242 Restore this ITEM.setItemOptions(ITEM_OPTIONS);
         ITEM.setEtag(ITEM_ETAG);
         ITEM.setKind(ITEM_KIND);
         ITEM.setQuantity(ITEM_QUANTITY);

@@ -25,7 +25,8 @@ public class Item {
 
     private List<ItemCosts> itemCosts;
 
-    private CertificateItemOptions itemOptions;
+    // TODO GCI-1242 Can we do this?
+//    private ItemOptions itemOptions;
 
     private String etag;
 
@@ -111,13 +112,14 @@ public class Item {
         this.itemCosts = itemCosts;
     }
 
-    public CertificateItemOptions getItemOptions() {
-        return itemOptions;
-    }
-
-    public void setItemOptions(CertificateItemOptions itemOptions) {
-        this.itemOptions = itemOptions;
-    }
+// TODO GCI-1242 Can we do this?
+//    public ItemOptions getItemOptions() {
+//        return itemOptions;
+//    }
+//
+//    public void setItemOptions(ItemOptions itemOptions) {
+//        this.itemOptions = itemOptions;
+//    }
 
     public String getEtag() {
         return etag;

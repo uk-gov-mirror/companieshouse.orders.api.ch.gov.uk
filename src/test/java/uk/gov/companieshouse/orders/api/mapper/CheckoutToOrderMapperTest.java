@@ -156,7 +156,7 @@ public class CheckoutToOrderMapperTest {
         item.setTotalItemCost(TOTAL_ITEM_COST);
         item.setKind(ITEM_KIND);
         item.setPostalDelivery(POSTAL_DELIVERY);
-        item.setItemOptions(ITEM_OPTIONS);
+        // TODO GCI-1242 Restore this item.setItemOptions(ITEM_OPTIONS);
         item.setEtag(TOKEN_ETAG);
         data.setItems(singletonList(item));
         checkout.setData(data);
