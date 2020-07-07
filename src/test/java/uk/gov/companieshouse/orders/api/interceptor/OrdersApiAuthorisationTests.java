@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
+@DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka
 public class OrdersApiAuthorisationTests {

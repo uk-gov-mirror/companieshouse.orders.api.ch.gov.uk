@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.annotation.DirtiesContext;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,6 +21,7 @@ import static uk.gov.companieshouse.orders.api.interceptor.RequestMapper.*;
 /**
  * Unit/integration tests the {@link RequestMapper} class.
  */
+@DirtiesContext
 @SpringBootTest
 @EmbeddedKafka
 public class RequestMapperTests {
