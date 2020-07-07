@@ -6,7 +6,7 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
 import uk.gov.companieshouse.api.handler.order.item.request.PrivateItemURIPattern;
 import uk.gov.companieshouse.api.handler.regex.URIValidator;
-import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import uk.gov.companieshouse.api.model.order.item.BaseItemApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
@@ -32,12 +32,18 @@ public class ApiClientService {
     }
 
     public Item getItem(String itemUri) throws Exception {
-        if (URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri)) {
-            CertificateApi certificateApi = apiClient.getInternalApiClient().privateItemResourceHandler().getCertificate(itemUri).execute().getData();
-            Item certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
-            certificate.setItemUri(itemUri);
-            certificate.setStatus(ItemStatus.UNKNOWN);
-            return certificate;
+        if (URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri) ||
+            URIValidator.validate(PrivateItemURIPattern.getCertifiedCopyPattern(), itemUri)) {
+            final BaseItemApi baseItemApi = apiClient
+                    .getInternalApiClient()
+                    .privateItemResourceHandler()
+                    .getCertificate(itemUri)
+                    .execute()
+                    .getData();
+            final Item item = apiToCertificateMapper.apiToItem(baseItemApi);
+            item.setItemUri(itemUri);
+            item.setStatus(ItemStatus.UNKNOWN);
+            return item;
         } else {
             throw new ServiceException("Unrecognised uri pattern for "+itemUri);
         }
