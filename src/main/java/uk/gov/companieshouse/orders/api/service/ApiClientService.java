@@ -7,6 +7,8 @@ import uk.gov.companieshouse.api.handler.exception.URIValidationException;
 import uk.gov.companieshouse.api.handler.order.item.request.PrivateItemURIPattern;
 import uk.gov.companieshouse.api.handler.regex.URIValidator;
 import uk.gov.companieshouse.api.model.order.item.BaseItemApi;
+import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
@@ -40,7 +42,13 @@ public class ApiClientService {
                     .getCertificate(itemUri)
                     .execute()
                     .getData();
-            final Item item = apiToCertificateMapper.apiToItem(baseItemApi);
+
+            // TODO GCI-1242 Do this properly - either by URI or by examination of JSON response.
+            // TODO GCI-1242 Validation rejection could fall out of this?
+            final Item item = URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri) ?
+                    apiToCertificateMapper.apiToCertificate((CertificateApi) baseItemApi) :
+                    apiToCertificateMapper.apiToCertifiedCopy((CertifiedCopyApi) baseItemApi);
+
             item.setItemUri(itemUri);
             item.setStatus(ItemStatus.UNKNOWN);
             return item;
