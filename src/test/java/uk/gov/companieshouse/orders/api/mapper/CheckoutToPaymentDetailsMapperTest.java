@@ -87,7 +87,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         ITEM.setDescription(DESCRIPTION);
         ITEM.setDescriptionIdentifier(DESC_IDENTIFIER);
         ITEM.setDescriptionValues(DESC_VALUES);
-        // TODO GCI-1242 Restore this ITEM.setItemOptions(ITEM_OPTIONS);
+        ITEM.setItemOptions(ITEM_OPTIONS);
         ITEM.setEtag(ITEM_ETAG);
         ITEM.setKind(ITEM_KIND);
         ITEM.setQuantity(ITEM_QUANTITY);
@@ -147,6 +147,8 @@ public class CheckoutToPaymentDetailsMapperTest {
         testLinks(source, target);
         testItems(source, target);
     }
+
+    // TODO GCI-1242 Implement test for certified copy mapping?
 
     private void testItems(Checkout source, PaymentDetailsDTO target){
         assertEquals(target.getItems().size(), source.getData().getItems().get(0).getItemCosts().size());

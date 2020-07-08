@@ -156,7 +156,7 @@ public class CheckoutToOrderMapperTest {
         item.setTotalItemCost(TOTAL_ITEM_COST);
         item.setKind(ITEM_KIND);
         item.setPostalDelivery(POSTAL_DELIVERY);
-        // TODO GCI-1242 Restore this item.setItemOptions(ITEM_OPTIONS);
+        item.setItemOptions(ITEM_OPTIONS);
         item.setEtag(TOKEN_ETAG);
         data.setItems(singletonList(item));
         checkout.setData(data);
@@ -179,5 +179,7 @@ public class CheckoutToOrderMapperTest {
         assertThat(order.getData().getReference(), is(checkout.getData().getReference()));
         assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));
     }
+
+    // TODO GCI-1242 Implement test for certified copy mapping?
 
 }

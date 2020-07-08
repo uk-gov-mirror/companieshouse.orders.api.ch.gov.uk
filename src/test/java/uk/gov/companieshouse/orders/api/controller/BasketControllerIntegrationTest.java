@@ -37,6 +37,7 @@ import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
+import uk.gov.companieshouse.orders.api.model.ItemOptions;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
@@ -342,47 +343,46 @@ class BasketControllerIntegrationTest {
         assertFalse(retrievedBasket.isPresent());
     }
 
-    // TODO GCI-1242 Restore this test
-//    @Test
-//    @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
-//    public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
-//        basketRepository.save(getBasket(false));
-//
-//        Certificate certificate = new Certificate();
-//        certificate.setCompanyNumber(COMPANY_NUMBER);
-//        final CertificateItemOptions options = new CertificateItemOptions();
-//        options.setForename(FORENAME);
-//        options.setSurname(SURNAME);
-//        certificate.setItemOptions(options);
-//        certificate.setItemCosts(createItemCosts());
-//        certificate.setPostageCost(POSTAGE_COST);
-//        certificate.setPostalDelivery(false);
-//        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
-//
-//        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
-//                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-//                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-//                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-//                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
-//                .andExpect(status().isAccepted());
-//
-//        MvcResult result = resultActions.andReturn();
-//        MockHttpServletResponse response = result.getResponse();
-//        assertThat(response.getHeader(PAYMENT_REQUIRED_HEADER), is(COSTS_LINK));
-//        String contentAsString = response.getContentAsString();
-//        CheckoutData responseCheckoutData = mapper.readValue(contentAsString, CheckoutData.class);
-//
-//        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
-//        assertTrue(retrievedCheckout.isPresent());
-//        assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
-//        final CheckoutData checkoutData = retrievedCheckout.get().getData();
-//        final Item item = checkoutData.getItems().get(0);
-//        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
-//        final CertificateItemOptions retrievedOptions = item.getItemOptions();
-//        assertEquals(FORENAME, retrievedOptions.getForename());
-//        assertEquals(SURNAME, retrievedOptions.getSurname());
-//        assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
-//    }
+    @Test
+    @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
+    public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
+        basketRepository.save(getBasket(false));
+
+        Certificate certificate = new Certificate();
+        certificate.setCompanyNumber(COMPANY_NUMBER);
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setForename(FORENAME);
+        options.setSurname(SURNAME);
+        certificate.setItemOptions(options);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setPostalDelivery(false);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted());
+
+        MvcResult result = resultActions.andReturn();
+        MockHttpServletResponse response = result.getResponse();
+        assertThat(response.getHeader(PAYMENT_REQUIRED_HEADER), is(COSTS_LINK));
+        String contentAsString = response.getContentAsString();
+        CheckoutData responseCheckoutData = mapper.readValue(contentAsString, CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        assertEquals(ERIC_IDENTITY_VALUE, retrievedCheckout.get().getUserId());
+        final CheckoutData checkoutData = retrievedCheckout.get().getData();
+        final Item item = checkoutData.getItems().get(0);
+        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        final ItemOptions retrievedOptions = item.getItemOptions();
+        assertEquals(FORENAME, retrievedOptions.getForename());
+        assertEquals(SURNAME, retrievedOptions.getSurname());
+        assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
+    }
 
     private Basket getBasket(boolean isPostalDelivery) {
         Basket basket = new Basket();

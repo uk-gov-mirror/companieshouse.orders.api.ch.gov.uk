@@ -15,6 +15,7 @@ import uk.gov.companieshouse.api.handler.order.item.request.CertificateGet;
 import uk.gov.companieshouse.api.handler.payment.PaymentResourceHandler;
 import uk.gov.companieshouse.api.handler.payment.request.PaymentGet;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.api.model.order.item.BaseItemApi;
 import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
@@ -28,6 +29,7 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,24 +73,25 @@ public class ApiClientServiceTest {
     @Mock
     private ApiResponse<CertificateApi> certificateApiResponse;
 
-    // TODO GCI-1242 Restore this test
-//    @Test
-//    public void shouldGetCertificateItemIfUriIsValid() throws Exception {
-//        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
-//        when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
-//        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(certificateGet);
-//        when(certificateGet.execute()).thenReturn(certificateApiResponse);
-//
-//        Certificate certificate = new Certificate();
-//        certificate.setCompanyNumber(COMPANY_NUMBER);
-//        when(apiToCertificateMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
-//
-//        Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
-//
-//        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
-//        assertEquals(VALID_CERTIFICATE_URI, item.getItemUri());
-//        assertEquals(ItemStatus.UNKNOWN, item.getStatus());
-//    }
+    @Test
+    public void shouldGetCertificateItemIfUriIsValid() throws Exception {
+        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
+        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(certificateGet);
+        doReturn(certificateApiResponse).when(certificateGet).execute();
+
+        Certificate certificate = new Certificate();
+        certificate.setCompanyNumber(COMPANY_NUMBER);
+        when(apiToCertificateMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
+
+        Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
+
+        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        assertEquals(VALID_CERTIFICATE_URI, item.getItemUri());
+        assertEquals(ItemStatus.UNKNOWN, item.getStatus());
+    }
+
+    // TODO GCI-1242 Implement tests for certified copies?
 
     @Test
     public void shouldThrowExceptionIfCertificateItemUriIsInvalid() throws ServiceException {

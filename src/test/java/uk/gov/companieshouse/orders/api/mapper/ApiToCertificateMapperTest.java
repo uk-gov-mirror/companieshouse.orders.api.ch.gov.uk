@@ -108,48 +108,49 @@ public class ApiToCertificateMapperTest {
 
     }
 
-    // TODO GCI-1242 Restore this test
-//    @Test
-//    public void testCertificateApiToCertificate() {
-//        CertificateApi certificateApi = new CertificateApi();
-//        certificateApi.setId(ID);
-//        certificateApi.setCompanyName(COMPANY_NAME);
-//        certificateApi.setCompanyNumber(COMPANY_NUMBER);
-//        certificateApi.setCustomerReference(CUSTOMER_REFERENCE);
-//        certificateApi.setQuantity(QUANTITY);
-//        certificateApi.setDescription(DESCRIPTION);
-//        certificateApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
-//        certificateApi.setDescriptionValues(DESCRIPTION_VALUES);
-//        certificateApi.setItemCosts(singletonList(ITEM_COSTS));
-//        certificateApi.setKind(KIND);
-//        certificateApi.setPostalDelivery(POSTAL_DELIVERY);
-//        certificateApi.setItemOptions(ITEM_OPTIONS);
-//        certificateApi.setLinks(LINKS_API);
-//        certificateApi.setPostageCost(POSTAGE_COST);
-//        certificateApi.setTotalItemCost(TOTAL_ITEM_COST);
-//
-//        final Certificate certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
-//
-//        assertEquals(certificateApi.getId(), certificate.getId());
-//        assertThat(certificate.getId(), is(certificateApi.getId()));
-//        assertThat(certificate.getCompanyName(), is(certificateApi.getCompanyName()));
-//        assertThat(certificate.getCompanyNumber(), is(certificateApi.getCompanyNumber()));
-//        assertThat(certificate.getCustomerReference(), is(certificateApi.getCustomerReference()));
-//        assertThat(certificate.getQuantity(), is(certificateApi.getQuantity()));
-//        assertThat(certificate.getDescription(), is(certificateApi.getDescription()));
-//        assertThat(certificate.getDescriptionIdentifier(), is(certificateApi.getDescriptionIdentifier()));
-//        assertThat(certificate.getDescriptionValues(), is(certificateApi.getDescriptionValues()));
-//        assertThat(certificate.getKind(), is(certificateApi.getKind()));
-//        assertThat(certificate.isPostalDelivery(), is(certificateApi.isPostalDelivery()));
-//        assertThat(certificate.getEtag(), is(certificateApi.getEtag()));
-//        assertThat(certificate.getItemUri(), is(certificateApi.getLinks().getSelf()));
-//        assertThat(certificate.getLinks().getSelf(), is(certificateApi.getLinks().getSelf()));
-//
-//        assertItemCosts(certificateApi.getItemCosts().get(0), certificate.getItemCosts().get(0));
-//        assertItemOptionsSame(certificateApi.getItemOptions(), certificate.getItemOptions());
-//        assertThat(certificate.getPostageCost(), is(certificateApi.getPostageCost()));
-//        assertThat(certificate.getTotalItemCost(), is(certificateApi.getTotalItemCost()));
-//    }
+    @Test
+    public void testCertificateApiToCertificate() {
+        CertificateApi certificateApi = new CertificateApi();
+        certificateApi.setId(ID);
+        certificateApi.setCompanyName(COMPANY_NAME);
+        certificateApi.setCompanyNumber(COMPANY_NUMBER);
+        certificateApi.setCustomerReference(CUSTOMER_REFERENCE);
+        certificateApi.setQuantity(QUANTITY);
+        certificateApi.setDescription(DESCRIPTION);
+        certificateApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        certificateApi.setDescriptionValues(DESCRIPTION_VALUES);
+        certificateApi.setItemCosts(singletonList(ITEM_COSTS));
+        certificateApi.setKind(KIND);
+        certificateApi.setPostalDelivery(POSTAL_DELIVERY);
+        certificateApi.setItemOptions(ITEM_OPTIONS);
+        certificateApi.setLinks(LINKS_API);
+        certificateApi.setPostageCost(POSTAGE_COST);
+        certificateApi.setTotalItemCost(TOTAL_ITEM_COST);
+
+        final Certificate certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
+
+        assertEquals(certificateApi.getId(), certificate.getId());
+        assertThat(certificate.getId(), is(certificateApi.getId()));
+        assertThat(certificate.getCompanyName(), is(certificateApi.getCompanyName()));
+        assertThat(certificate.getCompanyNumber(), is(certificateApi.getCompanyNumber()));
+        assertThat(certificate.getCustomerReference(), is(certificateApi.getCustomerReference()));
+        assertThat(certificate.getQuantity(), is(certificateApi.getQuantity()));
+        assertThat(certificate.getDescription(), is(certificateApi.getDescription()));
+        assertThat(certificate.getDescriptionIdentifier(), is(certificateApi.getDescriptionIdentifier()));
+        assertThat(certificate.getDescriptionValues(), is(certificateApi.getDescriptionValues()));
+        assertThat(certificate.getKind(), is(certificateApi.getKind()));
+        assertThat(certificate.isPostalDelivery(), is(certificateApi.isPostalDelivery()));
+        assertThat(certificate.getEtag(), is(certificateApi.getEtag()));
+        assertThat(certificate.getItemUri(), is(certificateApi.getLinks().getSelf()));
+        assertThat(certificate.getLinks().getSelf(), is(certificateApi.getLinks().getSelf()));
+
+        assertItemCosts(certificateApi.getItemCosts().get(0), certificate.getItemCosts().get(0));
+        assertItemOptionsSame(certificateApi.getItemOptions(), (CertificateItemOptions) certificate.getItemOptions());
+        assertThat(certificate.getPostageCost(), is(certificateApi.getPostageCost()));
+        assertThat(certificate.getTotalItemCost(), is(certificateApi.getTotalItemCost()));
+    }
+
+    // TODO GCI-1242 Implement test for certified copy mapping.
 
     private void assertItemCosts(final ItemCostsApi itemCostsApi, final ItemCosts itemCosts) {
         assertThat(itemCosts.getDiscountApplied(), is(itemCostsApi.getDiscountApplied()));
