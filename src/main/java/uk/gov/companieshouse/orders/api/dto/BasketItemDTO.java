@@ -39,9 +39,6 @@ public class BasketItemDTO extends ItemDTO {
     @JsonProperty("etag")
     private String etag;
 
-    @JsonProperty("kind")
-    private String kind;
-
     @JsonProperty("links")
     private ItemLinks links;
 
@@ -110,14 +107,6 @@ public class BasketItemDTO extends ItemDTO {
 
     public void setEtag(String etag) {
         this.etag = etag;
-    }
-
-    public String getKind() {
-        return kind;
-    }
-
-    public void setKind(String kind) {
-        this.kind = kind;
     }
 
     public ItemLinks getLinks() {
