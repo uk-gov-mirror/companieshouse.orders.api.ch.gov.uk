@@ -378,7 +378,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": ""
+									"raw": "{{base_url}}/basket",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket"
+									]
 								}
 							},
 							"response": []
