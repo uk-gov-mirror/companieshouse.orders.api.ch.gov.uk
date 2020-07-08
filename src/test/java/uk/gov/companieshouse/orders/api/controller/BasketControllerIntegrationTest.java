@@ -27,19 +27,7 @@ import uk.gov.companieshouse.orders.api.dto.ItemDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentLinksDTO;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
-import uk.gov.companieshouse.orders.api.model.ApiError;
-import uk.gov.companieshouse.orders.api.model.Basket;
-import uk.gov.companieshouse.orders.api.model.BasketData;
-import uk.gov.companieshouse.orders.api.model.Certificate;
-import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.CheckoutData;
-import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
-import uk.gov.companieshouse.orders.api.model.Item;
-import uk.gov.companieshouse.orders.api.model.ItemCosts;
-import uk.gov.companieshouse.orders.api.model.ItemOptions;
-import uk.gov.companieshouse.orders.api.model.Order;
-import uk.gov.companieshouse.orders.api.model.PaymentStatus;
+import uk.gov.companieshouse.orders.api.model.*;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
@@ -84,6 +72,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
+import static uk.gov.companieshouse.orders.api.model.CertificateType.INCORPORATION_WITH_ALL_NAME_CHANGES;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_ACCESS_TOKEN;
@@ -158,6 +147,13 @@ class BasketControllerIntegrationTest {
     private static final String PAYMENT_KIND = "payment-details#payment-details";
     private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
     private static final LocalDateTime PAID_AT_DATE = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+    private static final FilingHistoryDocument DOCUMENT = new FilingHistoryDocument(
+            "1993-04-01",
+            "memorandum-articles",
+            null,
+            "MDAxMTEyNzExOGFkaXF6a2N4",
+            "MEM/ARTS"
+    );
 
     @Autowired
     private MockMvc mockMvc;
@@ -271,6 +267,60 @@ class BasketControllerIntegrationTest {
         assertThat(basketItemDTOResp.getPostageCost(), is(POSTAGE_COST));
         assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
     }
+
+    @Test
+    @DisplayName("Add certificate to basket responds with correctly populated certificate item options")
+    public void addCertificateReturnsCorrectlyPopulatedOptions() throws Exception {
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(ITEM_URI);
+
+        final Certificate certificate = new Certificate();
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        certificate.setItemOptions(options);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item_options.certificate_type",
+                        is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())));
+
+    }
+
+    @Test
+    @DisplayName("Add certified copy to basket responds with correctly populated certified copy item options")
+    public void addCertifiedCopyReturnsCorrectlyPopulatedOptions() throws Exception {
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(ITEM_URI);
+
+        final CertifiedCopy copy = new CertifiedCopy();
+        final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
+        options.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        copy.setItemOptions(options);
+        when(apiClientService.getItem(ITEM_URI)).thenReturn(copy);
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_date",
+                        is(DOCUMENT.getFilingHistoryDate())))
+                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_description",
+                        is(DOCUMENT.getFilingHistoryDescription())))
+                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_id",
+                        is(DOCUMENT.getFilingHistoryId())))
+                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_type",
+                        is(DOCUMENT.getFilingHistoryType())));
+    }
+
 
     @Test
     @DisplayName("Add item returns 400 when invalid item passed in request")
