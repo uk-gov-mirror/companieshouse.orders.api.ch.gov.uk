@@ -227,11 +227,11 @@ class BasketControllerIntegrationTest {
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
-        assertThat(COMPANY_NUMBER, is(basketItemDTOResp.getCompanyNumber()));
-        assertThat(DISCOUNT_APPLIED_1, is(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied()));
-        assertThat(ITEM_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getItemCost()));
-        assertThat(CALCULATED_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost()));
-        assertThat(POSTAGE_COST, is(basketItemDTOResp.getPostageCost()));
+        assertThat(basketItemDTOResp.getCompanyNumber(), is(COMPANY_NUMBER));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied(), is(DISCOUNT_APPLIED_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getItemCost(), is(ITEM_COST_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost(), is(CALCULATED_COST_1));
+        assertThat(basketItemDTOResp.getPostageCost(), is(POSTAGE_COST));
         assertEquals(1, retrievedBasket.get().getData().getItems().size());
     }
 
@@ -264,11 +264,11 @@ class BasketControllerIntegrationTest {
         BasketItemDTO basketItemDTOResp = mapper.readValue(contentAsString, BasketItemDTO.class);
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertThat(COMPANY_NUMBER, is(basketItemDTOResp.getCompanyNumber()));
-        assertThat(DISCOUNT_APPLIED_1, is(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied()));
-        assertThat(ITEM_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getItemCost()));
-        assertThat(CALCULATED_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost()));
-        assertThat(POSTAGE_COST, is(basketItemDTOResp.getPostageCost()));
+        assertThat(basketItemDTOResp.getCompanyNumber(), is(COMPANY_NUMBER));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied(), is(DISCOUNT_APPLIED_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getItemCost(), is(ITEM_COST_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost(), is(CALCULATED_COST_1));
+        assertThat(basketItemDTOResp.getPostageCost(), is(POSTAGE_COST));
         assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
     }
 
