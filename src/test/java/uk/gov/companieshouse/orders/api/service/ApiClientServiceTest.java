@@ -11,7 +11,7 @@ import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
 import uk.gov.companieshouse.api.handler.order.item.PrivateItemResourceHandler;
-import uk.gov.companieshouse.api.handler.order.item.request.CertificateGet;
+import uk.gov.companieshouse.api.handler.order.item.request.ItemGet;
 import uk.gov.companieshouse.api.handler.payment.PaymentResourceHandler;
 import uk.gov.companieshouse.api.handler.payment.request.PaymentGet;
 import uk.gov.companieshouse.api.model.ApiResponse;
@@ -72,7 +72,7 @@ public class ApiClientServiceTest {
     private PaymentGet paymentGet;
 
     @Mock
-    private CertificateGet certificateGet;
+    private ItemGet itemGet;
 
     @Mock
     private ApiResponse<CertificateApi> certificateApiResponse;
@@ -84,8 +84,8 @@ public class ApiClientServiceTest {
     public void shouldGetCertificateItemIfUriIsValid() throws Exception {
         when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
-        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(certificateGet);
-        doReturn(certificateApiResponse).when(certificateGet).execute();
+        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
+        doReturn(certificateApiResponse).when(itemGet).execute();
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
@@ -104,8 +104,8 @@ public class ApiClientServiceTest {
         // Given
         when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
-        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(certificateGet);
-        doReturn(certificateApiResponse).when(certificateGet).execute();
+        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
+        doReturn(certificateApiResponse).when(itemGet).execute();
         final Certificate certificate = new Certificate();
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
@@ -127,8 +127,8 @@ public class ApiClientServiceTest {
         // Given
         when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
-        when(privateItemResourceHandler.getCertificate(VALID_CERTIFIED_COPY_URI)).thenReturn(certificateGet);
-        doReturn(certifiedCopyApiResponse).when(certificateGet).execute();
+        when(privateItemResourceHandler.getCertificate(VALID_CERTIFIED_COPY_URI)).thenReturn(itemGet);
+        doReturn(certifiedCopyApiResponse).when(itemGet).execute();
         final CertifiedCopy copy = new CertifiedCopy();
         final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
         options.setFilingHistoryDocuments(singletonList(DOCUMENT));
