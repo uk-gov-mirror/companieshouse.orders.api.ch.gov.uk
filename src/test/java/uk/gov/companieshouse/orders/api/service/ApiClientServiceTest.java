@@ -15,22 +15,25 @@ import uk.gov.companieshouse.api.handler.order.item.request.CertificateGet;
 import uk.gov.companieshouse.api.handler.payment.PaymentResourceHandler;
 import uk.gov.companieshouse.api.handler.payment.request.PaymentGet;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.api.model.order.item.BaseItemApi;
 import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
 import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
-import uk.gov.companieshouse.orders.api.model.Certificate;
-import uk.gov.companieshouse.orders.api.model.Item;
-import uk.gov.companieshouse.orders.api.model.ItemStatus;
+import uk.gov.companieshouse.orders.api.model.*;
 
 import java.io.IOException;
 
+import static java.util.Collections.singletonList;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static uk.gov.companieshouse.orders.api.model.CertificateType.INCORPORATION_WITH_ALL_NAME_CHANGES;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
 
 @ExtendWith(MockitoExtension.class)
 public class ApiClientServiceTest {
@@ -38,6 +41,7 @@ public class ApiClientServiceTest {
     private static final String AMOUNT = "500";
     private static final String DESCRIPTION = "description";
     private static final String VALID_CERTIFICATE_URI = "/orderable/certificates/CHS00001";
+    private static final String VALID_CERTIFIED_COPY_URI = "/orderable/certified-copies/CCD-473815-935982";
     private static final String VALID_PAYMENT_URI = "/payments/" + PAYMENT_ID;
     private static final String INVALID_CERTIFICATE_URI = "/test/test/CHS00001";
     private static final String COMPANY_NUMBER = "00006400";
@@ -73,6 +77,9 @@ public class ApiClientServiceTest {
     @Mock
     private ApiResponse<CertificateApi> certificateApiResponse;
 
+    @Mock
+    private ApiResponse<CertifiedCopyApi> certifiedCopyApiResponse;
+
     @Test
     public void shouldGetCertificateItemIfUriIsValid() throws Exception {
         when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
@@ -91,7 +98,51 @@ public class ApiClientServiceTest {
         assertEquals(ItemStatus.UNKNOWN, item.getStatus());
     }
 
-    // TODO GCI-1242 Implement tests for certified copies?
+    @Test
+    public void shouldGetCertificateItemOptions() throws Exception {
+
+        // Given
+        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
+        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(certificateGet);
+        doReturn(certificateApiResponse).when(certificateGet).execute();
+        final Certificate certificate = new Certificate();
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        certificate.setItemOptions(options);
+        when(apiToCertificateMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
+
+        // When
+        final Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
+
+        // Then
+        assertEquals(CertificateItemOptions.class, item.getItemOptions().getClass());
+        assertThat(((CertificateItemOptions) item.getItemOptions()).getCertificateType(),
+                is(INCORPORATION_WITH_ALL_NAME_CHANGES));
+    }
+
+    @Test
+    public void shouldGetCertifiedCopyItemOptions() throws Exception {
+
+        // Given
+        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
+        when(privateItemResourceHandler.getCertificate(VALID_CERTIFIED_COPY_URI)).thenReturn(certificateGet);
+        doReturn(certifiedCopyApiResponse).when(certificateGet).execute();
+        final CertifiedCopy copy = new CertifiedCopy();
+        final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
+        options.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        copy.setItemOptions(options);
+        when(apiToCertificateMapper.apiToCertifiedCopy(certifiedCopyApiResponse.getData())).thenReturn(copy);
+
+        // When
+        final Item item = serviceUnderTest.getItem(VALID_CERTIFIED_COPY_URI);
+
+        // Then
+        assertEquals(CertifiedCopyItemOptions.class, item.getItemOptions().getClass());
+        assertThat(((CertifiedCopyItemOptions) item.getItemOptions()).getFilingHistoryDocuments().size(), is(1));
+        assertThat(((CertifiedCopyItemOptions) item.getItemOptions()).getFilingHistoryDocuments().get(0), is(DOCUMENT));
+    }
 
     @Test
     public void shouldThrowExceptionIfCertificateItemUriIsInvalid() throws ServiceException {
