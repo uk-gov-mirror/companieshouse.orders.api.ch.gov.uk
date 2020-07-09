@@ -20,10 +20,4 @@ public interface ApiToCertificateMapper {
 
     CertificateItemOptions apiOptionsToCertificateOptions(CertificateItemOptionsApi certificateOptionsApi);
     CertifiedCopyItemOptions apiOptionsToCertificateOptions(CertifiedCopyItemOptionsApi certifiedCopyOptionsApi);
-
-    // TODO GCI-1242 Redundant?
-    @Mapping(source = "links.self", target="itemUri")
-    @Mapping(target = "satisfiedAt", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    Item apiToItem(BaseItemApi baseItemApi);
 }
