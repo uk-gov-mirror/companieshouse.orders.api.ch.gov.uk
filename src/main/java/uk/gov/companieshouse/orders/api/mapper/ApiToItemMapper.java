@@ -5,9 +5,8 @@ import org.mapstruct.Mapping;
 import uk.gov.companieshouse.api.model.order.item.*;
 import uk.gov.companieshouse.orders.api.model.*;
 
-// TODO GCI-1242 Rename class?
 @Mapper(componentModel = "spring")
-public interface ApiToCertificateMapper {
+public interface ApiToItemMapper {
     @Mapping(source = "links.self", target="itemUri")
     @Mapping(target = "satisfiedAt", ignore = true)
     @Mapping(target = "status", ignore = true)

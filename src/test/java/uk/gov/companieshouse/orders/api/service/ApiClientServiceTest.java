@@ -20,7 +20,7 @@ import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
-import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
+import uk.gov.companieshouse.orders.api.mapper.ApiToItemMapper;
 import uk.gov.companieshouse.orders.api.model.*;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class ApiClientServiceTest {
     private ApiClientService serviceUnderTest;
 
     @Mock
-    private ApiToCertificateMapper apiToCertificateMapper;
+    private ApiToItemMapper apiToItemMapper;
 
     @Mock
     private InternalApiClient mockInternalApiClient;
@@ -89,7 +89,7 @@ public class ApiClientServiceTest {
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
-        when(apiToCertificateMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
+        when(apiToItemMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
 
         Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
 
@@ -110,7 +110,7 @@ public class ApiClientServiceTest {
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
         certificate.setItemOptions(options);
-        when(apiToCertificateMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
+        when(apiToItemMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
 
         // When
         final Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
@@ -133,7 +133,7 @@ public class ApiClientServiceTest {
         final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
         options.setFilingHistoryDocuments(singletonList(DOCUMENT));
         copy.setItemOptions(options);
-        when(apiToCertificateMapper.apiToCertifiedCopy(certifiedCopyApiResponse.getData())).thenReturn(copy);
+        when(apiToItemMapper.apiToCertifiedCopy(certifiedCopyApiResponse.getData())).thenReturn(copy);
 
         // When
         final Item item = serviceUnderTest.getItem(VALID_CERTIFIED_COPY_URI);

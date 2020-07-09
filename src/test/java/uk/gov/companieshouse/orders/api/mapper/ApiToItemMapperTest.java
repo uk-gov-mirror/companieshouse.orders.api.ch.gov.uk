@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFICATE;
 
 @ExtendWith(SpringExtension.class)
-@SpringJUnitConfig(ApiToCertificateMapperTest.Config.class)
-public class ApiToCertificateMapperTest {
+@SpringJUnitConfig(ApiToItemMapperTest.Config.class)
+public class ApiToItemMapperTest {
     private static final String ID = "CHS00000000000000001";
     private static final String COMPANY_NUMBER = "00006444";
     private static final int QUANTITY = 10;
@@ -62,11 +62,11 @@ public class ApiToCertificateMapperTest {
     private static final LinksApi LINKS_API;
 
     @Configuration
-    @ComponentScan(basePackageClasses = ApiToCertificateMapperTest.class)
+    @ComponentScan(basePackageClasses = ApiToItemMapperTest.class)
     static class Config {}
 
     @Autowired
-    private ApiToCertificateMapper apiToCertificateMapper;
+    private ApiToItemMapper apiToItemMapper;
 
     static {
         ITEM_COSTS = new ItemCostsApi();
@@ -127,7 +127,7 @@ public class ApiToCertificateMapperTest {
         certificateApi.setPostageCost(POSTAGE_COST);
         certificateApi.setTotalItemCost(TOTAL_ITEM_COST);
 
-        final Certificate certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
+        final Certificate certificate = apiToItemMapper.apiToCertificate(certificateApi);
 
         assertEquals(certificateApi.getId(), certificate.getId());
         assertThat(certificate.getId(), is(certificateApi.getId()));

@@ -12,7 +12,7 @@ import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
-import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
+import uk.gov.companieshouse.orders.api.mapper.ApiToItemMapper;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemStatus;
 
@@ -21,15 +21,15 @@ import java.io.IOException;
 @Service
 public class ApiClientService {
 
-    private final ApiToCertificateMapper apiToCertificateMapper;
+    private final ApiToItemMapper apiToItemMapper;
 
     private final Api apiClient;
 
     private static final UriTemplate GET_PAYMENT_URI =
             new UriTemplate("/payments/{paymentId}");
 
-    public ApiClientService(ApiToCertificateMapper apiToCertificateMapper, Api apiClient) {
-        this.apiToCertificateMapper = apiToCertificateMapper;
+    public ApiClientService(ApiToItemMapper apiToItemMapper, Api apiClient) {
+        this.apiToItemMapper = apiToItemMapper;
         this.apiClient = apiClient;
     }
 
@@ -46,8 +46,8 @@ public class ApiClientService {
             // TODO GCI-1242 Do this properly - either by URI or by examination of JSON response.
             // TODO GCI-1242 Validation rejection could fall out of this?
             final Item item = URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri) ?
-                    apiToCertificateMapper.apiToCertificate((CertificateApi) baseItemApi) :
-                    apiToCertificateMapper.apiToCertifiedCopy((CertifiedCopyApi) baseItemApi);
+                    apiToItemMapper.apiToCertificate((CertificateApi) baseItemApi) :
+                    apiToItemMapper.apiToCertifiedCopy((CertifiedCopyApi) baseItemApi);
 
             item.setItemUri(itemUri);
             item.setStatus(ItemStatus.UNKNOWN);
