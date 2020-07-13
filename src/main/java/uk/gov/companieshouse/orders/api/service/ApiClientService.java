@@ -39,7 +39,7 @@ public class ApiClientService {
             final BaseItemApi baseItemApi = apiClient
                     .getInternalApiClient()
                     .privateItemResourceHandler()
-                    .getCertificate(itemUri)
+                    .getItem(itemUri)
                     .execute()
                     .getData();
 

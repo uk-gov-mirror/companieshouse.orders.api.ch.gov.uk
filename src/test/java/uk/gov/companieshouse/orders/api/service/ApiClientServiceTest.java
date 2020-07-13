@@ -84,7 +84,7 @@ public class ApiClientServiceTest {
     public void shouldGetCertificateItemIfUriIsValid() throws Exception {
         when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
-        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
+        when(privateItemResourceHandler.getItem(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
         doReturn(certificateApiResponse).when(itemGet).execute();
 
         Certificate certificate = new Certificate();
@@ -104,7 +104,7 @@ public class ApiClientServiceTest {
         // Given
         when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
-        when(privateItemResourceHandler.getCertificate(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
+        when(privateItemResourceHandler.getItem(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
         doReturn(certificateApiResponse).when(itemGet).execute();
         final Certificate certificate = new Certificate();
         final CertificateItemOptions options = new CertificateItemOptions();
@@ -127,7 +127,7 @@ public class ApiClientServiceTest {
         // Given
         when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
-        when(privateItemResourceHandler.getCertificate(VALID_CERTIFIED_COPY_URI)).thenReturn(itemGet);
+        when(privateItemResourceHandler.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(itemGet);
         doReturn(certifiedCopyApiResponse).when(itemGet).execute();
         final CertifiedCopy copy = new CertifiedCopy();
         final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
