@@ -180,6 +180,6 @@ public class CheckoutToOrderMapperTest {
         assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));
     }
 
-    // TODO GCI-1242 Implement test for certified copy mapping?
+    // TODO GCI-984 Implement test for certified copy mapping?
 
 }
