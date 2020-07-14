@@ -28,6 +28,7 @@
 		<!-- system-rules: 1.17.2 is the latest version that works with JUnit 5.
 			 See https://github.com/stefanbirkner/system-rules/issues/70 -->
 		<system-rules-version>1.17.2</system-rules-version>
+		<spring-cloud-contract-wiremock-version>2.2.2.RELEASE</spring-cloud-contract-wiremock-version>
 		<start-class>uk.gov.companieshouse.orders.api.OrdersApiApplication</start-class>
 		<!-- TODO GCI-1242 set private-api-sdk-java.version to 2.0.41+ -->
 		<private-api-sdk-java.version>unversioned</private-api-sdk-java.version>
@@ -127,6 +128,12 @@
 			<groupId>com.github.stefanbirkner</groupId>
 			<artifactId>system-rules</artifactId>
 			<version>${system-rules-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-contract-wiremock</artifactId>
+			<version>${spring-cloud-contract-wiremock-version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

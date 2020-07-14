@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.ClassRule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.Assertions;
@@ -8,23 +9,32 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import uk.gov.companieshouse.api.model.order.item.CertificateItemOptionsApi;
+import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
+import uk.gov.companieshouse.api.model.order.item.CertifiedCopyItemOptionsApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.mapper.ApiToItemMapper;
 import uk.gov.companieshouse.orders.api.model.*;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFICATE_URI;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIED_COPY_URI;
+import static uk.gov.companieshouse.orders.api.util.TestUtils.givenSdkIsConfigured;
 
 /**
  * Partially integration tests the {@link ApiClientService} service.
  */
 @SpringBootTest
 @SpringJUnitConfig(ApiClientServiceIntegrationTest.Config.class)
+@AutoConfigureWireMock(port = 0)
 public class ApiClientServiceIntegrationTest {
 
     private static final String UNKNOWN_CERTIFICATE_URI = "/orderable/certificates/CRT-000000-000000";
@@ -32,12 +42,33 @@ public class ApiClientServiceIntegrationTest {
     private static final String SDK_ERROR_MESSAGE =
             "field private java.util.List uk.gov.companieshouse.api.error.ApiErrorResponse.errors";
 
+    private static String CERTIFICATES_API_NOT_FOUND_ERROR_RESPONSE_BODY =
+            "{\"status\":\"NOT_FOUND\",\"errors\":[\"certificate resource not found\"]}";
+    private static String CERTIFIED_COPIES_API_NOT_FOUND_ERROR_RESPONSE_BODY =
+            "{\"status\":\"NOT_FOUND\",\"errors\":[\"certified copy resource not found\"]}";
+
+    private static final CertificateApi CERTIFICATE;
+    private static final CertifiedCopyApi CERTIFIED_COPY;
+
+    static {
+        CERTIFICATE = new CertificateApi();
+        CERTIFICATE.setItemOptions(new CertificateItemOptionsApi());
+        CERTIFIED_COPY = new CertifiedCopyApi();
+        CERTIFIED_COPY.setItemOptions(new CertifiedCopyItemOptionsApi());
+    }
+
     @Configuration
     @ComponentScan(basePackageClasses = {ApiClientServiceIntegrationTest.class, ApiToItemMapper.class, Api.class})
     static class Config { }
 
     @Autowired
     private ApiClientService serviceUnderTest;
+
+    @Autowired
+    private Environment environment;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private BasketService basketService;
@@ -56,9 +87,11 @@ public class ApiClientServiceIntegrationTest {
     void getsCertificateCorrectly() throws Exception {
 
         // Given
-        ENVIRONMENT_VARIABLES.set("CHS_API_KEY", "MGQ1MGNlYmFkYzkxZTM2MzlkNGVmMzg4ZjgxMmEz");
-        ENVIRONMENT_VARIABLES.set("API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
-        ENVIRONMENT_VARIABLES.set("PAYMENTS_API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
+        givenSdkIsConfigured(environment, ENVIRONMENT_VARIABLES);
+        givenThat(get(urlEqualTo(VALID_CERTIFICATE_URI))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(objectMapper.writeValueAsString(CERTIFICATE))));
 
         // When
         final Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
@@ -73,9 +106,11 @@ public class ApiClientServiceIntegrationTest {
     void getsCertifiedCopyCorrectly() throws Exception {
 
         // Given
-        ENVIRONMENT_VARIABLES.set("CHS_API_KEY", "MGQ1MGNlYmFkYzkxZTM2MzlkNGVmMzg4ZjgxMmEz");
-        ENVIRONMENT_VARIABLES.set("API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
-        ENVIRONMENT_VARIABLES.set("PAYMENTS_API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
+        givenSdkIsConfigured(environment, ENVIRONMENT_VARIABLES);
+        givenThat(get(urlEqualTo(VALID_CERTIFIED_COPY_URI))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(objectMapper.writeValueAsString(CERTIFIED_COPY))));
 
         // When
         final Item item = serviceUnderTest.getItem(VALID_CERTIFIED_COPY_URI);
@@ -88,33 +123,38 @@ public class ApiClientServiceIntegrationTest {
     @Test
     @DisplayName("getItem() incorrectly throws an IllegalArgumentException for unknown certificate")
     void throwsIllegalArgumentExceptionForCertificateNotFound () {
-        throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFICATE_URI);
+        throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFICATE_URI,
+                                                      CERTIFICATES_API_NOT_FOUND_ERROR_RESPONSE_BODY);
     }
 
     @Test
     @DisplayName("getItem() incorrectly throws an IllegalArgumentException for unknown certified copy")
     void throwsIllegalArgumentExceptionForCertifiedCopyNotFound () {
-        throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFIED_COPY_URI);
+        throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFIED_COPY_URI,
+                CERTIFIED_COPIES_API_NOT_FOUND_ERROR_RESPONSE_BODY);
     }
-
 
     /**
      * Reproduces incorrect behaviour currently seen in the SDK contract this service has with the APIs it attempts to
      * retrieve items from. See GCI-1262.
      * @param unknownItemUri the path identifying an item that does not actually exist (and which should be reported
      *                       as not found)
+     * @param notFoundResponseBody the body of the response, equivalent to that actually returned by the API
      */
-    private void throwsIllegalArgumentExceptionForItemNotFound(final String unknownItemUri) {
+    private void throwsIllegalArgumentExceptionForItemNotFound(final String unknownItemUri,
+                                                               final String notFoundResponseBody) {
 
         // Given
-        ENVIRONMENT_VARIABLES.set("CHS_API_KEY", "MGQ1MGNlYmFkYzkxZTM2MzlkNGVmMzg4ZjgxMmEz");
-        ENVIRONMENT_VARIABLES.set("API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
-        ENVIRONMENT_VARIABLES.set("PAYMENTS_API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
+        givenSdkIsConfigured(environment, ENVIRONMENT_VARIABLES);
+        givenThat(get(urlEqualTo(unknownItemUri))
+                .willReturn(notFound()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(notFoundResponseBody)));
 
         // When and then
         final IllegalArgumentException exception =
                 Assertions.assertThrows(IllegalArgumentException.class,
-                        () -> serviceUnderTest.getItem(UNKNOWN_CERTIFICATE_URI));
+                        () -> serviceUnderTest.getItem(unknownItemUri));
         assertThat(exception.getCause() instanceof IllegalArgumentException, is(true));
         assertThat(exception.getCause().getMessage(), is(SDK_ERROR_MESSAGE));
     }
