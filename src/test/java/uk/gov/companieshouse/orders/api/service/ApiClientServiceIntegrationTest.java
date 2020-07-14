@@ -87,7 +87,7 @@ public class ApiClientServiceIntegrationTest {
 
     @Test
     @DisplayName("getItem() gets a certificate correctly")
-    void getsCertificateCorrectly() throws Exception {
+    void getItemGetsCertificateCorrectly() throws Exception {
 
         // Given
         givenSdkIsConfigured(environment, ENVIRONMENT_VARIABLES);
@@ -106,7 +106,7 @@ public class ApiClientServiceIntegrationTest {
 
     @Test
     @DisplayName("getItem() gets a certified copy correctly")
-    void getsCertifiedCopyCorrectly() throws Exception {
+    void getItemGetsCertifiedCopyCorrectly() throws Exception {
 
         // Given
         givenSdkIsConfigured(environment, ENVIRONMENT_VARIABLES);
@@ -125,14 +125,14 @@ public class ApiClientServiceIntegrationTest {
 
     @Test
     @DisplayName("getItem() incorrectly throws an IllegalArgumentException for unknown certificate")
-    void throwsIllegalArgumentExceptionForCertificateNotFound () {
+    void getItemThrowsIllegalArgumentExceptionForCertificateNotFound () {
         throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFICATE_URI,
                                                       CERTIFICATES_API_NOT_FOUND_ERROR_RESPONSE_BODY);
     }
 
     @Test
     @DisplayName("getItem() incorrectly throws an IllegalArgumentException for unknown certified copy")
-    void throwsIllegalArgumentExceptionForCertifiedCopyNotFound () {
+    void getItemThrowsIllegalArgumentExceptionForCertifiedCopyNotFound () {
         throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFIED_COPY_URI,
                 CERTIFIED_COPIES_API_NOT_FOUND_ERROR_RESPONSE_BODY);
     }
