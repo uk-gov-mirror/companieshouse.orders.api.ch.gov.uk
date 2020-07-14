@@ -17,6 +17,8 @@ public class TestConstants {
     public static final String ERIC_AUTHORISED_USER_VALUE = "demo@ch.gov.uk";
     public static final String ERIC_IDENTITY_API_KEY_TYPE_VALUE = "key";
     public static final String ERIC_IDENTITY_INVALID_TYPE_VALUE = "invalid identity type";
+    public static final String VALID_CERTIFICATE_URI = "/orderable/certificates/CRT-283515-943657";
+    public static final String VALID_CERTIFIED_COPY_URI = "/orderable/certified-copies/CCD-473815-935982";
 
     public static final FilingHistoryDocument DOCUMENT = new FilingHistoryDocument(
             "1993-04-01",

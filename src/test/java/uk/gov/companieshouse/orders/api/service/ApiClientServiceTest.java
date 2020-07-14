@@ -33,15 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.orders.api.model.CertificateType.INCORPORATION_WITH_ALL_NAME_CHANGES;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ApiClientServiceTest {
     private static final String PAYMENT_ID = "987654321";
     private static final String AMOUNT = "500";
     private static final String DESCRIPTION = "description";
-    private static final String VALID_CERTIFICATE_URI = "/orderable/certificates/CHS00001";
-    private static final String VALID_CERTIFIED_COPY_URI = "/orderable/certified-copies/CCD-473815-935982";
     private static final String VALID_PAYMENT_URI = "/payments/" + PAYMENT_ID;
     private static final String INVALID_CERTIFICATE_URI = "/test/test/CHS00001";
     private static final String COMPANY_NUMBER = "00006400";
