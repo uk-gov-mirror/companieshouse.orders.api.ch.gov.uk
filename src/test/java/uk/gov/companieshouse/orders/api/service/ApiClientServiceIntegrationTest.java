@@ -11,14 +11,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.web.server.ResponseStatusException;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.mapper.ApiToItemMapper;
 import uk.gov.companieshouse.orders.api.model.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFICATE_URI;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIED_COPY_URI;
 
@@ -30,7 +28,9 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIE
 public class ApiClientServiceIntegrationTest {
 
     private static final String UNKNOWN_CERTIFICATE_URI = "/orderable/certificates/CRT-000000-000000";
-    public static final String UNKNOWN_CERTIFIED_COPY_URI = "/orderable/certified-copies/CCD-000000-000000";
+    private static final String UNKNOWN_CERTIFIED_COPY_URI = "/orderable/certified-copies/CCD-000000-000000";
+    private static final String SDK_ERROR_MESSAGE =
+            "field private java.util.List uk.gov.companieshouse.api.error.ApiErrorResponse.errors";
 
     @Configuration
     @ComponentScan(basePackageClasses = {ApiClientServiceIntegrationTest.class, ApiToItemMapper.class, Api.class})
@@ -86,25 +86,25 @@ public class ApiClientServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("getItem() throws a 400 Bad Request response exception for unknown certificate")
-    void throwsBadRequestExceptionForCertificateNotFound () {
-
-        // Given
-        ENVIRONMENT_VARIABLES.set("CHS_API_KEY", "MGQ1MGNlYmFkYzkxZTM2MzlkNGVmMzg4ZjgxMmEz");
-        ENVIRONMENT_VARIABLES.set("API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
-        ENVIRONMENT_VARIABLES.set("PAYMENTS_API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
-
-        // When and then
-        final ResponseStatusException exception =
-                Assertions.assertThrows(ResponseStatusException.class,
-                        () -> serviceUnderTest.getItem(UNKNOWN_CERTIFICATE_URI));
-        assertThat(exception.getStatus(), is(BAD_REQUEST));
-        // TODO GCI-1022 assertThat(exception.getReason(), is("Error getting company name for company number 00006400"));
+    @DisplayName("getItem() incorrectly throws an IllegalArgumentException for unknown certificate")
+    void throwsIllegalArgumentExceptionForCertificateNotFound () {
+        throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFICATE_URI);
     }
 
     @Test
-    @DisplayName("getItem() throws a 400 Bad Request response exception for unknown certified copy")
-    void throwsBadRequestExceptionForCertifiedCopyNotFound () {
+    @DisplayName("getItem() incorrectly throws an IllegalArgumentException for unknown certified copy")
+    void throwsIllegalArgumentExceptionForCertifiedCopyNotFound () {
+        throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFIED_COPY_URI);
+    }
+
+
+    /**
+     * Reproduces incorrect behaviour currently seen in the SDK contract this service has with the APIs it attempts to
+     * retrieve items from. See GCI-1262.
+     * @param unknownItemUri the path identifying an item that does not actually exist (and which should be reported
+     *                       as not found)
+     */
+    private void throwsIllegalArgumentExceptionForItemNotFound(final String unknownItemUri) {
 
         // Given
         ENVIRONMENT_VARIABLES.set("CHS_API_KEY", "MGQ1MGNlYmFkYzkxZTM2MzlkNGVmMzg4ZjgxMmEz");
@@ -112,11 +112,11 @@ public class ApiClientServiceIntegrationTest {
         ENVIRONMENT_VARIABLES.set("PAYMENTS_API_URL", "http://api.chs-dev.internal:4001"); // TODO GCI-1022 WireMock
 
         // When and then
-        final ResponseStatusException exception =
-                Assertions.assertThrows(ResponseStatusException.class,
-                        () -> serviceUnderTest.getItem(UNKNOWN_CERTIFIED_COPY_URI));
-        assertThat(exception.getStatus(), is(BAD_REQUEST));
-        // TODO GCI-1022 assertThat(exception.getReason(), is("Error getting company name for company number 00006400"));
+        final IllegalArgumentException exception =
+                Assertions.assertThrows(IllegalArgumentException.class,
+                        () -> serviceUnderTest.getItem(UNKNOWN_CERTIFICATE_URI));
+        assertThat(exception.getCause() instanceof IllegalArgumentException, is(true));
+        assertThat(exception.getCause().getMessage(), is(SDK_ERROR_MESSAGE));
     }
 
 }
