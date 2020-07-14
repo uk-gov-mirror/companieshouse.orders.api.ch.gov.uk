@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.orders.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.http.Fault;
 import org.junit.ClassRule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.Assertions;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.order.item.CertificateApi;
 import uk.gov.companieshouse.api.model.order.item.CertificateItemOptionsApi;
 import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
@@ -25,6 +27,7 @@ import uk.gov.companieshouse.orders.api.model.*;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFICATE_URI;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIED_COPY_URI;
 import static uk.gov.companieshouse.orders.api.util.TestUtils.givenSdkIsConfigured;
@@ -132,6 +135,23 @@ public class ApiClientServiceIntegrationTest {
     void throwsIllegalArgumentExceptionForCertifiedCopyNotFound () {
         throwsIllegalArgumentExceptionForItemNotFound(UNKNOWN_CERTIFIED_COPY_URI,
                 CERTIFIED_COPIES_API_NOT_FOUND_ERROR_RESPONSE_BODY);
+    }
+
+    @Test
+    @DisplayName("getItem() throws ApiErrorResponseException for connection reset")
+    void getItemThrowsApiErrorResponseExceptionConnectionReset() {
+
+        // Given
+        givenSdkIsConfigured(environment, ENVIRONMENT_VARIABLES);
+        givenThat(get(urlEqualTo(VALID_CERTIFICATE_URI))
+                .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+
+        // When and then
+        final ApiErrorResponseException exception =
+                Assertions.assertThrows(ApiErrorResponseException.class,
+                        () -> serviceUnderTest.getItem(VALID_CERTIFICATE_URI));
+        assertThat(exception.getStatusCode(), is(INTERNAL_SERVER_ERROR.value()));
+        assertThat(exception.getStatusMessage(), is("Connection reset"));
     }
 
     /**
