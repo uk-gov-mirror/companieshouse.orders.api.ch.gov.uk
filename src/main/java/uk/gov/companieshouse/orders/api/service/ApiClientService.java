@@ -34,27 +34,26 @@ public class ApiClientService {
     }
 
     public Item getItem(String itemUri) throws Exception {
-        if (URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri) ||
-            URIValidator.validate(PrivateItemURIPattern.getCertifiedCopyPattern(), itemUri)) {
-            final BaseItemApi baseItemApi = apiClient
+        final BaseItemApi baseItemApi;
+        try {
+            baseItemApi = apiClient
                     .getInternalApiClient()
                     .privateItemResourceHandler()
                     .getItem(itemUri)
                     .execute()
                     .getData();
-
-            // TODO GCI-1242 Do this properly - either by URI or by examination of JSON response.
-            // TODO GCI-1242 Validation rejection could fall out of this?
-            final Item item = URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri) ?
-                    apiToItemMapper.apiToCertificate((CertificateApi) baseItemApi) :
-                    apiToItemMapper.apiToCertifiedCopy((CertifiedCopyApi) baseItemApi);
-
-            item.setItemUri(itemUri);
-            item.setStatus(ItemStatus.UNKNOWN);
-            return item;
-        } else {
-            throw new ServiceException("Unrecognised uri pattern for "+itemUri);
+        } catch (URIValidationException uve) {
+            throw new ServiceException("Unrecognised uri pattern for " + itemUri);
         }
+
+        // TODO GCI-1242 Do this properly - either by URI or by examination of JSON response.
+        final Item item = URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri) ?
+                apiToItemMapper.apiToCertificate((CertificateApi) baseItemApi) :
+                apiToItemMapper.apiToCertifiedCopy((CertifiedCopyApi) baseItemApi);
+
+        item.setItemUri(itemUri);
+        item.setStatus(ItemStatus.UNKNOWN);
+        return item;
     }
 
     public PaymentApi getPaymentSummary(String passthroughHeader, String paymentId) throws IOException {

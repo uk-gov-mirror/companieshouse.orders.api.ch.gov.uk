@@ -143,11 +143,18 @@ public class ApiClientServiceTest {
     }
 
     @Test
-    public void shouldThrowExceptionIfCertificateItemUriIsInvalid() throws ServiceException {
-        ServiceException exception = assertThrows(ServiceException.class, () -> {
-            Item item = serviceUnderTest.getItem(INVALID_CERTIFICATE_URI);
-        });
-        assertEquals("Unrecognised uri pattern for "+INVALID_CERTIFICATE_URI, exception.getMessage());
+    public void shouldThrowExceptionIfCertificateItemUriIsInvalid() throws Exception {
+
+        // Given
+        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
+        when(privateItemResourceHandler.getItem(INVALID_CERTIFICATE_URI)).thenReturn(itemGet);
+        when(itemGet.execute()).thenThrow(new URIValidationException("Test exception"));
+
+        // When and then
+        ServiceException exception =
+                assertThrows(ServiceException.class, () -> serviceUnderTest.getItem(INVALID_CERTIFICATE_URI));
+        assertEquals("Unrecognised uri pattern for " + INVALID_CERTIFICATE_URI, exception.getMessage());
     }
 
     @Test
