@@ -657,8 +657,6 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
-        // TODO GCI-1022 Should this be making any assertions about the retrieved basket?
-        // final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         final BasketData response = mapper.readValue(jsonResponse, BasketData.class);
 
         final DeliveryDetails getDeliveryDetails = response.getDeliveryDetails();
@@ -685,6 +683,8 @@ class BasketControllerIntegrationTest {
         assertEquals(SATISFIED_AT, item.getSatisfiedAt());
         assertEquals(POSTAGE_COST, item.getPostageCost());
         assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
+
+        verifyBasketIsUnchanged(start, deliveryDetails);
     }
 
     @Test
@@ -1263,6 +1263,26 @@ class BasketControllerIntegrationTest {
         item.setCompanyNumber(COMPANY_NUMBER);
 
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
+    }
+
+    /**
+     * Verifies that the basket is as it was when created by {@link #createBasket(LocalDateTime)}, plus the addition of
+     * delivery details.
+     * @param basketCreationTime the time the basket was created
+     * @param deliveryDetailsAdded the delivery details added to the basket
+     */
+    private void verifyBasketIsUnchanged(final LocalDateTime basketCreationTime,
+                                         final DeliveryDetails deliveryDetailsAdded) {
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertThat(retrievedBasket.isPresent(), is(true));
+        final Basket basket = retrievedBasket.get();
+        assertThat(basket.getCreatedAt(), is(basketCreationTime));
+        assertThat(basket.getUpdatedAt(), is(basketCreationTime));
+        assertThat(basket.getId(), is(ERIC_IDENTITY_VALUE));
+        assertThat(basket.getItems().size(), is(1));
+        assertThat(basket.getItems().get(0).getItemUri(), is(VALID_CERTIFICATE_URI));
+        org.assertj.core.api.Assertions.assertThat(basket.getData().getDeliveryDetails())
+                .isEqualToComparingFieldByField(deliveryDetailsAdded);
     }
 
     /**
