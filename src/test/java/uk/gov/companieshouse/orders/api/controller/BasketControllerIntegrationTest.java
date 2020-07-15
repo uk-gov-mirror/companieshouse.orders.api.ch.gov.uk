@@ -618,8 +618,6 @@ class BasketControllerIntegrationTest {
         final LocalDateTime start = timestamps.start();
         Basket basket = createBasket(start);
 
-        BasketData basketData = new BasketData();
-
         DeliveryDetails deliveryDetails = new DeliveryDetails();
         deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
         deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
@@ -633,24 +631,37 @@ class BasketControllerIntegrationTest {
         basketRepository.save(basket);
 
         final Certificate certificate = new Certificate();
+        certificate.setItemUri(VALID_CERTIFICATE_URI);
         certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setCompanyName(COMPANY_NAME);
+        certificate.setCustomerReference(CUSTOMER_REFERENCE);
+        certificate.setDescription(DESCRIPTION);
+        certificate.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        certificate.setDescriptionValues(DESCRIPTION_VALUES);
         certificate.setItemCosts(ITEM_COSTS);
+        certificate.setEtag(ETAG);
+        certificate.setKind(KIND);
+        certificate.setPostalDelivery(POSTAL_DELIVERY);
+        certificate.setQuantity(QUANTITY);
+        certificate.setSatisfiedAt(SATISFIED_AT);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
-
-        mockMvc.perform(get("/basket")
-            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-            .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
-
-
-        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
-        final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
-        final Item item = retrievedBasket.get().getData().getItems().get(0);
+        final String jsonResponse = mockMvc.perform(get("/basket")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        // TODO GCI-1022 Should this be making any assertions about the retrieved basket?
+        // final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        final BasketData response = mapper.readValue(jsonResponse, BasketData.class);
+
+        final DeliveryDetails getDeliveryDetails = response.getDeliveryDetails();
+        final Item item = response.getItems().get(0);
         assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
         assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
         assertEquals(COUNTRY, getDeliveryDetails.getCountry());
