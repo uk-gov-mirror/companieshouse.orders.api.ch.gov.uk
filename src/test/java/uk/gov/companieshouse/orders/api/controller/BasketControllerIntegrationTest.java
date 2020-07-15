@@ -647,6 +647,9 @@ class BasketControllerIntegrationTest {
         certificate.setSatisfiedAt(SATISFIED_AT);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        certificate.setItemOptions(options);
         when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         final String jsonResponse = mockMvc.perform(get("/basket")
@@ -655,6 +658,8 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].item_options.certificate_type",
+                        is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())))
                 .andReturn().getResponse().getContentAsString();
 
         final BasketData response = mapper.readValue(jsonResponse, BasketData.class);
