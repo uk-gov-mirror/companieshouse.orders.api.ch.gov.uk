@@ -614,8 +614,8 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Return a populated basket using GET method")
-    void getBasketReturnsPopulatedBasket() throws Exception {
+    @DisplayName("Get basket successfully returns a basket populated with a certificate")
+    void getBasketReturnsBasketPopulatedWithCertificate() throws Exception {
         final LocalDateTime start = timestamps.start();
         Basket basket = createBasket(start);
 
