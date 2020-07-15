@@ -38,6 +38,7 @@ import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 import uk.gov.companieshouse.orders.api.validator.DeliveryDetailsValidator;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -1264,6 +1265,13 @@ class BasketControllerIntegrationTest {
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
+    /**
+     * Creates a basket containing an item with just its item URI member populated. In this way, it creates a basket in
+     * the database that is similar to what results when
+     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} is called.
+     * @param start the creation/update time of the basket
+     * @return the {@link Basket} as persisted in the database
+     */
     private Basket createBasket(LocalDateTime start) {
         final Basket basket = new Basket();
         basket.setCreatedAt(start);
@@ -1271,23 +1279,7 @@ class BasketControllerIntegrationTest {
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
         basketItem.setItemUri(VALID_CERTIFICATE_URI);
-        basketItem.setCompanyName(COMPANY_NAME);
-        basketItem.setCompanyNumber(COMPANY_NUMBER);
-        basketItem.setCustomerReference(CUSTOMER_REFERENCE);
-        basketItem.setDescription(DESCRIPTION);
-        basketItem.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
-        basketItem.setDescriptionValues(DESCRIPTION_VALUES);
-        basketItem.setItemCosts(ITEM_COSTS);
-        basketItem.setEtag(ETAG);
-        basketItem.setKind(KIND);
-        basketItem.setPostalDelivery(POSTAL_DELIVERY);
-        basketItem.setQuantity(QUANTITY);
-        basketItem.setSatisfiedAt(SATISFIED_AT);
-        basketItem.setPostageCost(POSTAGE_COST);
-        basketItem.setTotalItemCost(TOTAL_ITEM_COST);
-
         basket.getData().getItems().add(basketItem);
-
         return basketRepository.save(basket);
     }
 
