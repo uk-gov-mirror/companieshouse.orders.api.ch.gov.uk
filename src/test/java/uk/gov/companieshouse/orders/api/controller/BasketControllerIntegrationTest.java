@@ -684,7 +684,91 @@ class BasketControllerIntegrationTest {
         assertEquals(POSTAGE_COST, item.getPostageCost());
         assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
 
-        verifyBasketIsUnchanged(start, deliveryDetails);
+        verifyBasketIsUnchanged(start, deliveryDetails, VALID_CERTIFICATE_URI);
+    }
+
+    @Test
+    @DisplayName("Get basket successfully returns a basket populated with a certified copy")
+    void getBasketReturnsBasketPopulatedWithCertifiedCopy() throws Exception {
+        final LocalDateTime start = timestamps.start();
+        final Basket basket = createBasket(start, VALID_CERTIFIED_COPY_URI);
+
+        final DeliveryDetails deliveryDetails = new DeliveryDetails();
+        deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetails.setCountry(COUNTRY);
+        deliveryDetails.setForename(FORENAME);
+        deliveryDetails.setSurname(SURNAME);
+        deliveryDetails.setLocality(LOCALITY);
+        basket.getData().setDeliveryDetails(deliveryDetails);
+
+        basketRepository.save(basket);
+
+        final CertifiedCopy copy = new CertifiedCopy();
+        final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
+        options.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        copy.setItemOptions(options);
+        copy.setItemUri(VALID_CERTIFIED_COPY_URI);
+        copy.setCompanyNumber(COMPANY_NUMBER);
+        copy.setCompanyName(COMPANY_NAME);
+        copy.setCustomerReference(CUSTOMER_REFERENCE);
+        copy.setDescription(DESCRIPTION);
+        copy.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        copy.setDescriptionValues(DESCRIPTION_VALUES);
+        copy.setItemCosts(ITEM_COSTS);
+        copy.setEtag(ETAG);
+        copy.setKind(KIND);
+        copy.setPostalDelivery(POSTAL_DELIVERY);
+        copy.setQuantity(QUANTITY);
+        copy.setSatisfiedAt(SATISFIED_AT);
+        copy.setPostageCost(POSTAGE_COST);
+        copy.setTotalItemCost(TOTAL_ITEM_COST);
+        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+
+        final String jsonResponse = mockMvc.perform(get("/basket")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_date",
+                        is(DOCUMENT.getFilingHistoryDate())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_description",
+                        is(DOCUMENT.getFilingHistoryDescription())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_id",
+                        is(DOCUMENT.getFilingHistoryId())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_type",
+                        is(DOCUMENT.getFilingHistoryType())))
+                .andReturn().getResponse().getContentAsString();
+
+        final BasketData response = mapper.readValue(jsonResponse, BasketData.class);
+
+        final DeliveryDetails getDeliveryDetails = response.getDeliveryDetails();
+        final Item item = response.getItems().get(0);
+        assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
+        assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
+        assertEquals(COUNTRY, getDeliveryDetails.getCountry());
+        assertEquals(FORENAME, getDeliveryDetails.getForename());
+        assertEquals(LOCALITY, getDeliveryDetails.getLocality());
+        assertEquals(SURNAME, getDeliveryDetails.getSurname());
+
+        assertEquals(VALID_CERTIFIED_COPY_URI, item.getItemUri());
+        assertEquals(COMPANY_NAME, item.getCompanyName());
+        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        assertEquals(CUSTOMER_REFERENCE, item.getCustomerReference());
+        assertEquals(DESCRIPTION, item.getDescription());
+        assertEquals(DESCRIPTION_IDENTIFIER, item.getDescriptionIdentifier());
+        assertEquals(DESCRIPTION_VALUES, item.getDescriptionValues());
+        assertEquals(ITEM_COSTS, item.getItemCosts());
+        assertEquals(ETAG, item.getEtag());
+        assertEquals(KIND, item.getKind());
+        assertEquals(POSTAL_DELIVERY, item.isPostalDelivery());
+        assertEquals(QUANTITY, item.getQuantity());
+        assertEquals(SATISFIED_AT, item.getSatisfiedAt());
+        assertEquals(POSTAGE_COST, item.getPostageCost());
+        assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
+
+        verifyBasketIsUnchanged(start, deliveryDetails, VALID_CERTIFIED_COPY_URI);
     }
 
     @Test
@@ -1266,13 +1350,15 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Verifies that the basket is as it was when created by {@link #createBasket(LocalDateTime)}, plus the addition of
-     * delivery details.
+     * Verifies that the basket is as it was when created by {@link #createBasket(LocalDateTime, String)}, plus
+     * the addition of delivery details.
      * @param basketCreationTime the time the basket was created
      * @param deliveryDetailsAdded the delivery details added to the basket
+     * @param itemUri the URI of the item stored in the basket
      */
     private void verifyBasketIsUnchanged(final LocalDateTime basketCreationTime,
-                                         final DeliveryDetails deliveryDetailsAdded) {
+                                         final DeliveryDetails deliveryDetailsAdded,
+                                         final String itemUri) {
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         assertThat(retrievedBasket.isPresent(), is(true));
         final Basket basket = retrievedBasket.get();
@@ -1280,9 +1366,20 @@ class BasketControllerIntegrationTest {
         assertThat(basket.getUpdatedAt(), is(basketCreationTime));
         assertThat(basket.getId(), is(ERIC_IDENTITY_VALUE));
         assertThat(basket.getItems().size(), is(1));
-        assertThat(basket.getItems().get(0).getItemUri(), is(VALID_CERTIFICATE_URI));
+        assertThat(basket.getItems().get(0).getItemUri(), is(itemUri));
         org.assertj.core.api.Assertions.assertThat(basket.getData().getDeliveryDetails())
                 .isEqualToComparingFieldByField(deliveryDetailsAdded);
+    }
+
+    /**
+     * Creates a basket containing a certificate item with just its item URI member populated. In this way,
+     * it creates a basket in the database that is similar to what results when
+     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} is called.
+     * @param start the creation/update time of the basket
+     * @return the {@link Basket} as persisted in the database
+     */
+    private Basket createBasket(final LocalDateTime start) {
+        return createBasket(start, VALID_CERTIFICATE_URI);
     }
 
     /**
@@ -1290,15 +1387,16 @@ class BasketControllerIntegrationTest {
      * the database that is similar to what results when
      * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} is called.
      * @param start the creation/update time of the basket
+     * @param itemUri the URI of the item stored in the basket
      * @return the {@link Basket} as persisted in the database
      */
-    private Basket createBasket(LocalDateTime start) {
+    private Basket createBasket(final LocalDateTime start, final String itemUri) {
         final Basket basket = new Basket();
         basket.setCreatedAt(start);
         basket.setUpdatedAt(start);
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
-        basketItem.setItemUri(VALID_CERTIFICATE_URI);
+        basketItem.setItemUri(itemUri);
         basket.getData().getItems().add(basketItem);
         return basketRepository.save(basket);
     }
