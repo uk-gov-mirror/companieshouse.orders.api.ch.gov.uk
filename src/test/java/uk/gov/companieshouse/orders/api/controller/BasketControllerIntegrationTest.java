@@ -297,13 +297,13 @@ class BasketControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_date",
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_date",
                         is(DOCUMENT.getFilingHistoryDate())))
-                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_description",
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_description",
                         is(DOCUMENT.getFilingHistoryDescription())))
-                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_id",
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_id",
                         is(DOCUMENT.getFilingHistoryId())))
-                .andExpect(jsonPath("$.item_options.filing_history_documents.[0].filing_history_type",
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_type",
                         is(DOCUMENT.getFilingHistoryType())));
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
@@ -736,13 +736,13 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_date",
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_date",
                         is(DOCUMENT.getFilingHistoryDate())))
-                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_description",
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_description",
                         is(DOCUMENT.getFilingHistoryDescription())))
-                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_id",
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_id",
                         is(DOCUMENT.getFilingHistoryId())))
-                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents.[0].filing_history_type",
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_type",
                         is(DOCUMENT.getFilingHistoryType())))
                 .andReturn().getResponse().getContentAsString();
 
