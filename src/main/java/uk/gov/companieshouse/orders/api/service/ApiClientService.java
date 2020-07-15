@@ -33,7 +33,7 @@ public class ApiClientService {
         this.apiClient = apiClient;
     }
 
-    public Item getItem(String itemUri) throws Exception {
+    public Item getItem(String itemUri) throws ApiErrorResponseException {
         final BaseItemApi baseItemApi;
         try {
             baseItemApi = apiClient

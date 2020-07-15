@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.model.Basket;
@@ -100,7 +101,7 @@ class BasketControllerTest {
         basket.get().getData().setItems(items);
 
         when(basketService.getBasketById(any())).thenReturn(basket);
-        when(apiClientService.getItem(any())).thenThrow(Exception.class);
+        when(apiClientService.getItem(any())).thenThrow(ApiErrorResponseException.class);
 
         ResponseEntity<?> responseEntity = controllerUnderTest.getBasket(httpServletRequest, "requestId");
 

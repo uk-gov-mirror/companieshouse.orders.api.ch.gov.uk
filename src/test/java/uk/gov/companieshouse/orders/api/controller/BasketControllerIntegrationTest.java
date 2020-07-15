@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
@@ -167,6 +169,9 @@ class BasketControllerIntegrationTest {
     private DeliveryDetailsValidator deliveryDetailsValidator;
 
     private TimestampedEntityVerifier timestamps;
+
+    @Mock
+    private ApiErrorResponseException apiErrorResponseException;
 
     @BeforeEach
     void setUp() {
@@ -323,7 +328,7 @@ class BasketControllerIntegrationTest {
 
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(INVALID_ITEM_URI);
-        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -547,7 +552,7 @@ class BasketControllerIntegrationTest {
     public void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
         basketRepository.save(getBasket(false));
 
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenThrow(new Exception());
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenThrow(apiErrorResponseException);
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -925,7 +930,7 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setSurname(SURNAME);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
-        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -949,7 +954,7 @@ class BasketControllerIntegrationTest {
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
 
-        when(apiClientService.getItem(null)).thenThrow(new Exception());
+        when(apiClientService.getItem(null)).thenThrow(apiErrorResponseException);
         final ApiError expectedValidationError =
                 new ApiError(CONFLICT,
                         asList(ErrorType.BASKET_ITEMS_MISSING.getValue()));
@@ -1004,7 +1009,7 @@ class BasketControllerIntegrationTest {
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
 
-        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
