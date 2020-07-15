@@ -7,6 +7,15 @@ import uk.gov.companieshouse.orders.api.model.*;
 
 @Mapper(componentModel = "spring")
 public interface ApiToItemMapper {
+
+    default Item apiToItem(final BaseItemApi baseItemApi) {
+        if (baseItemApi instanceof CertificateApi) {
+            return apiToCertificate((CertificateApi) baseItemApi);
+        } else {
+            return apiToCertifiedCopy((CertifiedCopyApi) baseItemApi);
+        }
+    }
+
     @Mapping(source = "links.self", target="itemUri")
     @Mapping(target = "satisfiedAt", ignore = true)
     @Mapping(target = "status", ignore = true)

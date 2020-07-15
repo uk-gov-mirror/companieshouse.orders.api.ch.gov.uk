@@ -87,7 +87,7 @@ public class ApiClientServiceTest {
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
-        when(apiToItemMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
+        when(apiToItemMapper.apiToItem(certificateApiResponse.getData())).thenReturn(certificate);
 
         Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
 
@@ -108,7 +108,7 @@ public class ApiClientServiceTest {
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
         certificate.setItemOptions(options);
-        when(apiToItemMapper.apiToCertificate(certificateApiResponse.getData())).thenReturn(certificate);
+        when(apiToItemMapper.apiToItem(certificateApiResponse.getData())).thenReturn(certificate);
 
         // When
         final Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
@@ -131,7 +131,7 @@ public class ApiClientServiceTest {
         final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
         options.setFilingHistoryDocuments(singletonList(DOCUMENT));
         copy.setItemOptions(options);
-        when(apiToItemMapper.apiToCertifiedCopy(certifiedCopyApiResponse.getData())).thenReturn(copy);
+        when(apiToItemMapper.apiToItem(certifiedCopyApiResponse.getData())).thenReturn(copy);
 
         // When
         final Item item = serviceUnderTest.getItem(VALID_CERTIFIED_COPY_URI);

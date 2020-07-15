@@ -4,11 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
-import uk.gov.companieshouse.api.handler.order.item.request.PrivateItemURIPattern;
-import uk.gov.companieshouse.api.handler.regex.URIValidator;
 import uk.gov.companieshouse.api.model.order.item.BaseItemApi;
-import uk.gov.companieshouse.api.model.order.item.CertificateApi;
-import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
@@ -46,11 +42,7 @@ public class ApiClientService {
             throw new ServiceException("Unrecognised uri pattern for " + itemUri);
         }
 
-        // TODO GCI-1242 Do this properly - either by URI or by examination of JSON response.
-        final Item item = URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri) ?
-                apiToItemMapper.apiToCertificate((CertificateApi) baseItemApi) :
-                apiToItemMapper.apiToCertifiedCopy((CertifiedCopyApi) baseItemApi);
-
+        final Item item = apiToItemMapper.apiToItem(baseItemApi);
         item.setItemUri(itemUri);
         item.setStatus(ItemStatus.UNKNOWN);
         return item;
