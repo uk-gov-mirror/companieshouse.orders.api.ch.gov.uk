@@ -8,6 +8,12 @@ import uk.gov.companieshouse.orders.api.model.*;
 @Mapper(componentModel = "spring")
 public interface ApiToItemMapper {
 
+    /**
+     * Uses the underlying type and fields of the Item API object provided to create a model class object of the
+     * appropriate type.
+     * @param baseItemApi the Item Api (SDK DTO) object obtained from an API
+     * @return an object of the corresponding model class, either a {@link Certificate}, or a {@link CertifiedCopy}
+     */
     default Item apiToItem(final BaseItemApi baseItemApi) {
         if (baseItemApi instanceof CertificateApi) {
             return apiToCertificate((CertificateApi) baseItemApi);

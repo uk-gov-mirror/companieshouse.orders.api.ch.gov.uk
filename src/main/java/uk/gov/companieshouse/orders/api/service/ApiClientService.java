@@ -9,6 +9,8 @@ import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
 import uk.gov.companieshouse.orders.api.mapper.ApiToItemMapper;
+import uk.gov.companieshouse.orders.api.model.Certificate;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopy;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemStatus;
 
@@ -29,6 +31,12 @@ public class ApiClientService {
         this.apiClient = apiClient;
     }
 
+    /**
+     * Gets an item from a remote API by sending it a get item HTTP GET request.
+     * @param itemUri the URI path representing the item (and implicitly the type of item) sought
+     * @return the item (either a {@link Certificate}, or a {@link CertifiedCopy})
+     * @throws ApiErrorResponseException should there be a 4xx or 5xx response from the API
+     */
     public Item getItem(String itemUri) throws ApiErrorResponseException {
         final BaseItemApi baseItemApi;
         try {
