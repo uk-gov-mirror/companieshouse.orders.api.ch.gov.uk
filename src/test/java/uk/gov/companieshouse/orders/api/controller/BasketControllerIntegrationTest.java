@@ -652,16 +652,6 @@ class BasketControllerIntegrationTest {
         final LocalDateTime start = timestamps.start();
         Basket basket = createBasket(start);
 
-        DeliveryDetails deliveryDetails = new DeliveryDetails();
-        deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
-        deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
-        deliveryDetails.setCountry(COUNTRY);
-        deliveryDetails.setForename(FORENAME);
-        deliveryDetails.setSurname(SURNAME);
-        deliveryDetails.setLocality(LOCALITY);
-
-        basket.getData().setDeliveryDetails(deliveryDetails);
-
         basketRepository.save(basket);
 
         final Certificate certificate = new Certificate();
@@ -722,7 +712,7 @@ class BasketControllerIntegrationTest {
         assertEquals(POSTAGE_COST, item.getPostageCost());
         assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
 
-        verifyBasketIsUnchanged(start, deliveryDetails, VALID_CERTIFICATE_URI);
+        verifyBasketIsUnchanged(start, basket.getData().getDeliveryDetails(), VALID_CERTIFICATE_URI);
     }
 
     @Test
@@ -730,15 +720,6 @@ class BasketControllerIntegrationTest {
     void getBasketReturnsBasketPopulatedWithCertifiedCopy() throws Exception {
         final LocalDateTime start = timestamps.start();
         final Basket basket = createBasket(start, VALID_CERTIFIED_COPY_URI);
-
-        final DeliveryDetails deliveryDetails = new DeliveryDetails();
-        deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
-        deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
-        deliveryDetails.setCountry(COUNTRY);
-        deliveryDetails.setForename(FORENAME);
-        deliveryDetails.setSurname(SURNAME);
-        deliveryDetails.setLocality(LOCALITY);
-        basket.getData().setDeliveryDetails(deliveryDetails);
 
         basketRepository.save(basket);
 
@@ -806,7 +787,7 @@ class BasketControllerIntegrationTest {
         assertEquals(POSTAGE_COST, item.getPostageCost());
         assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
 
-        verifyBasketIsUnchanged(start, deliveryDetails, VALID_CERTIFIED_COPY_URI);
+        verifyBasketIsUnchanged(start, basket.getData().getDeliveryDetails(), VALID_CERTIFIED_COPY_URI);
     }
 
     @Test
@@ -1389,8 +1370,7 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Verifies that the basket is as it was when created by {@link #createBasket(LocalDateTime, String)}, plus
-     * the addition of delivery details.
+     * Verifies that the basket is as it was when created by {@link #createBasket(LocalDateTime, String)}.
      * @param basketCreationTime the time the basket was created
      * @param deliveryDetailsAdded the delivery details added to the basket
      * @param itemUri the URI of the item stored in the basket
@@ -1411,9 +1391,11 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Creates a basket containing a certificate item with just its item URI member populated. In this way,
-     * it creates a basket in the database that is similar to what results when
-     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} is called.
+     * Creates a basket containing an item with just its item URI member populated, and some delivery details.
+     * In this way, it creates a basket in the database that is similar to what results when
+     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} and
+     * {@link BasketController#addDeliveryDetailsToBasket(AddDeliveryDetailsRequestDTO, HttpServletRequest, String)}
+     * have been called.
      * @param start the creation/update time of the basket
      * @return the {@link Basket} as persisted in the database
      */
@@ -1422,9 +1404,11 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Creates a basket containing an item with just its item URI member populated. In this way, it creates a basket in
-     * the database that is similar to what results when
-     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} is called.
+     * Creates a basket containing an item with just its item URI member populated, and some delivery details.
+     * In this way, it creates a basket in the database that is similar to what results when
+     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} and
+     * {@link BasketController#addDeliveryDetailsToBasket(AddDeliveryDetailsRequestDTO, HttpServletRequest, String)}
+     * have been called.
      * @param start the creation/update time of the basket
      * @param itemUri the URI of the item stored in the basket
      * @return the {@link Basket} as persisted in the database
@@ -1437,6 +1421,17 @@ class BasketControllerIntegrationTest {
         Item basketItem = new Item();
         basketItem.setItemUri(itemUri);
         basket.getData().getItems().add(basketItem);
+
+        DeliveryDetails deliveryDetails = new DeliveryDetails();
+        deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
+        deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
+        deliveryDetails.setCountry(COUNTRY);
+        deliveryDetails.setForename(FORENAME);
+        deliveryDetails.setSurname(SURNAME);
+        deliveryDetails.setLocality(LOCALITY);
+
+        basket.getData().setDeliveryDetails(deliveryDetails);
+
         return basketRepository.save(basket);
     }
 
