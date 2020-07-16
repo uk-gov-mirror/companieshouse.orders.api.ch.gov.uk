@@ -157,7 +157,9 @@ public class ApiToItemMapperTest {
         certificateApi.setPostageCost(POSTAGE_COST);
         certificateApi.setTotalItemCost(TOTAL_ITEM_COST);
 
-        final Certificate certificate = apiToItemMapper.apiToCertificate(certificateApi);
+        final Item item = apiToItemMapper.apiToItem(certificateApi);
+        assertThat(item instanceof Certificate, is(true));
+        final Certificate certificate = (Certificate) item;
 
         assertEquals(certificateApi.getId(), certificate.getId());
         assertThat(certificate.getId(), is(certificateApi.getId()));
@@ -199,7 +201,9 @@ public class ApiToItemMapperTest {
         certifiedCopyApi.setPostageCost(POSTAGE_COST);
         certifiedCopyApi.setTotalItemCost(TOTAL_ITEM_COST);
 
-        final CertifiedCopy certifiedCopy = apiToItemMapper.apiToCertifiedCopy(certifiedCopyApi);
+        final Item item = apiToItemMapper.apiToItem(certifiedCopyApi);
+        assertThat(item instanceof CertifiedCopy, is(true));
+        final CertifiedCopy certifiedCopy = (CertifiedCopy) item;
 
         assertEquals(certifiedCopyApi.getId(), certifiedCopy.getId());
         assertThat(certifiedCopy.getId(), is(certifiedCopyApi.getId()));
