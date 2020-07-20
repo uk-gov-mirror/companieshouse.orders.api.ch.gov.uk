@@ -63,6 +63,10 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
         final Document itemDocument =
                 ((List<Document>) checkoutDocument.get("data", Document.class).get("items", List.class)).get(index);
         final Document optionsDocument = itemDocument.get("item_options", Document.class);
+        if (optionsDocument == null) {
+            // No item options to read.
+            return;
+        }
         final ItemOptions options = mapper.readValue(optionsDocument.toJson(), getType(item.getKind()).optionsType);
         item.setItemOptions(options);
     }
