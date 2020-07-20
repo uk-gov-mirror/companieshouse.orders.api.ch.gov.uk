@@ -423,6 +423,7 @@ class BasketControllerIntegrationTest {
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setKind(CERTIFICATE_KIND);
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setForename(FORENAME);
         options.setSurname(SURNAME);
@@ -487,6 +488,8 @@ class BasketControllerIntegrationTest {
         basketRepository.save(getBasket(false));
 
         Certificate certificate = new Certificate();
+        certificate.setKind(CERTIFICATE_KIND);
+        certificate.setItemOptions(new ItemOptions());
         certificate.setItemCosts(ITEM_COSTS_ZERO);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
@@ -521,6 +524,8 @@ class BasketControllerIntegrationTest {
         basketRepository.save(getBasket(true));
 
         final Certificate certificate = new Certificate();
+        certificate.setKind(CERTIFICATE_KIND);
+        certificate.setItemOptions(new ItemOptions());
         certificate.setPostalDelivery(true);
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
@@ -613,6 +618,8 @@ class BasketControllerIntegrationTest {
         basketRepository.save(getBasket(false));
 
         final Certificate certificate = new Certificate();
+        certificate.setKind(CERTIFICATE_KIND);
+        certificate.setItemOptions(new ItemOptions());
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
