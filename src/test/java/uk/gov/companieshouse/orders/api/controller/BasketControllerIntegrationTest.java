@@ -1070,15 +1070,29 @@ class BasketControllerIntegrationTest {
         timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
         assertThat(retrievedCheckout.isPresent(), is(true));
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
-        assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
-        assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
+        final CheckoutData data = retrievedCheckout.get().getData();
+        assertThat(data.getStatus(), is(PaymentStatus.PAID));
+        assertThat(data.getEtag(), is(UPDATED_ETAG));
+        assertThat(data.getItems(), is(notNullValue()));
+        assertThat(data.getItems().isEmpty(), is(false));
+        assertThat(data.getItems().get(0), is(notNullValue()));
+        final Item checkoutItem = data.getItems().get(0);
+        assertThat(checkoutItem.getItemOptions() instanceof CertificateItemOptions, is(true));
+        final CertificateItemOptions options = (CertificateItemOptions) checkoutItem.getItemOptions();
+        assertThat(options.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
 
         // Assert order is created with correct information
         final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
         final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
+
         assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
         assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
         assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
+
+        // TODO GCI-984 Should we be expecting the following?
+//        assertThat(retrievedItem.getItemOptions() instanceof CertificateItemOptions, is(true));
+//        final CertificateItemOptions retrievedOptions = (CertificateItemOptions) checkoutItem.getItemOptions();
+//        assertThat(retrievedOptions.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
     }
 
     @Test
@@ -1365,6 +1379,10 @@ class BasketControllerIntegrationTest {
         item.setPostageCost(POSTAGE_COST);
         item.setTotalItemCost(TOTAL_ITEM_COST);
         item.setCompanyNumber(COMPANY_NUMBER);
+        item.setKind("item#certificate"); // TODO GCI-1022 Constants
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        item.setItemOptions(options);
 
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
