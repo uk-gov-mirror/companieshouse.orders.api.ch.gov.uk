@@ -24,13 +24,17 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
     private ObjectMapper mapper;
 
     /** Values of this represent different item types (aka kinds). */
-    private enum ItemType {
+    enum ItemType {
         CERTIFICATE("item#certificate", CertificateItemOptions.class),
         CERTIFIED_COPY("item#certified-copy", CertifiedCopyItemOptions.class);
 
         ItemType(final String kind, final Class<? extends ItemOptions> optionsType) {
             this.kind = kind;
             this.optionsType = optionsType;
+        }
+
+        Class<? extends ItemOptions> getOptionsType() {
+            return optionsType;
         }
 
         private String kind;
