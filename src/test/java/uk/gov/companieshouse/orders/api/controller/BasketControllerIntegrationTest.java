@@ -215,7 +215,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add Item successfully adds an item to the basket and returns item if the basket does not exist")
-    public void addItemSuccessfullyAddsItemToBasketIfBasketDoesNotExist() throws Exception {
+    void addItemSuccessfullyAddsItemToBasketIfBasketDoesNotExist() throws Exception {
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(VALID_CERTIFICATE_URI);
 
@@ -250,7 +250,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add item successfully adds an item to the basket and returns item if the basket exists")
-    public void addItemSuccessfullyAddsAnItemToBasketIfBasketAlreadyExists() throws Exception {
+    void addItemSuccessfullyAddsAnItemToBasketIfBasketAlreadyExists() throws Exception {
         Basket basket = new Basket();
         basketRepository.save(basket);
 
@@ -287,7 +287,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add certificate to basket responds with correctly populated certificate item options")
-    public void addCertificateReturnsCorrectlyPopulatedOptions() throws Exception {
+    void addCertificateReturnsCorrectlyPopulatedOptions() throws Exception {
         final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(VALID_CERTIFICATE_URI);
 
@@ -313,7 +313,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add certified copy to basket responds with correctly populated certified copy item options")
-    public void addCertifiedCopyReturnsCorrectlyPopulatedOptions() throws Exception {
+    void addCertifiedCopyReturnsCorrectlyPopulatedOptions() throws Exception {
         final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(VALID_CERTIFIED_COPY_URI);
 
@@ -346,7 +346,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add item returns 400 when invalid item passed in request")
-    public void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
+    void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
@@ -375,7 +375,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add item successfully replaces an item in the basket")
-    public void addItemSuccessfullyReplacesAnItemInTheBasket() throws Exception {
+    void addItemSuccessfullyReplacesAnItemInTheBasket() throws Exception {
         Item item = new Item();
         item.setItemUri(OLD_CERTIFICATE_URI);
         BasketData basketData = new BasketData();
@@ -402,7 +402,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add item fails to add item to basket that fails validation")
-    public void addItemFailsToAddItemToBasketIfFailsValidation() throws Exception {
+    void addItemFailsToAddItemToBasketIfFailsValidation() throws Exception {
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
@@ -417,7 +417,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
-    public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
+    void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
         basketRepository.save(getBasket(false));
 
         Certificate certificate = new Certificate();
@@ -482,7 +482,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket returns 200 when total order cost is zero")
-    public void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
+    void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
         basketRepository.save(getBasket(false));
 
         Certificate certificate = new Certificate();
@@ -516,7 +516,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket returns 202 when total order cost is non-zero")
-    public void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
+    void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
         basketRepository.save(getBasket(true));
 
         final Certificate certificate = new Certificate();
@@ -548,7 +548,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket is empty")
-    public void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
+    void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
@@ -564,7 +564,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 409, when basket does not exist")
-    public void checkoutBasketFailsToCreateCheckoutIfBasketDoesNotExist() throws Exception {
+    void checkoutBasketFailsToCreateCheckoutIfBasketDoesNotExist() throws Exception {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -577,7 +577,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 400, when there is a failure getting the item")
-    public void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
+    void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
         basketRepository.save(getBasket(false));
 
         when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenThrow(apiErrorResponseException);
@@ -593,7 +593,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Check out basket returns 403 if body is present")
-    public void checkoutBasketReturnsBadRequestIfBodyIsPresent() throws Exception {
+    void checkoutBasketReturnsBadRequestIfBodyIsPresent() throws Exception {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -608,7 +608,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket successfully creates checkout with costs from Certificates API")
-    public void checkoutBasketCheckoutContainsCosts() throws Exception {
+    void checkoutBasketCheckoutContainsCosts() throws Exception {
         basketRepository.save(getBasket(false));
 
         final Certificate certificate = new Certificate();
@@ -812,7 +812,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add delivery details to the basket, if the basket exists")
-    public void addDeliveryDetailsToBasketIfTheBasketExists() throws Exception {
+    void addDeliveryDetailsToBasketIfTheBasketExists() throws Exception {
         Basket basket = new Basket();
         basketRepository.save(basket);
 
@@ -852,7 +852,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add delivery details to the basket, if the basket does not exist")
-    public void addDeliveryDetailsToBasketIfTheBasketDoesNotExist() throws Exception {
+    void addDeliveryDetailsToBasketIfTheBasketDoesNotExist() throws Exception {
 
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
         DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
@@ -890,7 +890,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add delivery details fails due to failed validation")
-    public void addDeliveryDetailsFailsDueToFailedValidation() throws Exception {
+    void addDeliveryDetailsFailsDueToFailedValidation() throws Exception {
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
         DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
         deliveryDetailsDTO.setAddressLine1("");
@@ -918,7 +918,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch basket returns 400 when item uri is invalid")
-    public void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
+    void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
@@ -958,7 +958,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket items are missing")
-    public void checkoutBasketfFailsToCreateCheckoutIfBasketHasNoItems() throws Exception {
+    void checkoutBasketfFailsToCreateCheckoutIfBasketHasNoItems() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
@@ -981,7 +981,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, " +
             "when delivery details are missing and postal delivery true")
-    public void checkoutBasketfFailsToCreateCheckoutWhenDeliverDetailsMissing() throws Exception {
+    void checkoutBasketfFailsToCreateCheckoutWhenDeliverDetailsMissing() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         BasketData basketData = new BasketData();
@@ -1010,7 +1010,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add item to basket returns 400 when item uri is invalid")
-    public void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
+    void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
@@ -1036,7 +1036,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for paid payments session")
-    public void patchBasketPaymentDetailsSuccessPaid() throws Exception {
+    void patchBasketPaymentDetailsSuccessPaid() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1097,7 +1097,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for failed payments session")
-    public void patchBasketPaymentDetailsSuccessFailed() throws Exception {
+    void patchBasketPaymentDetailsSuccessFailed() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.FAILED);
@@ -1121,7 +1121,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for cancelled payments session")
-    public void patchBasketPaymentDetailsSuccessCancelled() throws Exception {
+    void patchBasketPaymentDetailsSuccessCancelled() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.CANCELLED);
@@ -1145,7 +1145,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for no-funds payments session")
-    public void patchBasketPaymentDetailsSuccessNoFunds() throws Exception {
+    void patchBasketPaymentDetailsSuccessNoFunds() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.NO_FUNDS);
@@ -1169,7 +1169,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint fails if it doesn't return payment session")
-    public void patchBasketPaymentDetailsFailureReturningPaymentSession() throws Exception {
+    void patchBasketPaymentDetailsFailureReturningPaymentSession() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1195,7 +1195,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment details endpoints fails if status on payments service is not paid")
-    public void patchBasketPaymentDetailsFailureCheckingPaymentStatus() throws Exception {
+    void patchBasketPaymentDetailsFailureCheckingPaymentStatus() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1222,7 +1222,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment details endpoints fails if payment total on payments service is different")
-    public void patchBasketPaymentDetailsFailureCheckingPaymentTotal() throws Exception {
+    void patchBasketPaymentDetailsFailureCheckingPaymentTotal() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1249,7 +1249,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment details endpoints fails if checkout resource is different to the one on payments service")
-    public void patchBasketPaymentDetailsFailureCheckingResourceUpdated() throws Exception {
+    void patchBasketPaymentDetailsFailureCheckingResourceUpdated() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
