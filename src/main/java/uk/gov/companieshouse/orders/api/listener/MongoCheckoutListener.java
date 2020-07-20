@@ -67,24 +67,48 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
 
     /**
      * Reads the item options for the item correctly. How to read these options correctly from the DB is determined
-     * from the kind of the item.
-     * @param index the index identifying both the item within the items collection and its {@link Document}
+     * from the kind of the item. Updates the item options assigned to the items.
+     * @param itemIndex the item index identifying both the item within the items collection and its {@link Document}
      * @param items the items held by the checkout
-     * @param checkoutDocument the checkout {@link Document}
+     * @param checkoutDocument the checkout {@link Document} from the DB
      * @throws IOException should there be an issue parsing the item options JSON from the DB
      */
-    void readItemOptions(final int index, final List<Item> items, final Document checkoutDocument) throws IOException {
-        final Item item = items.get(index);
-        @SuppressWarnings("unchecked") // Java language limitation (type erasure)
-        final Document itemDocument =
-                ((List<Document>) checkoutDocument.get("data", Document.class).get("items", List.class)).get(index);
-        final Document optionsDocument = itemDocument.get("item_options", Document.class);
+    void readItemOptions(final int itemIndex, final List<Item> items, final Document checkoutDocument)
+            throws IOException {
+        final Item item = items.get(itemIndex);
+        final Document optionsDocument = getItemOptionsDocument(checkoutDocument, itemIndex);
         if (optionsDocument == null) {
             // No item options to read.
             return;
         }
-        final ItemOptions options = mapper.readValue(optionsDocument.toJson(), getType(item.getKind()).optionsType);
+        final ItemOptions options = readItemOptions(optionsDocument, item.getKind());
         item.setItemOptions(options);
+    }
+
+    /**
+     * Gets the document representing the item's item options.
+     * @param checkoutDocument the {@link Document} representing the checkout
+     * @param itemIndex the index of the item within the collection of items held within the checkout
+     * @return the {@link Document} representing the item options for the item identified by the index
+     */
+    Document getItemOptionsDocument(final Document checkoutDocument, final int itemIndex) {
+        @SuppressWarnings("unchecked") // Java language limitation (type erasure)
+        final Document itemDocument =
+                ((List<Document>) checkoutDocument.get("data", Document.class).get("items", List.class)).get(itemIndex);
+        return itemDocument.get("item_options", Document.class);
+    }
+
+    /**
+     * Reads (deserialises) the options document into the correct type of item options object.
+     * @param optionsDocument the {@link Document} from the DB representing the item options
+     * @param kind the item kind used to determine the correct item options class for the object to read the
+     *             document into
+     * @return the deserialised item options object, either a {@link CertificateItemOptions}, or a
+     * {@link CertifiedCopyItemOptions} as appropriate for the kind
+     * @throws IOException should there be an issue parsing the item options JSON from the DB
+     */
+    ItemOptions readItemOptions(final Document optionsDocument, final String kind) throws IOException {
+        return mapper.readValue(optionsDocument.toJson(), getType(kind).optionsType);
     }
 
     /**
