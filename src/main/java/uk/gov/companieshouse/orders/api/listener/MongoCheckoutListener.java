@@ -39,8 +39,13 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
     @Override
     public void onAfterConvert(final AfterConvertEvent<Checkout> event) {
 
-        final List<Item> items = event.getSource().getData().getItems();
         final Document checkoutDocument = event.getDocument();
+        if (checkoutDocument == null) {
+            // TODO GCI-1022 This seems unlikely?
+            throw new IllegalStateException("No checkout document found on event.");
+        }
+        final List<Item> items = event.getSource().getData().getItems();
+
         for (int index = 0; index < items.size(); index++) {
             try {
                 readItemOptions(index, items, checkoutDocument);
@@ -54,7 +59,9 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
     // TODO GCI-1022 Tidy up
     void readItemOptions(final int index, final List<Item> items, final Document checkoutDocument) throws IOException {
         final Item item = items.get(index);
-        final Document itemDocument = ((List<Document>) checkoutDocument.get("data", Document.class).get("items")).get(index);
+        @SuppressWarnings("unchecked") // Java language limitation (type erasure)
+        final Document itemDocument =
+                ((List<Document>) checkoutDocument.get("data", Document.class).get("items", List.class)).get(index);
         final Document optionsDocument = itemDocument.get("item_options", Document.class);
         // TODO GCI-1022 Find out why this seems necessary for the integration case mapper.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
         final ItemOptions options = mapper.readValue(optionsDocument.toJson(), getType(item.getKind()).optionsType);
