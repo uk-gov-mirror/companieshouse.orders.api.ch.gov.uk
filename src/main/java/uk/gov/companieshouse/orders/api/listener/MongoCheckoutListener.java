@@ -23,6 +23,7 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
     @Autowired
     private ObjectMapper mapper;
 
+    /** Values of this represent different item types (aka kinds). */
     private enum ItemType {
         CERTIFICATE("item#certificate", CertificateItemOptions.class),
         CERTIFIED_COPY("item#certified-copy", CertifiedCopyItemOptions.class);
@@ -36,12 +37,16 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
         private Class<? extends ItemOptions> optionsType;
     }
 
+    /**
+     * Overridden here to intervene in the reading of a {@link Checkout} from the database to make sure the
+     * item options, if present, are read correctly.
+     * @param event the {@link AfterConvertEvent} presenting both the mapped {@link Checkout} and its {@link Document}
+     */
     @Override
     public void onAfterConvert(final AfterConvertEvent<Checkout> event) {
 
         final Document checkoutDocument = event.getDocument();
         if (checkoutDocument == null) {
-            // TODO GCI-1022 This seems unlikely?
             throw new IllegalStateException("No checkout document found on event.");
         }
         final List<Item> items = event.getSource().getData().getItems();
@@ -49,14 +54,21 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
         for (int index = 0; index < items.size(); index++) {
             try {
                 readItemOptions(index, items, checkoutDocument);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ioe) {
+                throw new IllegalStateException("Error parsing item options JSON: " + ioe.getMessage());
             }
         }
 
     }
 
-    // TODO GCI-1022 Tidy up
+    /**
+     * Reads the item options for the item correctly. How to read these options correctly from the DB is determined
+     * from the kind of the item.
+     * @param index the index identifying both the item within the items collection and its {@link Document}
+     * @param items the items held by the checkout
+     * @param checkoutDocument the checkout {@link Document}
+     * @throws IOException should there be an issue parsing the item options JSON from the DB
+     */
     void readItemOptions(final int index, final List<Item> items, final Document checkoutDocument) throws IOException {
         final Item item = items.get(index);
         @SuppressWarnings("unchecked") // Java language limitation (type erasure)
@@ -71,6 +83,11 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
         item.setItemOptions(options);
     }
 
+    /**
+     * Gets the {@link ItemType} corresponding to the kind presented.
+     * @param kind the kind
+     * @return the corresponding {@link ItemType}
+     */
     ItemType getType(final String kind) {
         return stream(ItemType.values())
                 .filter(value -> value.kind.equals(kind))
