@@ -63,7 +63,6 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
         final Document itemDocument =
                 ((List<Document>) checkoutDocument.get("data", Document.class).get("items", List.class)).get(index);
         final Document optionsDocument = itemDocument.get("item_options", Document.class);
-        // TODO GCI-1022 Find out why this seems necessary for the integration case mapper.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
         final ItemOptions options = mapper.readValue(optionsDocument.toJson(), getType(item.getKind()).optionsType);
         item.setItemOptions(options);
     }
