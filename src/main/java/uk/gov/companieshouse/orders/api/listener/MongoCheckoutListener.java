@@ -57,7 +57,7 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
 
         for (int index = 0; index < items.size(); index++) {
             try {
-                readItemOptions(index, items, checkoutDocument);
+                readCheckoutItemsOptions(index, items, checkoutDocument);
             } catch (IOException ioe) {
                 throw new IllegalStateException("Error parsing item options JSON: " + ioe.getMessage());
             }
@@ -66,14 +66,14 @@ public class MongoCheckoutListener extends AbstractMongoEventListener<Checkout> 
     }
 
     /**
-     * Reads the item options for the item correctly. How to read these options correctly from the DB is determined
-     * from the kind of the item. Updates the item options assigned to the items.
+     * Reads the item options for each item correctly. How to read these options correctly from the DB is determined
+     * from the kind of the item. Updates the item options assigned to each item.
      * @param itemIndex the item index identifying both the item within the items collection and its {@link Document}
      * @param items the items held by the checkout
      * @param checkoutDocument the checkout {@link Document} from the DB
      * @throws IOException should there be an issue parsing the item options JSON from the DB
      */
-    void readItemOptions(final int itemIndex, final List<Item> items, final Document checkoutDocument)
+    void readCheckoutItemsOptions(final int itemIndex, final List<Item> items, final Document checkoutDocument)
             throws IOException {
         final Item item = items.get(itemIndex);
         final Document optionsDocument = getItemOptionsDocument(checkoutDocument, itemIndex);
