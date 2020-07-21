@@ -60,11 +60,10 @@ public class CheckoutBasketValidatorTest {
 
     @Test
     @DisplayName("getValidationErrors returns error for invalid item")
-    public void getValidationErrorsReportsInvalidItem() throws Exception {
+    public void getValidationErrorsReportsInvalidItem() {
         // Given
         Basket basket = setupBasketWithInvalidItem();
         // When
-        when(apiClientService.getItem(anyString())).thenThrow(Exception.class);
         List<String> errors = validatorUnderTest.getValidationErrors(basket);
         // Then
         assertThat(errors.isEmpty(), is(false));

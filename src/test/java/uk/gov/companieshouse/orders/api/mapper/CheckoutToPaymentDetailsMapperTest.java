@@ -20,10 +20,11 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
 
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(CheckoutToPaymentDetailsMapperTest.Config.class)
-public class CheckoutToPaymentDetailsMapperTest {
+class CheckoutToPaymentDetailsMapperTest {
     static final CheckoutData CHECKOUT_DATA = new CheckoutData();
     static final String ETAG = "d34e69c50fec2207808dd77f6ed17e832acc1f18";
     static final String USER_EMAIL = "demo@ch.gov.uk";
@@ -60,7 +61,6 @@ public class CheckoutToPaymentDetailsMapperTest {
     static final List<Item> ITEMS = new ArrayList<>();
     static final Item ITEM = new Item();
     static final String ITEM_ETAG = "5b5516a6ad2b1eb27b30213191884cda147529db";
-    static final String ITEM_KIND = "item#certificate";
     static final ItemLinks ITEM_LINKS = new ItemLinks();
     static final String ITEM_SELF_URI = "/orderable/certificates/CHS00000000000000001";
     static final int ITEM_QUANTITY = 1;
@@ -89,7 +89,7 @@ public class CheckoutToPaymentDetailsMapperTest {
         ITEM.setDescriptionValues(DESC_VALUES);
         ITEM.setItemOptions(ITEM_OPTIONS);
         ITEM.setEtag(ITEM_ETAG);
-        ITEM.setKind(ITEM_KIND);
+        ITEM.setKind(CERTIFICATE_KIND);
         ITEM.setQuantity(ITEM_QUANTITY);
         ITEM.setLinks(ITEM_LINKS);
         ITEM.setItemCosts(ITEM_COSTS_LIST);
@@ -129,7 +129,7 @@ public class CheckoutToPaymentDetailsMapperTest {
     CheckoutToPaymentDetailsMapper checkoutToPaymentDetailsMapper;
 
     @Test
-    public void testCheckoutToPaymentDetailsMapper() {
+    void testCheckoutToPaymentDetailsMapper() {
         Checkout source = new Checkout();
         source.setData(CHECKOUT_DATA);
 
@@ -147,6 +147,8 @@ public class CheckoutToPaymentDetailsMapperTest {
         testLinks(source, target);
         testItems(source, target);
     }
+
+    // TODO GCI-984 Implement test for certified copy mapping?
 
     private void testItems(Checkout source, PaymentDetailsDTO target){
         assertEquals(target.getItems().size(), source.getData().getItems().get(0).getItemCosts().size());

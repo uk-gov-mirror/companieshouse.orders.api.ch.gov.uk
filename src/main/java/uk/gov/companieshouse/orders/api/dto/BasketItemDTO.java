@@ -1,9 +1,9 @@
 package uk.gov.companieshouse.orders.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
 import uk.gov.companieshouse.orders.api.model.ItemLinks;
+import uk.gov.companieshouse.orders.api.model.ItemOptions;
 
 import java.util.List;
 import java.util.Map;
@@ -34,13 +34,10 @@ public class BasketItemDTO extends ItemDTO {
     private List<ItemCosts> itemCosts;
 
     @JsonProperty("item_options")
-    private CertificateItemOptions itemOptions;
+    private ItemOptions itemOptions;
 
     @JsonProperty("etag")
     private String etag;
-
-    @JsonProperty("kind")
-    private String kind;
 
     @JsonProperty("links")
     private ItemLinks links;
@@ -96,11 +93,11 @@ public class BasketItemDTO extends ItemDTO {
         this.itemCosts = itemCosts;
     }
 
-    public CertificateItemOptions getItemOptions() {
+    public ItemOptions getItemOptions() {
         return itemOptions;
     }
 
-    public void setItemOptions(CertificateItemOptions itemOptions) {
+    public void setItemOptions(ItemOptions itemOptions) {
         this.itemOptions = itemOptions;
     }
 
@@ -110,14 +107,6 @@ public class BasketItemDTO extends ItemDTO {
 
     public void setEtag(String etag) {
         this.etag = etag;
-    }
-
-    public String getKind() {
-        return kind;
-    }
-
-    public void setKind(String kind) {
-        this.kind = kind;
     }
 
     public ItemLinks getLinks() {

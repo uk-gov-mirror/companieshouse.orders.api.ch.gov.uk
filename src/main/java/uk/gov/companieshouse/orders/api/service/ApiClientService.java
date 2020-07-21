@@ -4,13 +4,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriTemplate;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
-import uk.gov.companieshouse.api.handler.order.item.request.PrivateItemURIPattern;
-import uk.gov.companieshouse.api.handler.regex.URIValidator;
-import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import uk.gov.companieshouse.api.model.order.item.BaseItemApi;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.client.Api;
 import uk.gov.companieshouse.orders.api.exception.ServiceException;
-import uk.gov.companieshouse.orders.api.mapper.ApiToCertificateMapper;
+import uk.gov.companieshouse.orders.api.mapper.ApiToItemMapper;
+import uk.gov.companieshouse.orders.api.model.Certificate;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopy;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemStatus;
 
@@ -19,28 +19,41 @@ import java.io.IOException;
 @Service
 public class ApiClientService {
 
-    private final ApiToCertificateMapper apiToCertificateMapper;
+    private final ApiToItemMapper apiToItemMapper;
 
     private final Api apiClient;
 
     private static final UriTemplate GET_PAYMENT_URI =
             new UriTemplate("/payments/{paymentId}");
 
-    public ApiClientService(ApiToCertificateMapper apiToCertificateMapper, Api apiClient) {
-        this.apiToCertificateMapper = apiToCertificateMapper;
+    public ApiClientService(ApiToItemMapper apiToItemMapper, Api apiClient) {
+        this.apiToItemMapper = apiToItemMapper;
         this.apiClient = apiClient;
     }
 
-    public Item getItem(String itemUri) throws Exception {
-        if (URIValidator.validate(PrivateItemURIPattern.getCertificatesPattern(), itemUri)) {
-            CertificateApi certificateApi = apiClient.getInternalApiClient().privateItemResourceHandler().getCertificate(itemUri).execute().getData();
-            Item certificate = apiToCertificateMapper.apiToCertificate(certificateApi);
-            certificate.setItemUri(itemUri);
-            certificate.setStatus(ItemStatus.UNKNOWN);
-            return certificate;
-        } else {
-            throw new ServiceException("Unrecognised uri pattern for "+itemUri);
+    /**
+     * Gets an item from a remote API by sending it a get item HTTP GET request.
+     * @param itemUri the URI path representing the item (and implicitly the type of item) sought
+     * @return the item (either a {@link Certificate}, or a {@link CertifiedCopy})
+     * @throws ApiErrorResponseException should there be a 4xx or 5xx response from the API
+     */
+    public Item getItem(String itemUri) throws ApiErrorResponseException {
+        final BaseItemApi baseItemApi;
+        try {
+            baseItemApi = apiClient
+                    .getInternalApiClient()
+                    .privateItemResourceHandler()
+                    .getItem(itemUri)
+                    .execute()
+                    .getData();
+        } catch (URIValidationException uve) {
+            throw new ServiceException("Unrecognised uri pattern for " + itemUri);
         }
+
+        final Item item = apiToItemMapper.apiToItem(baseItemApi);
+        item.setItemUri(itemUri);
+        item.setStatus(ItemStatus.UNKNOWN);
+        return item;
     }
 
     public PaymentApi getPaymentSummary(String passthroughHeader, String paymentId) throws IOException {

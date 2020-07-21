@@ -39,7 +39,7 @@
 					"name": "Add item to basket",
 					"item": [
 						{
-							"name": "Add item to basket",
+							"name": "Add certificate item to basket",
 							"request": {
 								"method": "POST",
 								"header": [
@@ -57,7 +57,280 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n\t\"item_uri\": \"/orderable/certificates/CHS00000000000000001\"\n}",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certificates/CRT-283515-943657\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add unknown certificate item to basket",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certificates/CRT-000000-000000\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add certificate item to basket with incorrect URI",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certificates/CRT-283515-943657\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add certificate item to basket with syntax error",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certificates/CRT-283515-943657\"x\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add certified copy item to basket",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certified-copies/CCD-473815-935982\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add unknown certified copy item to basket",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certified-copies/CCD-000000-000000\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add certified copy item to basket with incorrect URI",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certified_copies/CCD-473815-935982/x\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/basket/items",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket",
+										"items"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add certified copy item to basket with syntax error",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Request-ID",
+										"type": "text",
+										"value": "f058ebd6-02f7-4d3f-942e-904344e8cde5"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"item_uri\": \"/orderable/certified-copies/CCD-473815-935982\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -339,7 +612,13 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": ""
+									"raw": "{{base_url}}/basket",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"basket"
+									]
 								}
 							},
 							"response": []

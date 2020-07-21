@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
@@ -33,11 +35,14 @@ import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
 import uk.gov.companieshouse.orders.api.model.Certificate;
 import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopy;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopyItemOptions;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
+import uk.gov.companieshouse.orders.api.model.ItemOptions;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
@@ -50,6 +55,7 @@ import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 import uk.gov.companieshouse.orders.api.validator.DeliveryDetailsValidator;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -84,8 +90,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
+import static uk.gov.companieshouse.orders.api.model.CertificateType.INCORPORATION_WITH_ALL_NAME_CHANGES;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_ACCESS_TOKEN;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
@@ -96,6 +105,8 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFICATE_URI;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIED_COPY_URI;
 
 @DirtiesContext
 @AutoConfigureMockMvc
@@ -103,8 +114,7 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_
 @EmbeddedKafka
 class BasketControllerIntegrationTest {
 
-    private static final String ITEM_URI = "/orderable/certificates/12345678";
-    private static final String ITEM_URI_OLD = "/orderable/certificates/11111111";
+    private static final String OLD_CERTIFICATE_URI = "/orderable/certificates/11111111";
 
     private static final String COMPANY_NAME = "companyName";
     private static final String COMPANY_NUMBER = "00000000";
@@ -189,6 +199,9 @@ class BasketControllerIntegrationTest {
 
     private TimestampedEntityVerifier timestamps;
 
+    @Mock
+    private ApiErrorResponseException apiErrorResponseException;
+
     @BeforeEach
     void setUp() {
         timestamps = new TimestampedEntityVerifier();
@@ -203,15 +216,15 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add Item successfully adds an item to the basket and returns item if the basket does not exist")
-    public void addItemSuccessfullyAddsItemToBasketIfBasketDoesNotExist() throws Exception {
+    void addItemSuccessfullyAddsItemToBasketIfBasketDoesNotExist() throws Exception {
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
-        addToBasketRequestDTO.setItemUri(ITEM_URI);
+        addToBasketRequestDTO.setItemUri(VALID_CERTIFICATE_URI);
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -227,29 +240,29 @@ class BasketControllerIntegrationTest {
         BasketItemDTO basketItemDTOResp = mapper.readValue(contentAsString, BasketItemDTO.class);
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
-        assertThat(COMPANY_NUMBER, is(basketItemDTOResp.getCompanyNumber()));
-        assertThat(DISCOUNT_APPLIED_1, is(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied()));
-        assertThat(ITEM_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getItemCost()));
-        assertThat(CALCULATED_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost()));
-        assertThat(POSTAGE_COST, is(basketItemDTOResp.getPostageCost()));
+        assertEquals(VALID_CERTIFICATE_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+        assertThat(basketItemDTOResp.getCompanyNumber(), is(COMPANY_NUMBER));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied(), is(DISCOUNT_APPLIED_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getItemCost(), is(ITEM_COST_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost(), is(CALCULATED_COST_1));
+        assertThat(basketItemDTOResp.getPostageCost(), is(POSTAGE_COST));
         assertEquals(1, retrievedBasket.get().getData().getItems().size());
     }
 
     @Test
     @DisplayName("Add item successfully adds an item to the basket and returns item if the basket exists")
-    public void addItemSuccessfullyAddsAnItemToBasketIfBasketAlreadyExists() throws Exception {
+    void addItemSuccessfullyAddsAnItemToBasketIfBasketAlreadyExists() throws Exception {
         Basket basket = new Basket();
         basketRepository.save(basket);
 
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
-        addToBasketRequestDTO.setItemUri(ITEM_URI);
+        addToBasketRequestDTO.setItemUri(VALID_CERTIFICATE_URI);
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -265,17 +278,76 @@ class BasketControllerIntegrationTest {
         BasketItemDTO basketItemDTOResp = mapper.readValue(contentAsString, BasketItemDTO.class);
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertThat(COMPANY_NUMBER, is(basketItemDTOResp.getCompanyNumber()));
-        assertThat(DISCOUNT_APPLIED_1, is(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied()));
-        assertThat(ITEM_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getItemCost()));
-        assertThat(CALCULATED_COST_1, is(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost()));
-        assertThat(POSTAGE_COST, is(basketItemDTOResp.getPostageCost()));
-        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+        assertThat(basketItemDTOResp.getCompanyNumber(), is(COMPANY_NUMBER));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getDiscountApplied(), is(DISCOUNT_APPLIED_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getItemCost(), is(ITEM_COST_1));
+        assertThat(basketItemDTOResp.getItemCosts().get(0).getCalculatedCost(), is(CALCULATED_COST_1));
+        assertThat(basketItemDTOResp.getPostageCost(), is(POSTAGE_COST));
+        assertEquals(VALID_CERTIFICATE_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
     }
 
     @Test
+    @DisplayName("Add certificate to basket responds with correctly populated certificate item options")
+    void addCertificateReturnsCorrectlyPopulatedOptions() throws Exception {
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(VALID_CERTIFICATE_URI);
+
+        final Certificate certificate = new Certificate();
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        certificate.setItemOptions(options);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item_options.certificate_type",
+                        is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())));
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertThat(retrievedBasket.get().getData().getItems().get(0).getItemUri(), is(VALID_CERTIFICATE_URI));
+    }
+
+    @Test
+    @DisplayName("Add certified copy to basket responds with correctly populated certified copy item options")
+    void addCertifiedCopyReturnsCorrectlyPopulatedOptions() throws Exception {
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(VALID_CERTIFIED_COPY_URI);
+
+        final CertifiedCopy copy = new CertifiedCopy();
+        final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
+        options.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        copy.setItemOptions(options);
+        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_date",
+                        is(DOCUMENT.getFilingHistoryDate())))
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_description",
+                        is(DOCUMENT.getFilingHistoryDescription())))
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_id",
+                        is(DOCUMENT.getFilingHistoryId())))
+                .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_type",
+                        is(DOCUMENT.getFilingHistoryType())));
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertThat(retrievedBasket.get().getData().getItems().get(0).getItemUri(), is(VALID_CERTIFIED_COPY_URI));
+    }
+
+
+    @Test
     @DisplayName("Add item returns 400 when invalid item passed in request")
-    public void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
+    void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
@@ -285,7 +357,7 @@ class BasketControllerIntegrationTest {
 
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(INVALID_ITEM_URI);
-        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -304,9 +376,9 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add item successfully replaces an item in the basket")
-    public void addItemSuccessfullyReplacesAnItemInTheBasket() throws Exception {
+    void addItemSuccessfullyReplacesAnItemInTheBasket() throws Exception {
         Item item = new Item();
-        item.setItemUri(ITEM_URI_OLD);
+        item.setItemUri(OLD_CERTIFICATE_URI);
         BasketData basketData = new BasketData();
         basketData.setItems(Arrays.asList(item));
         Basket basket = new Basket();
@@ -314,7 +386,7 @@ class BasketControllerIntegrationTest {
         basketRepository.save(basket);
 
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
-        addToBasketRequestDTO.setItemUri(ITEM_URI);
+        addToBasketRequestDTO.setItemUri(VALID_CERTIFICATE_URI);
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -325,13 +397,13 @@ class BasketControllerIntegrationTest {
                 .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        assertEquals(ITEM_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
+        assertEquals(VALID_CERTIFICATE_URI, retrievedBasket.get().getData().getItems().get(0).getItemUri());
 
     }
 
     @Test
     @DisplayName("Add item fails to add item to basket that fails validation")
-    public void addItemFailsToAddItemToBasketIfFailsValidation() throws Exception {
+    void addItemFailsToAddItemToBasketIfFailsValidation() throws Exception {
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
@@ -346,11 +418,12 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
-    public void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
+    void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
         basketRepository.save(getBasket(false));
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setKind(CERTIFICATE_KIND);
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setForename(FORENAME);
         options.setSurname(SURNAME);
@@ -358,7 +431,7 @@ class BasketControllerIntegrationTest {
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setPostalDelivery(false);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -379,7 +452,7 @@ class BasketControllerIntegrationTest {
         final CheckoutData checkoutData = retrievedCheckout.get().getData();
         final Item item = checkoutData.getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
-        final CertificateItemOptions retrievedOptions = item.getItemOptions();
+        final ItemOptions retrievedOptions = item.getItemOptions();
         assertEquals(FORENAME, retrievedOptions.getForename());
         assertEquals(SURNAME, retrievedOptions.getSurname());
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
@@ -401,7 +474,7 @@ class BasketControllerIntegrationTest {
         }
 
         Item basketItem = new Item();
-        basketItem.setItemUri(ITEM_URI);
+        basketItem.setItemUri(VALID_CERTIFICATE_URI);
 
         basketItem.setPostalDelivery(isPostalDelivery);
         basketData.setItems(Collections.singletonList(basketItem));
@@ -411,15 +484,17 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket returns 200 when total order cost is zero")
-    public void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
+    void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
         basketRepository.save(getBasket(false));
 
         Certificate certificate = new Certificate();
+        certificate.setKind(CERTIFICATE_KIND);
+        certificate.setItemOptions(new ItemOptions());
         certificate.setItemCosts(ITEM_COSTS_ZERO);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
         certificate.setPostalDelivery(false);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -445,15 +520,17 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket returns 202 when total order cost is non-zero")
-    public void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
+    void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
         basketRepository.save(getBasket(true));
 
         final Certificate certificate = new Certificate();
+        certificate.setKind(CERTIFICATE_KIND);
+        certificate.setItemOptions(new ItemOptions());
         certificate.setPostalDelivery(true);
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -477,7 +554,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket is empty")
-    public void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
+    void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
@@ -493,7 +570,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 409, when basket does not exist")
-    public void checkoutBasketFailsToCreateCheckoutIfBasketDoesNotExist() throws Exception {
+    void checkoutBasketFailsToCreateCheckoutIfBasketDoesNotExist() throws Exception {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -506,10 +583,10 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 400, when there is a failure getting the item")
-    public void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
+    void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
         basketRepository.save(getBasket(false));
 
-        when(apiClientService.getItem(ITEM_URI)).thenThrow(new Exception());
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenThrow(apiErrorResponseException);
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -522,7 +599,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Check out basket returns 403 if body is present")
-    public void checkoutBasketReturnsBadRequestIfBodyIsPresent() throws Exception {
+    void checkoutBasketReturnsBadRequestIfBodyIsPresent() throws Exception {
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -537,15 +614,17 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket successfully creates checkout with costs from Certificates API")
-    public void checkoutBasketCheckoutContainsCosts() throws Exception {
+    void checkoutBasketCheckoutContainsCosts() throws Exception {
         basketRepository.save(getBasket(false));
 
         final Certificate certificate = new Certificate();
+        certificate.setKind(CERTIFICATE_KIND);
+        certificate.setItemOptions(new ItemOptions());
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
         certificate.setPostalDelivery(false);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         final CheckoutData expectedResponseBody = new CheckoutData();
         final Item item = new Item();
@@ -576,44 +655,48 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Return a populated basket using GET method")
-    void getBasketReturnsPoplatedBasket() throws Exception {
+    @DisplayName("Get basket successfully returns a basket populated with a certificate")
+    void getBasketReturnsBasketPopulatedWithCertificate() throws Exception {
         final LocalDateTime start = timestamps.start();
         Basket basket = createBasket(start);
-
-        BasketData basketData = new BasketData();
-
-        DeliveryDetails deliveryDetails = new DeliveryDetails();
-        deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
-        deliveryDetails.setAddressLine2(ADDRESS_LINE_2);
-        deliveryDetails.setCountry(COUNTRY);
-        deliveryDetails.setForename(FORENAME);
-        deliveryDetails.setSurname(SURNAME);
-        deliveryDetails.setLocality(LOCALITY);
-
-        basket.getData().setDeliveryDetails(deliveryDetails);
 
         basketRepository.save(basket);
 
         final Certificate certificate = new Certificate();
+        certificate.setItemUri(VALID_CERTIFICATE_URI);
         certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setCompanyName(COMPANY_NAME);
+        certificate.setCustomerReference(CUSTOMER_REFERENCE);
+        certificate.setDescription(DESCRIPTION);
+        certificate.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        certificate.setDescriptionValues(DESCRIPTION_VALUES);
         certificate.setItemCosts(ITEM_COSTS);
+        certificate.setEtag(ETAG);
+        certificate.setKind(KIND);
+        certificate.setPostalDelivery(POSTAL_DELIVERY);
+        certificate.setQuantity(QUANTITY);
+        certificate.setSatisfiedAt(SATISFIED_AT);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        certificate.setItemOptions(options);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
-        mockMvc.perform(get("/basket")
-            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-            .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+        final String jsonResponse = mockMvc.perform(get("/basket")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].item_options.certificate_type",
+                        is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())))
+                .andReturn().getResponse().getContentAsString();
 
+        final BasketData response = mapper.readValue(jsonResponse, BasketData.class);
 
-        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
-
-        final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
-        final Item item = retrievedBasket.get().getData().getItems().get(0);
+        final DeliveryDetails getDeliveryDetails = response.getDeliveryDetails();
+        final Item item = response.getItems().get(0);
         assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
         assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
         assertEquals(COUNTRY, getDeliveryDetails.getCountry());
@@ -621,7 +704,7 @@ class BasketControllerIntegrationTest {
         assertEquals(LOCALITY, getDeliveryDetails.getLocality());
         assertEquals(SURNAME, getDeliveryDetails.getSurname());
 
-        assertEquals(ITEM_URI, item.getItemUri());
+        assertEquals(VALID_CERTIFICATE_URI, item.getItemUri());
         assertEquals(COMPANY_NAME, item.getCompanyName());
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
         assertEquals(CUSTOMER_REFERENCE, item.getCustomerReference());
@@ -636,6 +719,83 @@ class BasketControllerIntegrationTest {
         assertEquals(SATISFIED_AT, item.getSatisfiedAt());
         assertEquals(POSTAGE_COST, item.getPostageCost());
         assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
+
+        verifyBasketIsUnchanged(start, basket.getData().getDeliveryDetails(), VALID_CERTIFICATE_URI);
+    }
+
+    @Test
+    @DisplayName("Get basket successfully returns a basket populated with a certified copy")
+    void getBasketReturnsBasketPopulatedWithCertifiedCopy() throws Exception {
+        final LocalDateTime start = timestamps.start();
+        final Basket basket = createBasket(start, VALID_CERTIFIED_COPY_URI);
+
+        basketRepository.save(basket);
+
+        final CertifiedCopy copy = new CertifiedCopy();
+        final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
+        options.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        copy.setItemOptions(options);
+        copy.setItemUri(VALID_CERTIFIED_COPY_URI);
+        copy.setCompanyNumber(COMPANY_NUMBER);
+        copy.setCompanyName(COMPANY_NAME);
+        copy.setCustomerReference(CUSTOMER_REFERENCE);
+        copy.setDescription(DESCRIPTION);
+        copy.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        copy.setDescriptionValues(DESCRIPTION_VALUES);
+        copy.setItemCosts(ITEM_COSTS);
+        copy.setEtag(ETAG);
+        copy.setKind(KIND);
+        copy.setPostalDelivery(POSTAL_DELIVERY);
+        copy.setQuantity(QUANTITY);
+        copy.setSatisfiedAt(SATISFIED_AT);
+        copy.setPostageCost(POSTAGE_COST);
+        copy.setTotalItemCost(TOTAL_ITEM_COST);
+        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+
+        final String jsonResponse = mockMvc.perform(get("/basket")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_date",
+                        is(DOCUMENT.getFilingHistoryDate())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_description",
+                        is(DOCUMENT.getFilingHistoryDescription())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_id",
+                        is(DOCUMENT.getFilingHistoryId())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_type",
+                        is(DOCUMENT.getFilingHistoryType())))
+                .andReturn().getResponse().getContentAsString();
+
+        final BasketData response = mapper.readValue(jsonResponse, BasketData.class);
+
+        final DeliveryDetails getDeliveryDetails = response.getDeliveryDetails();
+        final Item item = response.getItems().get(0);
+        assertEquals(ADDRESS_LINE_1, getDeliveryDetails.getAddressLine1());
+        assertEquals(ADDRESS_LINE_2, getDeliveryDetails.getAddressLine2());
+        assertEquals(COUNTRY, getDeliveryDetails.getCountry());
+        assertEquals(FORENAME, getDeliveryDetails.getForename());
+        assertEquals(LOCALITY, getDeliveryDetails.getLocality());
+        assertEquals(SURNAME, getDeliveryDetails.getSurname());
+
+        assertEquals(VALID_CERTIFIED_COPY_URI, item.getItemUri());
+        assertEquals(COMPANY_NAME, item.getCompanyName());
+        assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
+        assertEquals(CUSTOMER_REFERENCE, item.getCustomerReference());
+        assertEquals(DESCRIPTION, item.getDescription());
+        assertEquals(DESCRIPTION_IDENTIFIER, item.getDescriptionIdentifier());
+        assertEquals(DESCRIPTION_VALUES, item.getDescriptionValues());
+        assertEquals(ITEM_COSTS, item.getItemCosts());
+        assertEquals(ETAG, item.getEtag());
+        assertEquals(KIND, item.getKind());
+        assertEquals(POSTAL_DELIVERY, item.isPostalDelivery());
+        assertEquals(QUANTITY, item.getQuantity());
+        assertEquals(SATISFIED_AT, item.getSatisfiedAt());
+        assertEquals(POSTAGE_COST, item.getPostageCost());
+        assertEquals(TOTAL_ITEM_COST, item.getTotalItemCost());
+
+        verifyBasketIsUnchanged(start, basket.getData().getDeliveryDetails(), VALID_CERTIFIED_COPY_URI);
     }
 
     @Test
@@ -660,7 +820,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add delivery details to the basket, if the basket exists")
-    public void addDeliveryDetailsToBasketIfTheBasketExists() throws Exception {
+    void addDeliveryDetailsToBasketIfTheBasketExists() throws Exception {
         Basket basket = new Basket();
         basketRepository.save(basket);
 
@@ -700,7 +860,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add delivery details to the basket, if the basket does not exist")
-    public void addDeliveryDetailsToBasketIfTheBasketDoesNotExist() throws Exception {
+    void addDeliveryDetailsToBasketIfTheBasketDoesNotExist() throws Exception {
 
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
         DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
@@ -738,7 +898,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add delivery details fails due to failed validation")
-    public void addDeliveryDetailsFailsDueToFailedValidation() throws Exception {
+    void addDeliveryDetailsFailsDueToFailedValidation() throws Exception {
         AddDeliveryDetailsRequestDTO addDeliveryDetailsRequestDTO = new AddDeliveryDetailsRequestDTO();
         DeliveryDetailsDTO deliveryDetailsDTO = new DeliveryDetailsDTO();
         deliveryDetailsDTO.setAddressLine1("");
@@ -766,7 +926,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch basket returns 400 when item uri is invalid")
-    public void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
+    void patchBasketReturnsBadRequestItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
@@ -787,7 +947,7 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setSurname(SURNAME);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
-        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -806,12 +966,12 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket items are missing")
-    public void checkoutBasketfFailsToCreateCheckoutIfBasketHasNoItems() throws Exception {
+    void checkoutBasketfFailsToCreateCheckoutIfBasketHasNoItems() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
 
-        when(apiClientService.getItem(null)).thenThrow(new Exception());
+        when(apiClientService.getItem(null)).thenThrow(apiErrorResponseException);
         final ApiError expectedValidationError =
                 new ApiError(CONFLICT,
                         asList(ErrorType.BASKET_ITEMS_MISSING.getValue()));
@@ -829,13 +989,13 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, " +
             "when delivery details are missing and postal delivery true")
-    public void checkoutBasketfFailsToCreateCheckoutWhenDeliverDetailsMissing() throws Exception {
+    void checkoutBasketfFailsToCreateCheckoutWhenDeliverDetailsMissing() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         BasketData basketData = new BasketData();
         Item basketItem = new Item();
         basketItem.setPostalDelivery(true);
-        basketItem.setItemUri(ITEM_URI);
+        basketItem.setItemUri(VALID_CERTIFICATE_URI);
         basketData.setItems(Collections.singletonList(basketItem));
         basket.setData(basketData);
         basketRepository.save(basket);
@@ -845,7 +1005,7 @@ class BasketControllerIntegrationTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -858,7 +1018,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Add item to basket returns 400 when item uri is invalid")
-    public void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
+    void checkoutBasketReturnsBadRequestWhenItemUriInvalid() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
@@ -866,7 +1026,7 @@ class BasketControllerIntegrationTest {
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
 
-        when(apiClientService.getItem(anyString())).thenThrow(new Exception());
+        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -884,7 +1044,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for paid payments session")
-    public void patchBasketPaymentDetailsSuccessPaid() throws Exception {
+    void patchBasketPaymentDetailsSuccessPaid() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -918,20 +1078,34 @@ class BasketControllerIntegrationTest {
         timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
         assertThat(retrievedCheckout.isPresent(), is(true));
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
-        assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
-        assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
+        final CheckoutData data = retrievedCheckout.get().getData();
+        assertThat(data.getStatus(), is(PaymentStatus.PAID));
+        assertThat(data.getEtag(), is(UPDATED_ETAG));
+        assertThat(data.getItems(), is(notNullValue()));
+        assertThat(data.getItems().isEmpty(), is(false));
+        assertThat(data.getItems().get(0), is(notNullValue()));
+        final Item checkoutItem = data.getItems().get(0);
+        assertThat(checkoutItem.getItemOptions() instanceof CertificateItemOptions, is(true));
+        final CertificateItemOptions options = (CertificateItemOptions) checkoutItem.getItemOptions();
+        assertThat(options.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
 
         // Assert order is created with correct information
         final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
         final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
+
         assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
         assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
         assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
+
+        // TODO GCI-984 Should we be expecting the following?
+//        assertThat(retrievedItem.getItemOptions() instanceof CertificateItemOptions, is(true));
+//        final CertificateItemOptions retrievedOptions = (CertificateItemOptions) checkoutItem.getItemOptions();
+//        assertThat(retrievedOptions.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
     }
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for failed payments session")
-    public void patchBasketPaymentDetailsSuccessFailed() throws Exception {
+    void patchBasketPaymentDetailsSuccessFailed() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.FAILED);
@@ -955,7 +1129,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for cancelled payments session")
-    public void patchBasketPaymentDetailsSuccessCancelled() throws Exception {
+    void patchBasketPaymentDetailsSuccessCancelled() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.CANCELLED);
@@ -979,7 +1153,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for no-funds payments session")
-    public void patchBasketPaymentDetailsSuccessNoFunds() throws Exception {
+    void patchBasketPaymentDetailsSuccessNoFunds() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.NO_FUNDS);
@@ -1003,7 +1177,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment-details endpoint fails if it doesn't return payment session")
-    public void patchBasketPaymentDetailsFailureReturningPaymentSession() throws Exception {
+    void patchBasketPaymentDetailsFailureReturningPaymentSession() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1029,7 +1203,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment details endpoints fails if status on payments service is not paid")
-    public void patchBasketPaymentDetailsFailureCheckingPaymentStatus() throws Exception {
+    void patchBasketPaymentDetailsFailureCheckingPaymentStatus() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1056,7 +1230,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment details endpoints fails if payment total on payments service is different")
-    public void patchBasketPaymentDetailsFailureCheckingPaymentTotal() throws Exception {
+    void patchBasketPaymentDetailsFailureCheckingPaymentTotal() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1083,7 +1257,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Patch payment details endpoints fails if checkout resource is different to the one on payments service")
-    public void patchBasketPaymentDetailsFailureCheckingResourceUpdated() throws Exception {
+    void patchBasketPaymentDetailsFailureCheckingResourceUpdated() throws Exception {
         final LocalDateTime start = timestamps.start();
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
@@ -1213,31 +1387,66 @@ class BasketControllerIntegrationTest {
         item.setPostageCost(POSTAGE_COST);
         item.setTotalItemCost(TOTAL_ITEM_COST);
         item.setCompanyNumber(COMPANY_NUMBER);
+        item.setKind(CERTIFICATE_KIND);
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        item.setItemOptions(options);
 
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
-    private Basket createBasket(LocalDateTime start) {
+    /**
+     * Verifies that the basket is as it was when created by {@link #createBasket(LocalDateTime, String)}.
+     * @param basketCreationTime the time the basket was created
+     * @param deliveryDetailsAdded the delivery details added to the basket
+     * @param itemUri the URI of the item stored in the basket
+     */
+    private void verifyBasketIsUnchanged(final LocalDateTime basketCreationTime,
+                                         final DeliveryDetails deliveryDetailsAdded,
+                                         final String itemUri) {
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertThat(retrievedBasket.isPresent(), is(true));
+        final Basket basket = retrievedBasket.get();
+        assertThat(basket.getCreatedAt(), is(basketCreationTime));
+        assertThat(basket.getUpdatedAt(), is(basketCreationTime));
+        assertThat(basket.getId(), is(ERIC_IDENTITY_VALUE));
+        assertThat(basket.getItems().size(), is(1));
+        assertThat(basket.getItems().get(0).getItemUri(), is(itemUri));
+        org.assertj.core.api.Assertions.assertThat(basket.getData().getDeliveryDetails())
+                .isEqualToComparingFieldByField(deliveryDetailsAdded);
+    }
+
+    /**
+     * Creates a basket containing an item with just its item URI member populated, and some delivery details.
+     * In this way, it creates a basket in the database that is similar to what results when
+     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} and
+     * {@link BasketController#addDeliveryDetailsToBasket(AddDeliveryDetailsRequestDTO, HttpServletRequest, String)}
+     * have been called.
+     * @param start the creation/update time of the basket
+     * @return the {@link Basket} as persisted in the database
+     */
+    private Basket createBasket(final LocalDateTime start) {
+        return createBasket(start, VALID_CERTIFICATE_URI);
+    }
+
+    /**
+     * Creates a basket containing an item with just its item URI member populated, and some delivery details.
+     * In this way, it creates a basket in the database that is similar to what results when
+     * {@link BasketController#addItemToBasket(AddToBasketRequestDTO, HttpServletRequest, String)} and
+     * {@link BasketController#addDeliveryDetailsToBasket(AddDeliveryDetailsRequestDTO, HttpServletRequest, String)}
+     * have been called.
+     * @param start the creation/update time of the basket
+     * @param itemUri the URI of the item stored in the basket
+     * @return the {@link Basket} as persisted in the database
+     */
+    private Basket createBasket(final LocalDateTime start, final String itemUri) {
         final Basket basket = new Basket();
         basket.setCreatedAt(start);
         basket.setUpdatedAt(start);
         basket.setId(ERIC_IDENTITY_VALUE);
         Item basketItem = new Item();
-        basketItem.setItemUri(ITEM_URI);
-        basketItem.setCompanyName(COMPANY_NAME);
-        basketItem.setCompanyNumber(COMPANY_NUMBER);
-        basketItem.setCustomerReference(CUSTOMER_REFERENCE);
-        basketItem.setDescription(DESCRIPTION);
-        basketItem.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
-        basketItem.setDescriptionValues(DESCRIPTION_VALUES);
-        basketItem.setItemCosts(ITEM_COSTS);
-        basketItem.setEtag(ETAG);
-        basketItem.setKind(KIND);
-        basketItem.setPostalDelivery(POSTAL_DELIVERY);
-        basketItem.setQuantity(QUANTITY);
-        basketItem.setSatisfiedAt(SATISFIED_AT);
-        basketItem.setPostageCost(POSTAGE_COST);
-        basketItem.setTotalItemCost(TOTAL_ITEM_COST);
+        basketItem.setItemUri(itemUri);
+        basket.getData().getItems().add(basketItem);
 
         DeliveryDetails deliveryDetails = new DeliveryDetails();
         deliveryDetails.setAddressLine1(ADDRESS_LINE_1);
@@ -1248,7 +1457,6 @@ class BasketControllerIntegrationTest {
         deliveryDetails.setLocality(LOCALITY);
 
         basket.getData().setDeliveryDetails(deliveryDetails);
-        basket.getData().getItems().add(basketItem);
 
         return basketRepository.save(basket);
     }
