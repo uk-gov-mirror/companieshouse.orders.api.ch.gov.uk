@@ -1084,10 +1084,9 @@ class BasketControllerIntegrationTest {
         assertThat(data.getItems(), is(notNullValue()));
         assertThat(data.getItems().isEmpty(), is(false));
         assertThat(data.getItems().get(0), is(notNullValue()));
+
         final Item checkoutItem = data.getItems().get(0);
-        assertThat(checkoutItem.getItemOptions() instanceof CertificateItemOptions, is(true));
-        final CertificateItemOptions options = (CertificateItemOptions) checkoutItem.getItemOptions();
-        assertThat(options.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
+        verifyCertifiedCopyItemOptionsAreCorrect(checkoutItem);
 
         // Assert order is created with correct information
         final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
@@ -1097,10 +1096,7 @@ class BasketControllerIntegrationTest {
         assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
         assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
 
-        // TODO GCI-984 Should we be expecting the following?
-//        assertThat(retrievedItem.getItemOptions() instanceof CertificateItemOptions, is(true));
-//        final CertificateItemOptions retrievedOptions = (CertificateItemOptions) checkoutItem.getItemOptions();
-//        assertThat(retrievedOptions.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
+        verifyCertifiedCopyItemOptionsAreCorrect(retrievedItem);
     }
 
     @Test
@@ -1349,6 +1345,17 @@ class BasketControllerIntegrationTest {
                 .andExpect(jsonPath("$.links.resource", is(mapper.convertValue(paymentLinksDTO.getResource(), String.class))))
                 .andDo(MockMvcResultHandlers.print());
 
+    }
+
+    /**
+     * Verifies that the certified copy item's options are of the right type and have the expected field
+     * correctly populated.
+     * @param certifiedCopy the {@link Item} to check
+     */
+    private void verifyCertifiedCopyItemOptionsAreCorrect(final Item certifiedCopy) {
+        assertThat(certifiedCopy.getItemOptions() instanceof CertificateItemOptions, is(true));
+        final CertificateItemOptions options = (CertificateItemOptions) certifiedCopy.getItemOptions();
+        assertThat(options.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
     }
 
     private List<ItemCosts> createItemCosts(){
