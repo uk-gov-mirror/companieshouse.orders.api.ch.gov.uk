@@ -33,15 +33,14 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY
 @ExtendWith(MockitoExtension.class)
 class OrderItemOptionsReaderTest {
 
-    // TODO GCI-984 Do we need to test reader behaviour for an order too?
-
     private static final String UNKNOWN_KIND = "item#unknown";
+    private static final String UNUSED_ORDER_TYPE_NAME = "'order' or 'checkout', value unused in this test.";
 
     @InjectMocks
     private OrderItemOptionsReader readerUnderTest;
 
     @Mock
-    private Document checkoutDocument;
+    private Document orderDocument;
 
     @Mock
     private List<Item> items;
@@ -53,7 +52,7 @@ class OrderItemOptionsReaderTest {
     private Item certifiedCopyItem;
 
     @Mock
-    private Document checkoutDataDocument;
+    private Document orderDataDocument;
 
     @Mock
     private List<Document> itemDocuments;
@@ -81,8 +80,8 @@ class OrderItemOptionsReaderTest {
         when(items.size()).thenReturn(1);
         when(items.get(0)).thenReturn(certificateItem);
 
-        when(checkoutDocument.get("data", Document.class)).thenReturn(checkoutDataDocument);
-        when(checkoutDataDocument.get("items", List.class)).thenReturn(itemDocuments);
+        when(orderDocument.get("data", Document.class)).thenReturn(orderDataDocument);
+        when(orderDataDocument.get("items", List.class)).thenReturn(itemDocuments);
         when(itemDocuments.get(0)).thenReturn(itemDocument);
         when(itemDocument.get("item_options", Document.class)).thenReturn(optionsDocument);
         when(optionsDocument.toJson()).thenReturn("{}");
@@ -90,7 +89,7 @@ class OrderItemOptionsReaderTest {
         when(mapper.readValue("{}", CertificateItemOptions.class)).thenReturn(certificateItemOptions);
 
         // When
-        readerUnderTest.readOrderItemsOptions(items, checkoutDocument, "checkout");
+        readerUnderTest.readOrderItemsOptions(items, orderDocument, UNUSED_ORDER_TYPE_NAME);
 
         // Then
         verify(items).get(0);
@@ -107,8 +106,8 @@ class OrderItemOptionsReaderTest {
         when(items.size()).thenReturn(1);
         when(items.get(0)).thenReturn(certifiedCopyItem);
 
-        when(checkoutDocument.get("data", Document.class)).thenReturn(checkoutDataDocument);
-        when(checkoutDataDocument.get("items", List.class)).thenReturn(itemDocuments);
+        when(orderDocument.get("data", Document.class)).thenReturn(orderDataDocument);
+        when(orderDataDocument.get("items", List.class)).thenReturn(itemDocuments);
         when(itemDocuments.get(0)).thenReturn(itemDocument);
         when(itemDocument.get("item_options", Document.class)).thenReturn(optionsDocument);
         when(optionsDocument.toJson()).thenReturn("{}");
@@ -116,7 +115,7 @@ class OrderItemOptionsReaderTest {
         when(mapper.readValue("{}", CertifiedCopyItemOptions.class)).thenReturn(certifiedCopyItemOptions);
 
         // When
-        readerUnderTest.readOrderItemsOptions(items, checkoutDocument, "checkout");
+        readerUnderTest.readOrderItemsOptions(items, orderDocument, UNUSED_ORDER_TYPE_NAME);
 
         // Then
         verify(items).get(0);
@@ -133,13 +132,13 @@ class OrderItemOptionsReaderTest {
         when(items.size()).thenReturn(1);
         when(items.get(0)).thenReturn(certificateItem);
 
-        when(checkoutDocument.get("data", Document.class)).thenReturn(checkoutDataDocument);
-        when(checkoutDataDocument.get("items", List.class)).thenReturn(itemDocuments);
+        when(orderDocument.get("data", Document.class)).thenReturn(orderDataDocument);
+        when(orderDataDocument.get("items", List.class)).thenReturn(itemDocuments);
         when(itemDocuments.get(0)).thenReturn(itemDocument);
         when(itemDocument.get("item_options", Document.class)).thenReturn(null);
 
         // When
-        readerUnderTest.readOrderItemsOptions(items, checkoutDocument, "checkout");
+        readerUnderTest.readOrderItemsOptions(items, orderDocument, UNUSED_ORDER_TYPE_NAME);
 
         // Then
         verify(items).get(0);
@@ -154,8 +153,8 @@ class OrderItemOptionsReaderTest {
         when(items.size()).thenReturn(1);
         when(items.get(0)).thenReturn(certificateItem);
 
-        when(checkoutDocument.get("data", Document.class)).thenReturn(checkoutDataDocument);
-        when(checkoutDataDocument.get("items", List.class)).thenReturn(itemDocuments);
+        when(orderDocument.get("data", Document.class)).thenReturn(orderDataDocument);
+        when(orderDataDocument.get("items", List.class)).thenReturn(itemDocuments);
         when(itemDocuments.get(0)).thenReturn(itemDocument);
         when(itemDocument.get("item_options", Document.class)).thenReturn(optionsDocument);
         when(optionsDocument.toJson()).thenReturn("{}");
@@ -165,7 +164,7 @@ class OrderItemOptionsReaderTest {
         // When and then
         final IllegalStateException exception =
                 assertThrows(IllegalStateException.class,
-                        () -> readerUnderTest.readOrderItemsOptions(items, checkoutDocument, "checkout"));
+                        () -> readerUnderTest.readOrderItemsOptions(items, orderDocument, UNUSED_ORDER_TYPE_NAME));
         assertThat(exception.getMessage(), is("Error parsing item options JSON: Test message"));
 
         // Then
