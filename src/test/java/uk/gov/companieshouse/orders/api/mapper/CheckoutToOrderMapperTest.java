@@ -7,11 +7,29 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.orders.api.model.ActionedBy;
+import uk.gov.companieshouse.orders.api.model.Certificate;
+import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopy;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopyItemOptions;
+import uk.gov.companieshouse.orders.api.model.Checkout;
+import uk.gov.companieshouse.orders.api.model.CheckoutData;
+import uk.gov.companieshouse.orders.api.model.CheckoutLinks;
+import uk.gov.companieshouse.orders.api.model.CollectionLocation;
+import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
+import uk.gov.companieshouse.orders.api.model.DeliveryMethod;
+import uk.gov.companieshouse.orders.api.model.DeliveryTimescale;
+import uk.gov.companieshouse.orders.api.model.DirectorOrSecretaryDetails;
+import uk.gov.companieshouse.orders.api.model.IncludeAddressRecordsType;
+import uk.gov.companieshouse.orders.api.model.IncludeDobType;
+import uk.gov.companieshouse.orders.api.model.ItemCosts;
+import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.model.RegisteredOfficeAddressDetails;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,6 +43,7 @@ import static uk.gov.companieshouse.orders.api.model.IncludeAddressRecordsType.C
 import static uk.gov.companieshouse.orders.api.model.IncludeDobType.PARTIAL;
 import static uk.gov.companieshouse.orders.api.model.PaymentStatus.PAID;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
 
 /**
  * Unit tests the {@link CheckoutToOrderMapperTest} class.
@@ -65,8 +84,11 @@ class CheckoutToOrderMapperTest {
 
     private static final IncludeAddressRecordsType INCLUDE_ADDRESS_RECORDS_TYPE = CURRENT;
     private static final boolean INCLUDE_DATES = true;
+    private static final String FORENAME = "John";
+    private static final String SURNAME = "Smith";
 
-    private static final CertificateItemOptions ITEM_OPTIONS;
+    private static final CertificateItemOptions CERTIFICATE_ITEM_OPTIONS;
+    private static final CertifiedCopyItemOptions CERTIFIED_COPY_ITEM_OPTIONS;
     private static final DirectorOrSecretaryDetails DIRECTOR_OR_SECRETARY_DETAILS;
     private static final RegisteredOfficeAddressDetails REGISTERED_OFFICE_ADDRESS_DETAILS;
     private static final DeliveryDetails DELIVERY_DETAILS;
@@ -87,18 +109,27 @@ class CheckoutToOrderMapperTest {
         REGISTERED_OFFICE_ADDRESS_DETAILS.setIncludeAddressRecordsType(INCLUDE_ADDRESS_RECORDS_TYPE);
         REGISTERED_OFFICE_ADDRESS_DETAILS.setIncludeDates(INCLUDE_DATES);
 
-        ITEM_OPTIONS = new CertificateItemOptions();
-        ITEM_OPTIONS.setCertificateType(INCORPORATION);
-        ITEM_OPTIONS.setCollectionLocation(BELFAST);
-        ITEM_OPTIONS.setContactNumber(CONTACT_NUMBER);
-        ITEM_OPTIONS.setDeliveryMethod(POSTAL);
-        ITEM_OPTIONS.setDeliveryTimescale(STANDARD);
-        ITEM_OPTIONS.setDirectorDetails(DIRECTOR_OR_SECRETARY_DETAILS);
-        ITEM_OPTIONS.setIncludeCompanyObjectsInformation(INCLUDE_COMPANY_OBJECTS_INFORMATION);
-        ITEM_OPTIONS.setIncludeEmailCopy(INCLUDE_EMAIL_COPY);
-        ITEM_OPTIONS.setIncludeGoodStandingInformation(INCLUDE_GOOD_STANDING_INFORMATION);
-        ITEM_OPTIONS.setRegisteredOfficeAddressDetails(REGISTERED_OFFICE_ADDRESS_DETAILS);
-        ITEM_OPTIONS.setSecretaryDetails(DIRECTOR_OR_SECRETARY_DETAILS);
+        CERTIFICATE_ITEM_OPTIONS = new CertificateItemOptions();
+        CERTIFICATE_ITEM_OPTIONS.setCertificateType(INCORPORATION);
+        CERTIFICATE_ITEM_OPTIONS.setCollectionLocation(BELFAST);
+        CERTIFICATE_ITEM_OPTIONS.setContactNumber(CONTACT_NUMBER);
+        CERTIFICATE_ITEM_OPTIONS.setDeliveryMethod(POSTAL);
+        CERTIFICATE_ITEM_OPTIONS.setDeliveryTimescale(STANDARD);
+        CERTIFICATE_ITEM_OPTIONS.setDirectorDetails(DIRECTOR_OR_SECRETARY_DETAILS);
+        CERTIFICATE_ITEM_OPTIONS.setIncludeCompanyObjectsInformation(INCLUDE_COMPANY_OBJECTS_INFORMATION);
+        CERTIFICATE_ITEM_OPTIONS.setIncludeEmailCopy(INCLUDE_EMAIL_COPY);
+        CERTIFICATE_ITEM_OPTIONS.setIncludeGoodStandingInformation(INCLUDE_GOOD_STANDING_INFORMATION);
+        CERTIFICATE_ITEM_OPTIONS.setRegisteredOfficeAddressDetails(REGISTERED_OFFICE_ADDRESS_DETAILS);
+        CERTIFICATE_ITEM_OPTIONS.setSecretaryDetails(DIRECTOR_OR_SECRETARY_DETAILS);
+
+        CERTIFIED_COPY_ITEM_OPTIONS = new CertifiedCopyItemOptions();
+        CERTIFIED_COPY_ITEM_OPTIONS.setCollectionLocation(CollectionLocation.BELFAST);
+        CERTIFIED_COPY_ITEM_OPTIONS.setContactNumber(CONTACT_NUMBER);
+        CERTIFIED_COPY_ITEM_OPTIONS.setDeliveryMethod(DeliveryMethod.POSTAL);
+        CERTIFIED_COPY_ITEM_OPTIONS.setDeliveryTimescale(DeliveryTimescale.STANDARD);
+        CERTIFIED_COPY_ITEM_OPTIONS.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        CERTIFIED_COPY_ITEM_OPTIONS.setForename(FORENAME);
+        CERTIFIED_COPY_ITEM_OPTIONS.setSurname(SURNAME);
 
         DELIVERY_DETAILS = new DeliveryDetails();
         DELIVERY_DETAILS.setForename("George");
@@ -143,22 +174,40 @@ class CheckoutToOrderMapperTest {
         data.setReference(ORDER_REFERENCE);
         data.setPaidAt(time);
         data.setCheckedOutBy(ACTIONED_BY);
-        final Item item = new Item();
-        item.setCompanyName(COMPANY_NAME);
-        item.setCompanyNumber(COMPANY_NUMBER);
-        item.setCustomerReference(CUSTOMER_REFERENCE);
-        item.setQuantity(QUANTITY);
-        item.setDescription(DESCRIPTION);
-        item.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
-        item.setDescriptionValues(DESCRIPTION_VALUES);
-        item.setItemCosts(singletonList(ITEM_COSTS));
-        item.setPostageCost(POSTAGE_COST);
-        item.setTotalItemCost(TOTAL_ITEM_COST);
-        item.setKind(ITEM_KIND);
-        item.setPostalDelivery(POSTAL_DELIVERY);
-        item.setItemOptions(ITEM_OPTIONS);
-        item.setEtag(TOKEN_ETAG);
-        data.setItems(singletonList(item));
+
+        final Certificate checkoutCertificate = new Certificate();
+        checkoutCertificate.setCompanyName(COMPANY_NAME);
+        checkoutCertificate.setCompanyNumber(COMPANY_NUMBER);
+        checkoutCertificate.setCustomerReference(CUSTOMER_REFERENCE);
+        checkoutCertificate.setQuantity(QUANTITY);
+        checkoutCertificate.setDescription(DESCRIPTION);
+        checkoutCertificate.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        checkoutCertificate.setDescriptionValues(DESCRIPTION_VALUES);
+        checkoutCertificate.setItemCosts(singletonList(ITEM_COSTS));
+        checkoutCertificate.setPostageCost(POSTAGE_COST);
+        checkoutCertificate.setTotalItemCost(TOTAL_ITEM_COST);
+        checkoutCertificate.setKind(ITEM_KIND);
+        checkoutCertificate.setPostalDelivery(POSTAL_DELIVERY);
+        checkoutCertificate.setItemOptions(CERTIFICATE_ITEM_OPTIONS);
+        checkoutCertificate.setEtag(TOKEN_ETAG);
+
+        final CertifiedCopy checkoutCopy = new CertifiedCopy();
+        checkoutCopy.setCompanyName(COMPANY_NAME);
+        checkoutCopy.setCompanyNumber(COMPANY_NUMBER);
+        checkoutCopy.setCustomerReference(CUSTOMER_REFERENCE);
+        checkoutCopy.setQuantity(QUANTITY);
+        checkoutCopy.setDescription(DESCRIPTION);
+        checkoutCopy.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        checkoutCopy.setDescriptionValues(DESCRIPTION_VALUES);
+        checkoutCopy.setItemCosts(singletonList(ITEM_COSTS));
+        checkoutCopy.setPostageCost(POSTAGE_COST);
+        checkoutCopy.setTotalItemCost(TOTAL_ITEM_COST);
+        checkoutCopy.setKind(ITEM_KIND);
+        checkoutCopy.setPostalDelivery(POSTAL_DELIVERY);
+        checkoutCopy.setItemOptions(CERTIFIED_COPY_ITEM_OPTIONS);
+        checkoutCopy.setEtag(TOKEN_ETAG);
+
+        data.setItems(asList(checkoutCertificate, checkoutCopy));
         checkout.setData(data);
         final Order order = mapperUnderTest.checkoutToOrder(checkout);
 
@@ -166,9 +215,6 @@ class CheckoutToOrderMapperTest {
         assertThat(order.getUserId(), is(checkout.getUserId()));
         assertThat(order.getData(), is(notNullValue()));
         assertThat(order.getData().getItems(), is(checkout.getData().getItems()));
-
-        // This assertion succeeds because the item is in fact the same instance.
-        assertThat(order.getData().getItems().get(0), is(checkout.getData().getItems().get(0)));
 
         assertThat(order.getData().getDeliveryDetails(), is(checkout.getData().getDeliveryDetails()));
         assertThat(order.getData().getEtag(), is(checkout.getData().getEtag()));
@@ -179,10 +225,15 @@ class CheckoutToOrderMapperTest {
         assertThat(order.getData().getReference(), is(checkout.getData().getReference()));
         assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));
 
-        org.assertj.core.api.Assertions.assertThat(order.getData().getItems().get(0).getItemOptions())
-                .isEqualToComparingFieldByField(checkout.getData().getItems().get(0).getItemOptions());
-    }
+        assertThat(order.getData().getItems().size(), is(2));
+        assertThat(order.getData().getItems().get(0) instanceof Certificate, is(true));
+        final Certificate orderCertificate = (Certificate) order.getData().getItems().get(0);
+        assertThat(order.getData().getItems().get(1) instanceof CertifiedCopy, is(true));
+        final CertifiedCopy orderCopy = (CertifiedCopy) order.getData().getItems().get(1);
 
-    // TODO GCI-984 Implement test for certified copy mapping?
+        org.assertj.core.api.Assertions.assertThat(orderCertificate).isEqualToComparingFieldByField(checkoutCertificate);
+        org.assertj.core.api.Assertions.assertThat(orderCopy).isEqualToComparingFieldByField(checkoutCopy);
+
+    }
 
 }
