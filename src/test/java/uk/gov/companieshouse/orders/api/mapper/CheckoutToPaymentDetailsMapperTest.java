@@ -148,8 +148,6 @@ class CheckoutToPaymentDetailsMapperTest {
         testItems(source, target);
     }
 
-    // TODO GCI-984 Implement test for certified copy mapping?
-
     private void testItems(Checkout source, PaymentDetailsDTO target){
         assertEquals(target.getItems().size(), source.getData().getItems().get(0).getItemCosts().size());
         assertThat(target.getItems().get(0).getDescriptionIdentifier(), is(source.getData().getItems().get(0).getDescriptionIdentifier()));
