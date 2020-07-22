@@ -31,7 +31,7 @@ import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE;
  */
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(CheckoutToOrderMapperTest.Config.class)
-public class CheckoutToOrderMapperTest {
+class CheckoutToOrderMapperTest {
 
     private static final String ID = "CHS00000000000000001";
     private static final String COMPANY_NUMBER = "00006444";
