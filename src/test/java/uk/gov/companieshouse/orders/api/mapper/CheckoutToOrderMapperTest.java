@@ -178,6 +178,9 @@ public class CheckoutToOrderMapperTest {
         assertThat(order.getData().getTotalOrderCost(), is(checkout.getData().getTotalOrderCost()));
         assertThat(order.getData().getReference(), is(checkout.getData().getReference()));
         assertThat(order.getData().getOrderedBy(), is(checkout.getData().getCheckedOutBy()));
+
+        org.assertj.core.api.Assertions.assertThat(order.getData().getItems().get(0).getItemOptions())
+                .isEqualToComparingFieldByField(checkout.getData().getItems().get(0).getItemOptions());
     }
 
     // TODO GCI-984 Implement test for certified copy mapping?
