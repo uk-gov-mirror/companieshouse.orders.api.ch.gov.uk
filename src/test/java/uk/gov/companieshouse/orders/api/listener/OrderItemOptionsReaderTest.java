@@ -33,6 +33,8 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY
 @ExtendWith(MockitoExtension.class)
 class OrderItemOptionsReaderTest {
 
+    // TODO GCI-984 Do we need to test reader behaviour for an order too?
+
     private static final String UNKNOWN_KIND = "item#unknown";
 
     @InjectMocks
@@ -46,6 +48,9 @@ class OrderItemOptionsReaderTest {
 
     @Mock
     private Item certificateItem;
+
+    @Mock
+    private Item certifiedCopyItem;
 
     @Mock
     private Document checkoutDataDocument;
@@ -65,8 +70,11 @@ class OrderItemOptionsReaderTest {
     @Mock
     private CertificateItemOptions certificateItemOptions;
 
+    @Mock
+    private CertifiedCopyItemOptions certifiedCopyItemOptions;
+
     @Test
-    @DisplayName("readOrderItemsOptions() updates item options correctly")
+    @DisplayName("readOrderItemsOptions() updates certificate item options correctly")
     void readOrderItemsOptionsUpdatesCertificateItemOptionsCorrectly() throws IOException {
 
         // Given
@@ -89,7 +97,32 @@ class OrderItemOptionsReaderTest {
         verify(certificateItem).getKind();
         verify(mapper).readValue("{}", CertificateItemOptions.class);
         verify(certificateItem).setItemOptions(certificateItemOptions);
+    }
 
+    @Test
+    @DisplayName("readOrderItemsOptions() updates certified copy item options correctly")
+    void readOrderItemsOptionsUpdatesCertifiedCopyItemOptionsCorrectly() throws IOException {
+
+        // Given
+        when(items.size()).thenReturn(1);
+        when(items.get(0)).thenReturn(certifiedCopyItem);
+
+        when(checkoutDocument.get("data", Document.class)).thenReturn(checkoutDataDocument);
+        when(checkoutDataDocument.get("items", List.class)).thenReturn(itemDocuments);
+        when(itemDocuments.get(0)).thenReturn(itemDocument);
+        when(itemDocument.get("item_options", Document.class)).thenReturn(optionsDocument);
+        when(optionsDocument.toJson()).thenReturn("{}");
+        when(certifiedCopyItem.getKind()).thenReturn(CERTIFIED_COPY_KIND);
+        when(mapper.readValue("{}", CertifiedCopyItemOptions.class)).thenReturn(certifiedCopyItemOptions);
+
+        // When
+        readerUnderTest.readOrderItemsOptions(items, checkoutDocument, "checkout");
+
+        // Then
+        verify(items).get(0);
+        verify(certifiedCopyItem).getKind();
+        verify(mapper).readValue("{}", CertifiedCopyItemOptions.class);
+        verify(certifiedCopyItem).setItemOptions(certifiedCopyItemOptions);
     }
 
     @Test
@@ -143,8 +176,6 @@ class OrderItemOptionsReaderTest {
 
     }
 
-    // TODO GCI-984 Test certified copy item options too
-
     @Test
     @DisplayName("readOrderItemsOptions() throws IllegalStateException if no checkout document found on event")
     void readOrderItemsOptionsThrowsIllegalStateExceptionIfNoCheckoutDocumentFoundOnEvent() {
@@ -154,6 +185,14 @@ class OrderItemOptionsReaderTest {
         assertThat(exception.getMessage(), is("No checkout document found on event."));
     }
 
+    @Test
+    @DisplayName("readOrderItemsOptions() throws IllegalStateException if no order document found on event")
+    void readOrderItemsOptionsThrowsIllegalStateExceptionIfNoOrderDocumentFoundOnEvent() {
+        final IllegalStateException exception =
+                assertThrows(IllegalStateException.class,
+                        () -> readerUnderTest.readOrderItemsOptions(items, null, "order"));
+        assertThat(exception.getMessage(), is("No order document found on event."));
+    }
 
     @Test
     @DisplayName("getType() infers item options class type correctly from kind")
