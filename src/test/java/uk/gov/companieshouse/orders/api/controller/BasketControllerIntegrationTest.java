@@ -421,7 +421,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout, when basket contains a valid certificate uri")
     void checkoutBasketSuccessfullyCreatesCheckoutWhenBasketIsValid() throws Exception {
-        basketRepository.save(getBasket(false));
+        basketRepository.save(getBasketWithCertificateInIt(false));
 
         Certificate certificate = new Certificate();
         certificate.setCompanyNumber(COMPANY_NUMBER);
@@ -463,7 +463,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket responds with correctly populated certificate item options")
     void checkoutCertificateBasketReturnsCorrectlyPopulatedOptions() throws Exception {
-        basketRepository.save(getBasket(false));
+        basketRepository.save(getBasketWithCertificateInIt(false));
 
         final Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
@@ -497,7 +497,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket responds with correctly populated certified copy item options")
     void checkoutCertifiedCopyBasketReturnsCorrectlyPopulatedOptions() throws Exception {
-        basketRepository.save(getBasket(false, VALID_CERTIFIED_COPY_URI));
+        basketRepository.save(getBasketWithCertifiedCopyInIt());
 
         final CertifiedCopy copy = new CertifiedCopy();
         copy.setKind(CERTIFIED_COPY_KIND);
@@ -534,8 +534,12 @@ class BasketControllerIntegrationTest {
         verifyCertifiedCopyItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
     }
 
-    private Basket getBasket(boolean isPostalDelivery) {
+    private Basket getBasketWithCertificateInIt(boolean isPostalDelivery) {
         return getBasket(isPostalDelivery, VALID_CERTIFICATE_URI);
+    }
+
+    private Basket getBasketWithCertifiedCopyInIt() {
+        return getBasket(false, VALID_CERTIFIED_COPY_URI);
     }
 
     private Basket getBasket(boolean isPostalDelivery, final String itemUri) {
@@ -565,7 +569,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket returns 200 when total order cost is zero")
     void checkoutBasketReturns200WhenTotalOrderCostIsZero() throws Exception {
-        basketRepository.save(getBasket(false));
+        basketRepository.save(getBasketWithCertificateInIt(false));
 
         Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
@@ -601,7 +605,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket returns 202 when total order cost is non-zero")
     void checkoutBasketReturns202WhenTotalOrderCostIsNonZero() throws Exception {
-        basketRepository.save(getBasket(true));
+        basketRepository.save(getBasketWithCertificateInIt(true));
 
         final Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
@@ -664,7 +668,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout Basket fails to create checkout and returns 400, when there is a failure getting the item")
     void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
-        basketRepository.save(getBasket(false));
+        basketRepository.save(getBasketWithCertificateInIt(false));
 
         when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenThrow(apiErrorResponseException);
 
@@ -695,7 +699,7 @@ class BasketControllerIntegrationTest {
     @Test
     @DisplayName("Checkout basket successfully creates checkout with costs from Certificates API")
     void checkoutBasketCheckoutContainsCosts() throws Exception {
-        basketRepository.save(getBasket(false));
+        basketRepository.save(getBasketWithCertificateInIt(false));
 
         final Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
@@ -1129,7 +1133,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
         PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
 
         when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
@@ -1176,7 +1180,7 @@ class BasketControllerIntegrationTest {
 
         final BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
         createBasket(start);
-        final Checkout checkout = createCheckout();
+        final Checkout checkout = createCertificateCheckout();
         final PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
 
         when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
@@ -1260,7 +1264,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.FAILED);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
 
         mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -1284,7 +1288,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.CANCELLED);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
 
         mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -1308,7 +1312,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.NO_FUNDS);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
 
         mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
@@ -1332,7 +1336,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
 
         when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenThrow(new IOException());
 
@@ -1358,7 +1362,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
         PaymentApi paymentSession = createPaymentSession(checkout.getId(), "pending", "70.00");
 
         when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
@@ -1385,7 +1389,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
         PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.50");
 
         when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
@@ -1412,7 +1416,7 @@ class BasketControllerIntegrationTest {
 
         BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
         createBasket(start);
-        Checkout checkout = createCheckout();
+        Checkout checkout = createCertificateCheckout();
         PaymentApi paymentSession = createPaymentSession("invalid", "paid", "70.00");
 
         when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
@@ -1449,7 +1453,7 @@ class BasketControllerIntegrationTest {
     @DisplayName("Get payment details endpoint successfully gets payment details")
     void getPaymentDetailsSuccessfully() throws Exception {
         // When item(s) checked out
-        final Checkout checkout = createCheckout();
+        final Checkout checkout = createCertificateCheckout();
 
         final PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PENDING);
         final PaymentLinksDTO paymentLinksDTO = createPaymentLinksDTO(checkout.getId());
@@ -1476,7 +1480,7 @@ class BasketControllerIntegrationTest {
     void getsPaidPaymentDetailsSuccessfully() throws Exception {
 
         // Given item(s) checked out and paid for
-        final Checkout checkout = createCheckout();
+        final Checkout checkout = createCertificateCheckout();
         payForOrder(checkout);
 
         final PaymentDetailsDTO paymentDetailsDTO = createPaymentDetailsDTO(PaymentStatus.PAID);
@@ -1569,7 +1573,7 @@ class BasketControllerIntegrationTest {
         return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
-    private Checkout createCheckout() {
+    private Checkout createCertificateCheckout() {
         final Item item = new Item();
         item.setItemCosts(ITEM_COSTS);
         item.setPostageCost(POSTAGE_COST);
