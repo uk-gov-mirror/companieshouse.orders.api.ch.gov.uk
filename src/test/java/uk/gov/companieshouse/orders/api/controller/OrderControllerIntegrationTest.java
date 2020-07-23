@@ -24,7 +24,7 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_
 @AutoConfigureMockMvc
 @SpringBootTest
 @EmbeddedKafka
-public class OrderControllerIntegrationTest {
+class OrderControllerIntegrationTest {
     private static final String ORDER_ID = "0001";
     private static final String ORDER_REFERENCE = "0001";
 
@@ -43,7 +43,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void getOrderSuccessfully() throws Exception {
+    void getOrderSuccessfully() throws Exception {
         final Order preexistingOrder = new Order();
         preexistingOrder.setId(ORDER_ID);
         preexistingOrder.setUserId(ERIC_IDENTITY_VALUE);
@@ -63,7 +63,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void respondsWithNotFoundIfOrderDoesNotExist() throws Exception {
+   void respondsWithNotFoundIfOrderDoesNotExist() throws Exception {
         mockMvc.perform(get("/orders/"+ORDER_ID)
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
@@ -73,7 +73,7 @@ public class OrderControllerIntegrationTest {
     }
 
     @Test
-    public void getOrderUnauthorisedIfUserDoesNotOwnOrder() throws Exception {
+    void getOrderUnauthorisedIfUserDoesNotOwnOrder() throws Exception {
         final Order preexistingOrder = new Order();
         preexistingOrder.setId(ORDER_ID);
         preexistingOrder.setUserId(ERIC_IDENTITY_VALUE);
