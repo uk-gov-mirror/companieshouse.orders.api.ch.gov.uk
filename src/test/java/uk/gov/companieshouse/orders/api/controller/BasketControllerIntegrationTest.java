@@ -70,6 +70,7 @@ import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.notNullValue;
@@ -425,7 +426,6 @@ class BasketControllerIntegrationTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setKind(CERTIFICATE_KIND);
         final CertificateItemOptions options = new CertificateItemOptions();
-        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
         options.setForename(FORENAME);
         options.setSurname(SURNAME);
         certificate.setItemOptions(options);
@@ -439,9 +439,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.items[0].item_options.certificate_type",
-                        is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())));
+                .andExpect(status().isAccepted());
 
         MvcResult result = resultActions.andReturn();
         MockHttpServletResponse response = result.getResponse();
@@ -459,6 +457,39 @@ class BasketControllerIntegrationTest {
         assertEquals(FORENAME, retrievedOptions.getForename());
         assertEquals(SURNAME, retrievedOptions.getSurname());
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
+    }
+
+    @Test
+    @DisplayName("Checkout basket responds with correctly populated certificate item options")
+    void checkoutCertificateBasketReturnsCorrectlyPopulatedOptions() throws Exception {
+        basketRepository.save(getBasket(false));
+
+        final Certificate certificate = new Certificate();
+        certificate.setKind(CERTIFICATE_KIND);
+        final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
+        certificate.setItemOptions(options);
+        certificate.setItemCosts(createItemCosts());
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setPostalDelivery(false);
+        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+
+        final ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.items[0].item_options.certificate_type",
+                        is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())));
+
+        final MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        final CheckoutData responseCheckoutData = mapper.readValue(response.getContentAsString(), CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(isNotEmpty(retrievedCheckout.get().getData().getItems()), is(true));
         verifyCertificateItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
     }
 
