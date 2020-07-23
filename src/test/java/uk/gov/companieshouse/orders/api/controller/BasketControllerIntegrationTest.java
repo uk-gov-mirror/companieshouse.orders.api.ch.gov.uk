@@ -1174,10 +1174,10 @@ class BasketControllerIntegrationTest {
     void patchBasketCertificatePaymentSuccessfullyPaid() throws Exception {
         final LocalDateTime start = timestamps.start();
 
-        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        final BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
         createBasket(start);
-        Checkout checkout = createCheckout();
-        PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
+        final Checkout checkout = createCheckout();
+        final PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
 
         when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
         when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
@@ -1200,7 +1200,6 @@ class BasketControllerIntegrationTest {
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
         final CheckoutData data = retrievedCheckout.get().getData();
         assertThat(data.getItems().isEmpty(), is(false));
-        assertThat(data.getItems().get(0), is(notNullValue()));
         final Item checkoutItem = data.getItems().get(0);
         verifyCertificateItemOptionsAreCorrect(checkoutItem);
 
@@ -1212,6 +1211,47 @@ class BasketControllerIntegrationTest {
         verifyCertificateItemOptionsAreCorrect(retrievedItem);
     }
 
+    @Test
+    @DisplayName("Patch payment details paid populates checkout and order certified copy item options correctly")
+    void patchBasketCertifiedCopyPaymentSuccessfullyPaid() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        final BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        final Checkout checkout = createCertifiedCopyCheckout();
+        final PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
+
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
+        when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNoContent());
+
+        timestamps.end();
+
+        // Check checkout is correctly updated
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(checkout.getId());
+        assertThat(retrievedCheckout.isPresent(), is(true));
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        final CheckoutData data = retrievedCheckout.get().getData();
+        assertThat(data.getItems().isEmpty(), is(false));
+        final Item checkoutItem = data.getItems().get(0);
+        verifyCertifiedCopyItemOptionsAreCorrect(checkoutItem);
+
+        // Assert order is created with correct information
+        final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
+        assertThat(orderRetrieved.getData(), is(notNullValue()));
+        assertThat(isNotEmpty(orderRetrieved.getData().getItems()), is(true));
+        final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
+        verifyCertifiedCopyItemOptionsAreCorrect(retrievedItem);
+    }
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for failed payments session")
@@ -1513,6 +1553,20 @@ class BasketControllerIntegrationTest {
         basketPaymentRequestDTO.setStatus(paymentStatus);
 
         return basketPaymentRequestDTO;
+    }
+
+    private Checkout createCertifiedCopyCheckout() {
+        final Item item = new Item();
+        item.setItemCosts(ITEM_COSTS);
+        item.setPostageCost(POSTAGE_COST);
+        item.setTotalItemCost(TOTAL_ITEM_COST);
+        item.setCompanyNumber(COMPANY_NUMBER);
+        item.setKind(CERTIFIED_COPY_KIND);
+        final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
+        options.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        item.setItemOptions(options);
+
+        return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
     private Checkout createCheckout() {
