@@ -1089,7 +1089,7 @@ class BasketControllerIntegrationTest {
         assertThat(data.getItems().get(0), is(notNullValue()));
 
         final Item checkoutItem = data.getItems().get(0);
-        verifyCertifiedCopyItemOptionsAreCorrect(checkoutItem);
+        verifyCertificateItemOptionsAreCorrect(checkoutItem);
 
         // Assert order is created with correct information
         final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
@@ -1099,7 +1099,7 @@ class BasketControllerIntegrationTest {
         assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
         assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
 
-        verifyCertifiedCopyItemOptionsAreCorrect(retrievedItem);
+        verifyCertificateItemOptionsAreCorrect(retrievedItem);
     }
 
     @Test
@@ -1351,13 +1351,13 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Verifies that the certified copy item's options are of the right type and have the expected field
+     * Verifies that the certificate item's options are of the right type and have the expected field
      * correctly populated.
-     * @param certifiedCopy the {@link Item} to check
+     * @param certificate the {@link Item} to check
      */
-    private void verifyCertifiedCopyItemOptionsAreCorrect(final Item certifiedCopy) {
-        assertThat(certifiedCopy.getItemOptions() instanceof CertificateItemOptions, is(true));
-        final CertificateItemOptions options = (CertificateItemOptions) certifiedCopy.getItemOptions();
+    private void verifyCertificateItemOptionsAreCorrect(final Item certificate) {
+        assertThat(certificate.getItemOptions() instanceof CertificateItemOptions, is(true));
+        final CertificateItemOptions options = (CertificateItemOptions) certificate.getItemOptions();
         assertThat(options.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
     }
 
