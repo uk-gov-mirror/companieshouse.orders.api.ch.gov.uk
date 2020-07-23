@@ -1560,31 +1560,33 @@ class BasketControllerIntegrationTest {
     }
 
     private Checkout createCertifiedCopyCheckout() {
-        final Item item = new Item();
-        item.setItemCosts(ITEM_COSTS);
-        item.setPostageCost(POSTAGE_COST);
-        item.setTotalItemCost(TOTAL_ITEM_COST);
-        item.setCompanyNumber(COMPANY_NUMBER);
-        item.setKind(CERTIFIED_COPY_KIND);
+        final CertifiedCopy copy = new CertifiedCopy();
+        copy.setItemCosts(ITEM_COSTS);
+        copy.setPostageCost(POSTAGE_COST);
+        copy.setTotalItemCost(TOTAL_ITEM_COST);
+        copy.setCompanyNumber(COMPANY_NUMBER);
+        copy.setKind(CERTIFIED_COPY_KIND);
         final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
         options.setFilingHistoryDocuments(singletonList(DOCUMENT));
-        item.setItemOptions(options);
+        copy.setItemOptions(options);
 
-        return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
+        return checkoutService.createCheckout(
+                copy, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
     private Checkout createCertificateCheckout() {
-        final Item item = new Item();
-        item.setItemCosts(ITEM_COSTS);
-        item.setPostageCost(POSTAGE_COST);
-        item.setTotalItemCost(TOTAL_ITEM_COST);
-        item.setCompanyNumber(COMPANY_NUMBER);
-        item.setKind(CERTIFICATE_KIND);
+        final Certificate certificate = new Certificate();
+        certificate.setItemCosts(ITEM_COSTS);
+        certificate.setPostageCost(POSTAGE_COST);
+        certificate.setTotalItemCost(TOTAL_ITEM_COST);
+        certificate.setCompanyNumber(COMPANY_NUMBER);
+        certificate.setKind(CERTIFICATE_KIND);
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
-        item.setItemOptions(options);
+        certificate.setItemOptions(options);
 
-        return checkoutService.createCheckout(item, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
+        return checkoutService.createCheckout(
+                certificate, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
     /**
