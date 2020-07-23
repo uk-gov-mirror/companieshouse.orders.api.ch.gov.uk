@@ -95,6 +95,7 @@ import static uk.gov.companieshouse.orders.api.model.CertificateType.INCORPORATI
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY_KIND;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_ACCESS_TOKEN;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
@@ -493,7 +494,51 @@ class BasketControllerIntegrationTest {
         verifyCertificateItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
     }
 
+    @Test
+    @DisplayName("Checkout basket responds with correctly populated certified copy item options")
+    void checkoutCertifiedCopyBasketReturnsCorrectlyPopulatedOptions() throws Exception {
+        basketRepository.save(getBasket(false, VALID_CERTIFIED_COPY_URI));
+
+        final CertifiedCopy copy = new CertifiedCopy();
+        copy.setKind(CERTIFIED_COPY_KIND);
+        final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
+        options.setFilingHistoryDocuments(singletonList(DOCUMENT));
+        copy.setItemOptions(options);
+        copy.setItemCosts(createItemCosts());
+        copy.setPostageCost(POSTAGE_COST);
+        copy.setPostalDelivery(false);
+        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+
+        final ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_date",
+                        is(DOCUMENT.getFilingHistoryDate())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_description",
+                        is(DOCUMENT.getFilingHistoryDescription())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_id",
+                        is(DOCUMENT.getFilingHistoryId())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_type",
+                        is(DOCUMENT.getFilingHistoryType())));
+
+        final MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        final CheckoutData responseCheckoutData = mapper.readValue(response.getContentAsString(), CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(isNotEmpty(retrievedCheckout.get().getData().getItems()), is(true));
+        verifyCertifiedCopyItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
+    }
+
     private Basket getBasket(boolean isPostalDelivery) {
+        return getBasket(isPostalDelivery, VALID_CERTIFICATE_URI);
+    }
+
+    private Basket getBasket(boolean isPostalDelivery, final String itemUri) {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         BasketData basketData = new BasketData();
@@ -509,7 +554,7 @@ class BasketControllerIntegrationTest {
         }
 
         Item basketItem = new Item();
-        basketItem.setItemUri(VALID_CERTIFICATE_URI);
+        basketItem.setItemUri(itemUri);
 
         basketItem.setPostalDelivery(isPostalDelivery);
         basketData.setItems(Collections.singletonList(basketItem));
@@ -1393,6 +1438,18 @@ class BasketControllerIntegrationTest {
         assertThat(options.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
     }
 
+    /**
+     * Verifies that the certified copy item's options are of the right type and have the expected field
+     * correctly populated.
+     * @param certifiedCopy the {@link Item} to check
+     */
+    private void verifyCertifiedCopyItemOptionsAreCorrect(final Item certifiedCopy) {
+        assertThat(certifiedCopy.getItemOptions() instanceof CertifiedCopyItemOptions, is(true));
+        final CertifiedCopyItemOptions options = (CertifiedCopyItemOptions) certifiedCopy.getItemOptions();
+        assertThat(isNotEmpty(options.getFilingHistoryDocuments()), is(true));
+        org.assertj.core.api.Assertions.assertThat(options.getFilingHistoryDocuments().get(0))
+                .isEqualToComparingFieldByFieldRecursively(DOCUMENT);
+    }
 
     private List<ItemCosts> createItemCosts(){
         List<ItemCosts> itemCosts = new ArrayList<>();
