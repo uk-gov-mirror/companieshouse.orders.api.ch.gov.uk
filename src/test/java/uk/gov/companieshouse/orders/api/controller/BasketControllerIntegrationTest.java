@@ -1158,26 +1158,60 @@ class BasketControllerIntegrationTest {
         timestamps.verifyUpdatedAtTimestampWithinExecutionInterval(retrievedCheckout.get());
         assertThat(retrievedCheckout.isPresent(), is(true));
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(retrievedCheckout.get().getData().getStatus(), is(PaymentStatus.PAID));
+        assertThat(retrievedCheckout.get().getData().getEtag(), is(UPDATED_ETAG));
+
+        // Assert order is created with correct information
+        final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
+        final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
+        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
+        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
+        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
+    }
+
+    @Test
+    @DisplayName("Patch payment details paid populates checkout and order certificate item options correctly")
+    void patchBasketCertificatePaymentSuccessfullyPaid() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        Checkout checkout = createCheckout();
+        PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
+
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
+        when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNoContent());
+
+        timestamps.end();
+
+        // Check checkout is correctly updated
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(checkout.getId());
+        assertThat(retrievedCheckout.isPresent(), is(true));
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
         final CheckoutData data = retrievedCheckout.get().getData();
-        assertThat(data.getStatus(), is(PaymentStatus.PAID));
-        assertThat(data.getEtag(), is(UPDATED_ETAG));
-        assertThat(data.getItems(), is(notNullValue()));
         assertThat(data.getItems().isEmpty(), is(false));
         assertThat(data.getItems().get(0), is(notNullValue()));
-
         final Item checkoutItem = data.getItems().get(0);
         verifyCertificateItemOptionsAreCorrect(checkoutItem);
 
         // Assert order is created with correct information
         final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
+        assertThat(orderRetrieved.getData(), is(notNullValue()));
+        assertThat(isNotEmpty(orderRetrieved.getData().getItems()), is(true));
         final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
-
-        assertThat(retrievedItem.getItemCosts(), is(ITEM_COSTS));
-        assertThat(retrievedItem.getPostageCost(), is(POSTAGE_COST));
-        assertThat(retrievedItem.getTotalItemCost(), is(TOTAL_ITEM_COST));
-
         verifyCertificateItemOptionsAreCorrect(retrievedItem);
     }
+
 
     @Test
     @DisplayName("Patch payment-details endpoint success path for failed payments session")
