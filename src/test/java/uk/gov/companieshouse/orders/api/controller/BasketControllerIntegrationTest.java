@@ -425,6 +425,7 @@ class BasketControllerIntegrationTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setKind(CERTIFICATE_KIND);
         final CertificateItemOptions options = new CertificateItemOptions();
+        options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
         options.setForename(FORENAME);
         options.setSurname(SURNAME);
         certificate.setItemOptions(options);
@@ -438,7 +439,9 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
-                .andExpect(status().isAccepted());
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.items[0].item_options.certificate_type",
+                        is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())));
 
         MvcResult result = resultActions.andReturn();
         MockHttpServletResponse response = result.getResponse();
