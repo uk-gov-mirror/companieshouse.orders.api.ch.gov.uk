@@ -459,6 +459,7 @@ class BasketControllerIntegrationTest {
         assertEquals(FORENAME, retrievedOptions.getForename());
         assertEquals(SURNAME, retrievedOptions.getSurname());
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
+        verifyCertificateItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
     }
 
     private Basket getBasket(boolean isPostalDelivery) {
@@ -1360,6 +1361,7 @@ class BasketControllerIntegrationTest {
         final CertificateItemOptions options = (CertificateItemOptions) certificate.getItemOptions();
         assertThat(options.getCertificateType(), is(INCORPORATION_WITH_ALL_NAME_CHANGES));
     }
+
 
     private List<ItemCosts> createItemCosts(){
         List<ItemCosts> itemCosts = new ArrayList<>();
