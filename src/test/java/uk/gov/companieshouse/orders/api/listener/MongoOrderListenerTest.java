@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.listener;
 
+
 import org.bson.Document;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,9 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.mapping.event.AfterConvertEvent;
-import uk.gov.companieshouse.orders.api.model.Checkout;
-import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.model.OrderData;
 
 import java.util.List;
 
@@ -22,25 +23,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests the {@link MongoCheckoutListener} class.
+ * Unit tests the {@link MongoOrderListener} class.
  */
 @ExtendWith(MockitoExtension.class)
-class MongoCheckoutListenerTest {
+class MongoOrderListenerTest {
 
     @InjectMocks
-    private MongoCheckoutListener listenerUnderTest;
+    private MongoOrderListener listenerUnderTest;
 
     @Mock
-    private AfterConvertEvent<Checkout> event;
+    private AfterConvertEvent<Order> event;
 
     @Mock
-    private Document checkoutDocument;
+    private Document orderDocument;
 
     @Mock
-    private Checkout checkout;
+    private Order order;
 
     @Mock
-    private CheckoutData checkoutData;
+    private OrderData orderData;
 
     @Mock
     private List<Item> items;
@@ -60,7 +61,7 @@ class MongoCheckoutListenerTest {
         listenerUnderTest.onAfterConvert(event);
 
         // Then
-        verify(reader).readOrderItemsOptions(items, checkoutDocument, "checkout");
+        verify(reader).readOrderItemsOptions(items, orderDocument, "order");
     }
 
     @Test
@@ -70,7 +71,7 @@ class MongoCheckoutListenerTest {
         // Given
         givenValidEvent();
         doThrow(new IllegalStateException("Test exception"))
-                .when(reader).readOrderItemsOptions(items, checkoutDocument, "checkout");
+                .when(reader).readOrderItemsOptions(items, orderDocument, "order");
 
         // When and then
         final IllegalStateException exception =
@@ -84,7 +85,7 @@ class MongoCheckoutListenerTest {
         // Given
         givenValidEvent();
         doThrow(new IllegalArgumentException("Test exception"))
-                .when(reader).readOrderItemsOptions(items, checkoutDocument, "checkout");
+                .when(reader).readOrderItemsOptions(items, orderDocument, "order");
 
         // When and then
         final IllegalArgumentException exception =
@@ -93,13 +94,12 @@ class MongoCheckoutListenerTest {
     }
 
     /**
-     * Provides a valid event set up for testing {@link MongoCheckoutListener#onAfterConvert(AfterConvertEvent)}.
+     * Provides a valid event set up for testing {@link MongoOrderListener#onAfterConvert(AfterConvertEvent)}.
      */
     private void givenValidEvent() {
-        when(event.getDocument()).thenReturn(checkoutDocument);
-        when(event.getSource()).thenReturn(checkout);
-        when(checkout.getData()).thenReturn(checkoutData);
-        when(checkoutData.getItems()).thenReturn(items);
+        when(event.getDocument()).thenReturn(orderDocument);
+        when(event.getSource()).thenReturn(order);
+        when(order.getData()).thenReturn(orderData);
+        when(orderData.getItems()).thenReturn(items);
     }
-
 }
