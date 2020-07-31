@@ -2,7 +2,15 @@ package uk.gov.companieshouse.orders.api.kafka;
 
 import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,12 +36,25 @@ public class OrdersKafkaProducer implements InitializingBean {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void sendMessage(final Message message) throws ExecutionException, InterruptedException {
+    public void sendMessage(final Message message) {
         Map<String, Object> logMap = LoggingUtils.createLogMap();
-        LoggingUtils.logIfNotNull(logMap, LoggingUtils.TOPIC, message.getTopic());
-        LoggingUtils.logIfNotNull(logMap, LoggingUtils.OFFSET, message.getOffset());
         LOGGER.info("Sending message to kafka", logMap);
-        chKafkaProducer.send(message);
+        CompletableFuture.supplyAsync(() -> chKafkaProducer.sendAndReturnFuture(message))
+                .thenAccept(recordMetadataFuture -> {
+                    RecordMetadata recordMetadata = null;
+                    try {
+                        while(!recordMetadataFuture.isDone()){
+                            Thread.sleep(300);
+                        }
+                        recordMetadata = recordMetadataFuture.get();
+                        LoggingUtils.logIfNotNull(logMap, LoggingUtils.TOPIC, recordMetadata.topic());
+                        LoggingUtils.logIfNotNull(logMap, LoggingUtils.OFFSET, recordMetadata.offset());
+                    }
+                    catch (InterruptedException | ExecutionException e) {
+                        LoggingUtils.logIfNotNull(logMap, LoggingUtils.EXCEPTION, e.getMessage());
+                        LOGGER.info("Failed to send message to kafka", logMap);
+                    }
+                });
     }
 
     @Override
