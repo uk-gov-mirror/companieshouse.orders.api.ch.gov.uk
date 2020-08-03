@@ -1,0 +1,124 @@
+{
+	"info": {
+		"_postman_id": "f01af0aa-e053-4d5e-9e34-0eed89484bfd",
+		"name": "Payments API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create payment session",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"redirect_uri\": \"{{base_url}}/payment-complete-callback\",\n    \"resource\": \"{{base_url}}/basket/checkouts/ORD-822015-964387/payment\",\n    \"state\": \"application-nonce-value\",\n    \"reference\": \"Payments reconciliation testing payment session ref\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{payments_base_url}}/payments",
+					"host": [
+						"{{payments_base_url}}"
+					],
+					"path": [
+						"payments"
+					]
+				},
+				"description": "Creates a payment API session. See https://developer-specs.kermit.aws.chdev.org/payment-api/reference/payment/create."
+			},
+			"response": []
+		},
+		{
+			"name": "Get payment session",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{payments_base_url}}/payments/iNquSapKxft7GYC",
+					"host": [
+						"{{payments_base_url}}"
+					],
+					"path": [
+						"payments",
+						"iNquSapKxft7GYC"
+					]
+				},
+				"description": "Creates a payment API session. See https://developer-specs.kermit.aws.chdev.org/payment-api/reference/payment/create."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "accessToken",
+				"value": "ltkCzl_M22_VRZQMptYMrTV_rpdl8qsqqZtdmLY4cpf-Km8rIMHA67hFgfTvtALvDKGXCVOW0L0MquIF4tdu9A",
+				"type": "string"
+			},
+			{
+				"key": "tokenType",
+				"value": "Bearer",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "f8b38738-54a0-4d63-bfae-3fae19e67a0e",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "5701acce-2f28-4847-8d45-ab55ccee4cf9",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
