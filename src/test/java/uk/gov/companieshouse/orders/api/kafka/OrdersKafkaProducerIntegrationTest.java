@@ -26,36 +26,17 @@ import static org.mockito.Mockito.verify;
 @DirtiesContext
 @EmbeddedKafka
 public class OrdersKafkaProducerIntegrationTest {
-    @Value("${spring.kafka.consumer.bootstrap-servers}")
-    private String kafkaBrokerAddresses;
     @Autowired
     private OrdersKafkaProducer ordersKafkaProducer;
 
     @Autowired
     private OrdersMessageFactory ordersAvroSerializer;
 
-    private OrderReceivedMessageProducer orderReceivedMessageProducer;
-
-    @MockBean
-    private OrdersKafkaProducer ordersKafkaProducerMock;
-    @MockBean
-    private InterruptedException interruptedException;
-    @MockBean
-    private ExecutionException executionException;
-    private OrderReceivedMessageProducer orderReceivedMessageProducerSpy;
-
     private String ORDERS_URI = "/orders/123456";
 
     private Message createTestMessage() throws SerializationException {
         OrderReceived orderReceived = new OrderReceived(ORDERS_URI);
         return ordersAvroSerializer.createMessage(orderReceived);
-    }
-
-    @BeforeEach
-    void setUp(){
-        OrderReceivedMessageProducer orderReceivedMessageProducer
-                = new OrderReceivedMessageProducer(ordersAvroSerializer, ordersKafkaProducerMock);
-        orderReceivedMessageProducerSpy = Mockito.spy(orderReceivedMessageProducer);
     }
 
     @Test
