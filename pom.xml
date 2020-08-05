@@ -30,7 +30,8 @@
 		<system-rules-version>1.17.2</system-rules-version>
 		<spring-cloud-contract-wiremock-version>2.2.2.RELEASE</spring-cloud-contract-wiremock-version>
 		<start-class>uk.gov.companieshouse.orders.api.OrdersApiApplication</start-class>
-		<private-api-sdk-java.version>2.0.43</private-api-sdk-java.version>
+		<!-- TODO GCI-1323 Set private-api-sdk-java dependency to correct version > 2.0.43 -->
+		<private-api-sdk-java.version>unversioned</private-api-sdk-java.version>
 		<api-sdk-manager-java-library.version>1.0.3</api-sdk-manager-java-library.version>
 		<api-sdk-java.version>4.1.48</api-sdk-java.version>
 		<api-helper-java.version>1.4.1</api-helper-java.version>
