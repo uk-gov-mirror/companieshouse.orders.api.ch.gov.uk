@@ -1,18 +1,9 @@
 package uk.gov.companieshouse.orders.api.kafka;
 
-import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.kafka.exceptions.ProducerConfigException;
 import uk.gov.companieshouse.kafka.message.Message;
@@ -22,6 +13,14 @@ import uk.gov.companieshouse.kafka.producer.ProducerConfig;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
+
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
+
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 
 @Service
 public class OrdersKafkaProducer implements InitializingBean {
@@ -36,29 +35,24 @@ public class OrdersKafkaProducer implements InitializingBean {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void sendMessage(final Message message) {
-        Map<String, Object> logMap = LoggingUtils.createLogMap();
-        LOGGER.info("Sending message to kafka", logMap);
-        CompletableFuture.supplyAsync(() -> chKafkaProducer.sendAndReturnFuture(message))
-                .thenAccept(recordMetadataFuture -> {
-                    RecordMetadata recordMetadata = null;
-                    try {
-                        while(!recordMetadataFuture.isDone()){
-                            Thread.sleep(300);
-                        }
-                        recordMetadata = recordMetadataFuture.get();
-                        LoggingUtils.logIfNotNull(logMap, LoggingUtils.TOPIC, recordMetadata.topic());
-                        LoggingUtils.logIfNotNull(logMap, LoggingUtils.OFFSET, recordMetadata.offset());
-                    }
-                    catch (InterruptedException | ExecutionException e) {
-                        LoggingUtils.logIfNotNull(logMap, LoggingUtils.EXCEPTION, e.getMessage());
-                        LOGGER.info("Failed to send message to kafka", logMap);
-                    }
-                });
+    @Async
+    public void sendMessage(final Message message, Consumer<RecordMetadata> asyncResposnseLogger) {
+        LOGGER.info("Sending message to kafka topic");
+        try {
+            Future<RecordMetadata> recordMetadataFuture = chKafkaProducer.sendAndReturnFuture(message);
+            asyncResposnseLogger.accept(recordMetadataFuture.get());
+        }
+        catch (InterruptedException | ExecutionException e) {
+            Map<String, Object> logMap = LoggingUtils.createLogMap();
+            String orderUri = message.getValue().toString();
+            logMap.put(LoggingUtils.ORDER_ID, orderUri.substring(8));
+            LoggingUtils.logIfNotNull(logMap, LoggingUtils.EXCEPTION, e.getMessage());
+            LOGGER.info("Failed to send message to kafka topic", logMap);
+        }
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         LOGGER.trace("Configuring CH Kafka producer");
         ProducerConfig config = new ProducerConfig();
         if (brokerAddresses != null && !brokerAddresses.isEmpty()) {
@@ -72,6 +66,7 @@ public class OrdersKafkaProducer implements InitializingBean {
         config.setRoundRobinPartitioner(true);
         config.setAcks(Acks.WAIT_FOR_ALL);
         config.setRetries(10);
+        config.setMaxBlockMilliseconds(10000);
         chKafkaProducer = new CHKafkaProducer(config);
     }
 }
