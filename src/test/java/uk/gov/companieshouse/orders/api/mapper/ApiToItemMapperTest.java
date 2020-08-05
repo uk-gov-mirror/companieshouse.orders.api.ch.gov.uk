@@ -22,11 +22,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFICATE;
+import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
 
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(ApiToItemMapperTest.Config.class)
-public class ApiToItemMapperTest {
+class ApiToItemMapperTest {
     private static final String ID = "CHS00000000000000001";
     private static final String COMPANY_NUMBER = "00006444";
     private static final int QUANTITY = 10;
@@ -64,6 +65,7 @@ public class ApiToItemMapperTest {
     private static final DirectorOrSecretaryDetailsApi DIRECTOR_OR_SECRETARY_DETAILS;
     private static final RegisteredOfficeAddressDetailsApi REGISTERED_OFFICE_ADDRESS_DETAILS;
     private static final ItemCostsApi ITEM_COSTS;
+    private static final ItemCostsApi CERTIFIED_COPY_ITEM_COSTS;
     private static final LinksApi LINKS_API;
     private static final CertifiedCopyItemOptionsApi CERTIFIED_COPY_ITEM_OPTIONS;
     private static final FilingHistoryDocumentApi FILING_HISTORY;
@@ -89,6 +91,12 @@ public class ApiToItemMapperTest {
         ITEM_COSTS.setItemCost("2");
         ITEM_COSTS.setCalculatedCost("3");
         ITEM_COSTS.setProductType(CERTIFICATE);
+
+        CERTIFIED_COPY_ITEM_COSTS = new ItemCostsApi();
+        CERTIFIED_COPY_ITEM_COSTS.setDiscountApplied("1");
+        CERTIFIED_COPY_ITEM_COSTS.setItemCost("2");
+        CERTIFIED_COPY_ITEM_COSTS.setCalculatedCost("3");
+        CERTIFIED_COPY_ITEM_COSTS.setProductType(CERTIFIED_COPY_INCORPORATION_SAME_DAY);
 
         DIRECTOR_OR_SECRETARY_DETAILS = new DirectorOrSecretaryDetailsApi();
         DIRECTOR_OR_SECRETARY_DETAILS.setIncludeAddress(INCLUDE_ADDRESS);
@@ -139,7 +147,7 @@ public class ApiToItemMapperTest {
     }
 
     @Test
-    public void testCertificateApiToCertificate() {
+    void testCertificateApiToCertificate() {
         CertificateApi certificateApi = new CertificateApi();
         certificateApi.setId(ID);
         certificateApi.setCompanyName(COMPANY_NAME);
@@ -183,7 +191,7 @@ public class ApiToItemMapperTest {
     }
 
     @Test
-    public void testCertifiedCopyApiToCertifiedCopy() throws JsonProcessingException {
+    void testCertifiedCopyApiToCertifiedCopy() throws JsonProcessingException {
         CertifiedCopyApi certifiedCopyApi = new CertifiedCopyApi();
         certifiedCopyApi.setId(ID);
         certifiedCopyApi.setCompanyName(COMPANY_NAME);
@@ -193,7 +201,7 @@ public class ApiToItemMapperTest {
         certifiedCopyApi.setDescription(DESCRIPTION);
         certifiedCopyApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
         certifiedCopyApi.setDescriptionValues(DESCRIPTION_VALUES);
-        certifiedCopyApi.setItemCosts(singletonList(ITEM_COSTS));
+        certifiedCopyApi.setItemCosts(singletonList(CERTIFIED_COPY_ITEM_COSTS));
         certifiedCopyApi.setKind(KIND);
         certifiedCopyApi.setPostalDelivery(POSTAL_DELIVERY);
         certifiedCopyApi.setItemOptions(CERTIFIED_COPY_ITEM_OPTIONS);
