@@ -35,11 +35,11 @@ public class OrdersKafkaProducer implements InitializingBean {
      * @throws InterruptedException
      */
     @Async
-    public void sendMessage(final Message message, Consumer<RecordMetadata> asyncResposnseLogger)
+    public void sendMessage(final Message message, Consumer<RecordMetadata> asyncResponseLogger)
             throws ExecutionException, InterruptedException {
         LOGGER.info("Sending message to kafka topic");
         Future<RecordMetadata> recordMetadataFuture = chKafkaProducer.sendAndReturnFuture(message);
-        asyncResposnseLogger.accept(recordMetadataFuture.get());
+        asyncResponseLogger.accept(recordMetadataFuture.get());
     }
 
     @Override
