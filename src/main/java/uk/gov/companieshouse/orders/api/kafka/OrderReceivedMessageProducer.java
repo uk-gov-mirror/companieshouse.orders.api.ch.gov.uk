@@ -35,11 +35,11 @@ public class OrderReceivedMessageProducer {
     public void sendMessage(final OrderReceived orderReceived) throws SerializationException {
         Message message = ordersAvroSerializer.createMessage(orderReceived);
         LOGGER.info("Sending message to kafka producer");
-        ordersKafkaProducer.sendMessage(message, (recordMetadata) -> {
+        ordersKafkaProducer.sendMessage(message, recordMetadata -> {
             long offset = recordMetadata.offset();
             String topic = message.getTopic();
             String orderUri = orderReceived.getOrderUri();
-            Map<String, Object> logMap = new HashMap<String, Object>();
+            Map<String, Object> logMap = new HashMap<>();
             logMap.put(LoggingUtils.TOPIC, topic);
             logMap.put(LoggingUtils.ORDER_ID, orderUri.substring(8));
             logMap.put(LoggingUtils.OFFSET, offset);

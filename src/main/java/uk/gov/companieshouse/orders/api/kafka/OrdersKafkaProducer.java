@@ -15,7 +15,6 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -44,10 +43,13 @@ public class OrdersKafkaProducer implements InitializingBean {
         }
         catch (InterruptedException | ExecutionException e) {
             Map<String, Object> logMap = LoggingUtils.createLogMap();
-            String orderUri = message.getValue().toString();
+            String orderUri = new String(message.getValue());
             logMap.put(LoggingUtils.ORDER_ID, orderUri.substring(8));
             LoggingUtils.logIfNotNull(logMap, LoggingUtils.EXCEPTION, e.getMessage());
             LOGGER.info("Failed to send message to kafka topic", logMap);
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
