@@ -41,16 +41,21 @@ public class OrdersKafkaProducer implements InitializingBean {
             Future<RecordMetadata> recordMetadataFuture = chKafkaProducer.sendAndReturnFuture(message);
             asyncResposnseLogger.accept(recordMetadataFuture.get());
         }
-        catch (InterruptedException | ExecutionException e) {
-            Map<String, Object> logMap = LoggingUtils.createLogMap();
-            String orderUri = new String(message.getValue());
-            logMap.put(LoggingUtils.ORDER_ID, orderUri.substring(8));
-            LoggingUtils.logIfNotNull(logMap, LoggingUtils.EXCEPTION, e.getMessage());
-            LOGGER.info("Failed to send message to kafka topic", logMap);
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
+        catch (InterruptedException ie) {
+            logException(message, ie);
+            Thread.currentThread().interrupt();
         }
+        catch (ExecutionException e) {
+            logException(message, e);
+        }
+    }
+
+    private void logException(Message message, Exception e) {
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
+        String orderUri = new String(message.getValue());
+        logMap.put(LoggingUtils.ORDER_ID, orderUri.substring(8));
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.EXCEPTION, e.getMessage());
+        LOGGER.info("Failed to send message to kafka topic", logMap);
     }
 
     @Override
