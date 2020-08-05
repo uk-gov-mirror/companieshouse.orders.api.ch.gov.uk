@@ -32,7 +32,8 @@ public class OrderReceivedMessageProducer {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public void sendMessage(final OrderReceived orderReceived) throws SerializationException {
+    public void sendMessage(final OrderReceived orderReceived)
+            throws SerializationException, ExecutionException, InterruptedException {
         Message message = ordersAvroSerializer.createMessage(orderReceived);
         LOGGER.info("Sending message to kafka producer");
         ordersKafkaProducer.sendMessage(message, recordMetadata -> {
