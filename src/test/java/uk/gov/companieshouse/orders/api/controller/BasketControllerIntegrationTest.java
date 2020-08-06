@@ -94,6 +94,8 @@ import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL
 import static uk.gov.companieshouse.orders.api.model.CertificateType.INCORPORATION_WITH_ALL_NAME_CHANGES;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
+import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
+import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY_KIND;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
@@ -106,6 +108,8 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_TYPE_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.SAME_DAY_CERTIFIED_COPY_COST;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFICATE_URI;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIED_COPY_URI;
@@ -160,7 +164,7 @@ class BasketControllerIntegrationTest {
     private static final String COSTS_LINK = "payments.service/payments";
 
     private static final List<ItemCosts> ITEM_COSTS =
-             asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
+            asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY),
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY));
     private static final String POSTAGE_COST = "0";
@@ -171,6 +175,20 @@ class BasketControllerIntegrationTest {
     private static final String PAYMENT_KIND = "payment-details#payment-details";
     private static final String UPDATED_ETAG = "dc3b9657a32453c6f79d5f3981bfa9af0a8b5478";
     private static final LocalDateTime PAID_AT_DATE = LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0);
+
+    private static final ItemCosts SAME_DAY_COPY_COST = new ItemCosts(
+            DISCOUNT_APPLIED_1,
+            SAME_DAY_CERTIFIED_COPY_COST,
+            SAME_DAY_CERTIFIED_COPY_COST,
+            CERTIFIED_COPY_SAME_DAY);
+    private static final ItemCosts SAME_DAY_NEW_INCORPORATION_COPY_COST =  new ItemCosts(
+            DISCOUNT_APPLIED_1,
+            SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST,
+            SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST,
+            CERTIFIED_COPY_INCORPORATION_SAME_DAY);
+    private static final List<ItemCosts> CERTIFIED_COPY_ITEM_COSTS =
+            asList(SAME_DAY_COPY_COST, SAME_DAY_NEW_INCORPORATION_COPY_COST);
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -340,12 +358,45 @@ class BasketControllerIntegrationTest {
                 .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_id",
                         is(DOCUMENT.getFilingHistoryId())))
                 .andExpect(jsonPath("$.item_options.filing_history_documents[0].filing_history_type",
-                        is(DOCUMENT.getFilingHistoryType())));
+                        is(DOCUMENT.getFilingHistoryType())))
+                .andDo(MockMvcResultHandlers.print());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         assertThat(retrievedBasket.get().getData().getItems().get(0).getItemUri(), is(VALID_CERTIFIED_COPY_URI));
     }
 
+    @Test
+    @DisplayName("Add certified copy to basket responds with correctly populated certified copy item costs")
+    void addCertifiedCopyReturnsCorrectlyPopulatedCosts() throws Exception {
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(VALID_CERTIFIED_COPY_URI);
+
+        final CertifiedCopy copy = new CertifiedCopy();
+        copy.setItemCosts(CERTIFIED_COPY_ITEM_COSTS);
+        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item_costs[0].discount_applied",
+                        is(SAME_DAY_COPY_COST.getDiscountApplied())))
+                .andExpect(jsonPath("$.item_costs[0].item_cost", is(SAME_DAY_COPY_COST.getItemCost())))
+                .andExpect(jsonPath("$.item_costs[0].calculated_cost", is(SAME_DAY_COPY_COST.getCalculatedCost())))
+                .andExpect(jsonPath("$.item_costs[0].product_type",
+                        is(SAME_DAY_COPY_COST.getProductType().getJsonName())))
+                .andExpect(jsonPath("$.item_costs[1].discount_applied",
+                        is(SAME_DAY_NEW_INCORPORATION_COPY_COST.getDiscountApplied())))
+                .andExpect(jsonPath("$.item_costs[1].item_cost",
+                        is(SAME_DAY_NEW_INCORPORATION_COPY_COST.getItemCost())))
+                .andExpect(jsonPath("$.item_costs[1].calculated_cost",
+                        is(SAME_DAY_NEW_INCORPORATION_COPY_COST.getCalculatedCost())))
+                .andExpect(jsonPath("$.item_costs[1].product_type",
+                        is(SAME_DAY_NEW_INCORPORATION_COPY_COST.getProductType().getJsonName())));
+    }
 
     @Test
     @DisplayName("Add item returns 400 when invalid item passed in request")
