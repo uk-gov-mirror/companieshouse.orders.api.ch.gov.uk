@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.companieshouse.orders.api.kafka.OrderReceivedMessageProducer;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
 import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
@@ -38,6 +39,9 @@ class OrderServiceTest {
 
     @Mock
     private LinksGeneratorService linksGeneratorService;
+
+    @Mock
+    private OrderReceivedMessageProducer ordersMessageProducer;
 
     @Test
     void createOrderCreatesOrder() {

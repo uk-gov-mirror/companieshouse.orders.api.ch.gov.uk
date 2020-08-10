@@ -1,16 +1,15 @@
 package uk.gov.companieshouse.orders.api.kafka;
 
 import org.springframework.stereotype.Service;
-import uk.gov.companieshouse.kafka.exceptions.SerializationException;
 import uk.gov.companieshouse.kafka.message.Message;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
+import uk.gov.companieshouse.orders.api.exception.KafkaMessagingException;
 import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 
@@ -27,24 +26,32 @@ public class OrderReceivedMessageProducer {
 
     /**
      * Sends order-received message to CHKafkaProducer
+     * @param orderId order id
      * @param orderReceived order-received object
-     * @throws SerializationException
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
-    public void sendMessage(final OrderReceived orderReceived)
-            throws SerializationException, ExecutionException, InterruptedException {
-        Message message = ordersAvroSerializer.createMessage(orderReceived);
-        LOGGER.info("Sending message to kafka producer");
-        ordersKafkaProducer.sendMessage(message, recordMetadata -> {
-            long offset = recordMetadata.offset();
-            String topic = message.getTopic();
-            String orderUri = orderReceived.getOrderUri();
-            Map<String, Object> logMap = new HashMap<>();
-            logMap.put(LoggingUtils.TOPIC, topic);
-            logMap.put(LoggingUtils.ORDER_ID, orderUri.substring(8));
-            logMap.put(LoggingUtils.OFFSET, offset);
-            LoggerFactory.getLogger(APPLICATION_NAMESPACE).info("Message sent to Kafka topic", logMap);
-        });
+    public void sendMessage(final String orderId, final OrderReceived orderReceived) {
+        Map<String, Object> logMap = LoggingUtils.createLogMap();
+        LoggingUtils.logIfNotNull(logMap, LoggingUtils.ORDER_ID, orderId);
+
+        LOGGER.info("Sending message to kafka producer", logMap);
+        try {
+            Message message = ordersAvroSerializer.createMessage(orderReceived);
+            ordersKafkaProducer.sendMessage(orderId, message, recordMetadata -> {
+                long offset = recordMetadata.offset();
+                String topic = message.getTopic();
+                Map<String, Object> logMapCallback = new HashMap<>();
+                logMapCallback.put(LoggingUtils.TOPIC, topic);
+                logMapCallback.put(LoggingUtils.ORDER_ID, orderId);
+                logMapCallback.put(LoggingUtils.OFFSET, offset);
+                LoggerFactory.getLogger(APPLICATION_NAMESPACE).info("Message sent to Kafka topic", logMap);
+            });
+        } catch (Exception e) {
+            final String errorMessage
+                    = String.format("Kafka 'order-received' message could not be sent for order - %s", orderId);
+            logMap.put(LoggingUtils.ORDER_ID, orderId);
+            logMap.put(LoggingUtils.EXCEPTION, e);
+            LOGGER.error(errorMessage, logMap);
+            throw new KafkaMessagingException(errorMessage);
+        }
     }
 }

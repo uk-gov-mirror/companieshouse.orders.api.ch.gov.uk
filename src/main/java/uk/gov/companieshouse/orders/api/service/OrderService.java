@@ -1,13 +1,7 @@
 package uk.gov.companieshouse.orders.api.service;
 
-import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.companieshouse.kafka.exceptions.SerializationException;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
@@ -19,6 +13,12 @@ import uk.gov.companieshouse.orders.api.model.Checkout;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
+
+import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
+
 @Service
 public class OrderService {
 
@@ -27,8 +27,7 @@ public class OrderService {
     private final CheckoutToOrderMapper mapper;
     private final OrderRepository repository;
     private final LinksGeneratorService linksGeneratorService;
-
-    private OrderReceivedMessageProducer ordersMessageProducer;
+    private final OrderReceivedMessageProducer ordersMessageProducer;
 
     @Value("${uk.gov.companieshouse.orders.api.orders}")
     private String orderEndpointU;
@@ -65,13 +64,8 @@ public class OrderService {
             }
         );
 
-        try {
-            LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId(), logMap);
-            sendOrderReceivedMessage(mappedOrder.getId());
-        } catch (Exception e) {
-            logMap.put(LoggingUtils.EXCEPTION, e);
-            LOGGER.error("Kafka 'order-received' message could not be sent for order - " + mappedOrder.getId(), logMap);
-        }
+        LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId(), logMap);
+        sendOrderReceivedMessage(mappedOrder.getId());
 
         return repository.save(mappedOrder);
     }
@@ -82,16 +76,12 @@ public class OrderService {
     /**
      * Sends a message to Kafka topic 'order-received'
      * @param orderId order id
-     * @throws InterruptedException
-     * @throws ExecutionException
-     * @throws SerializationException
      */
-    private void sendOrderReceivedMessage(String orderId)
-            throws InterruptedException, ExecutionException, SerializationException {
+    private void sendOrderReceivedMessage(String orderId) {
         String orderURI = orderEndpointU + "/" + orderId;
         OrderReceived orderReceived = new OrderReceived();
         orderReceived.setOrderUri(orderURI);
-        ordersMessageProducer.sendMessage(orderReceived);
+        ordersMessageProducer.sendMessage(orderId, orderReceived);
     }
 
     /**
