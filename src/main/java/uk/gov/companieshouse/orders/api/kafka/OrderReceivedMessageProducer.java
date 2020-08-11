@@ -43,7 +43,7 @@ public class OrderReceivedMessageProducer {
                 logMapCallback.put(LoggingUtils.TOPIC, topic);
                 logMapCallback.put(LoggingUtils.ORDER_ID, orderId);
                 logMapCallback.put(LoggingUtils.OFFSET, offset);
-                LoggerFactory.getLogger(APPLICATION_NAMESPACE).info("Message sent to Kafka topic", logMap);
+                LoggerFactory.getLogger(APPLICATION_NAMESPACE).info("Message sent to Kafka topic", logMapCallback);
             });
         } catch (Exception e) {
             final String errorMessage
