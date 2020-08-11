@@ -15,6 +15,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.context.request.WebRequest;
+import uk.gov.companieshouse.orders.api.exception.KafkaMessagingException;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.util.FieldNameConverter;
 
@@ -23,6 +24,7 @@ import java.util.Collections;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.MULTI_STATUS;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +37,7 @@ public class GlobalExceptionHandlerTest {
     private static final String MESSAGE2 = "message2";
     private static final String ORIGINAL_MESSAGE = "original";
     private static final HttpStatus ORIGINAL_STATUS = MULTI_STATUS;
+    public static final String KAFKA_MESSAGING_FAILURE = "Kafka messaging failure";
 
     /**
      * Extends {@link GlobalExceptionHandler} to facilitate its unit testing.
@@ -63,6 +66,9 @@ public class GlobalExceptionHandlerTest {
 
     @Mock
     private HttpMessageNotReadableException hex;
+
+    @Mock
+    private KafkaMessagingException kmex;
 
     @Mock
     private JsonProcessingException jpe;
@@ -116,7 +122,6 @@ public class GlobalExceptionHandlerTest {
         final ApiError error = (ApiError) response.getBody();
         assertThat(error, is(notNullValue()));
         assertThat(error.getStatus(), is(HttpStatus.BAD_REQUEST));
-        assertThat(error.getErrors().get(0), is(ORIGINAL_MESSAGE));
     }
 
     @Test
@@ -135,4 +140,17 @@ public class GlobalExceptionHandlerTest {
         assertThat(response.getBody(), is(nullValue()));
     }
 
+    @Test
+    void delegatesHandlingOfKafkaMessagingExceptionToSpring() {
+        // Given
+        when(kmex.getMessage()).thenReturn(KAFKA_MESSAGING_FAILURE);
+
+        // When
+        final ResponseEntity<Object> response = handlerUnderTest.handleKafkaMessagingException(kmex);
+
+        // Then
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(INTERNAL_SERVER_ERROR));
+        assertThat(response.getBody(), is(KAFKA_MESSAGING_FAILURE));
+    }
 }

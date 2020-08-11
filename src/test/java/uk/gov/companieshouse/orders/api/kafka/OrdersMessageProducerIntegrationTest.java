@@ -22,7 +22,8 @@ import static org.junit.Assert.assertEquals;
 @EmbeddedKafka
 @TestPropertySource(properties="uk.gov.companieshouse.orders.api.order=/order")
 public class OrdersMessageProducerIntegrationTest {
-    private static final String ORDER_URI = "/order/ORDER-12345";
+    private static final String ORDER_ID = "ORDER-12345";
+    private static final String ORDER_URI = "/order/" + ORDER_ID;
 
     @Autowired
     OrderReceivedMessageProducer ordersMessageProducerUnderTest;
@@ -40,7 +41,7 @@ public class OrdersMessageProducerIntegrationTest {
         orderReceived.setOrderUri(ORDER_URI);
 
         // When order-received message is sent to kafka topic
-        List<Message> messages = sendAndConsumeMessage(orderReceived);
+        List<Message> messages = sendAndConsumeMessage(ORDER_ID, orderReceived);
 
         // Then we have successfully consumed a message.
         assertThat(messages.isEmpty(), is(false));
@@ -55,13 +56,13 @@ public class OrdersMessageProducerIntegrationTest {
         assertEquals(deserializedConsumedMessage, deserializedOrderReceived);
     }
 
-    private List<Message> sendAndConsumeMessage(final OrderReceived orderReceived) throws Exception {
+    private List<Message> sendAndConsumeMessage(final String orderId, final OrderReceived orderReceived) throws Exception {
         List<Message> messages;
         testOrdersMessageConsumer.connect();
         int count = 0;
         do {
             messages = testOrdersMessageConsumer.pollConsumerGroup();
-            ordersMessageProducerUnderTest.sendMessage(orderReceived);
+            ordersMessageProducerUnderTest.sendMessage(orderId, orderReceived);
             count++;
         } while(messages.isEmpty() && count < 15);
 
