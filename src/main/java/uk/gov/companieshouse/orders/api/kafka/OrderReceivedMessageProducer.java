@@ -50,7 +50,7 @@ public class OrderReceivedMessageProducer {
                     = String.format("Kafka 'order-received' message could not be sent for order - %s", orderId);
             logMap.put(LoggingUtils.EXCEPTION, e);
             LOGGER.error(errorMessage, logMap);
-            throw new KafkaMessagingException(errorMessage);
+            throw new KafkaMessagingException(errorMessage, e);
         }
     }
 }
