@@ -9,8 +9,10 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import uk.gov.companieshouse.orders.api.exception.MongoOperationException;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.util.FieldNameConverter;
 
@@ -51,6 +53,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         }
 
         return super.handleHttpMessageNotReadable(ex, headers, status, request);
+    }
+
+    /**
+     * Returns Http Status 500 when mongo db fails to run an operation.
+     * @param ex exception
+     * @return
+     */
+    @ExceptionHandler(MongoOperationException.class)
+    public ResponseEntity<Object> handleMongoOperationException(final MongoOperationException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 
     /**

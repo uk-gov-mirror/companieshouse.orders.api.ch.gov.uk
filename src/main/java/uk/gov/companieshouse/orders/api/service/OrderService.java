@@ -6,12 +6,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.kafka.exceptions.SerializationException;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
 import uk.gov.companieshouse.orders.api.exception.ForbiddenException;
+import uk.gov.companieshouse.orders.api.exception.MongoOperationException;
 import uk.gov.companieshouse.orders.api.kafka.OrderReceivedMessageProducer;
 import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
@@ -73,7 +75,18 @@ public class OrderService {
             LOGGER.error("Kafka 'order-received' message could not be sent for order - " + mappedOrder.getId(), logMap);
         }
 
-        return repository.save(mappedOrder);
+        Order savedOrder = null;
+        if (savedOrder != null) {
+            try {
+                savedOrder = repository.save(mappedOrder);
+            } catch (DataAccessException dax) {
+                String errorMessage = String.format("Failed to save order with id %s", mappedOrder.getId());
+                LOGGER.error(errorMessage, dax);
+                throw new MongoOperationException(errorMessage, dax);
+            }
+        }
+
+        return savedOrder;
     }
 
     public Optional<Order> getOrder(String id) {
