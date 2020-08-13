@@ -70,14 +70,12 @@ public class OrderService {
         sendOrderReceivedMessage(mappedOrder.getId());
 
         Order savedOrder = null;
-        if (savedOrder != null) {
-            try {
-                savedOrder = repository.save(mappedOrder);
-            } catch (DataAccessException dax) {
-                String errorMessage = String.format("Failed to save order with id %s", mappedOrder.getId());
-                LOGGER.error(errorMessage, dax);
-                throw new MongoOperationException(errorMessage, dax);
-            }
+        try {
+            savedOrder = repository.save(mappedOrder);
+        } catch (DataAccessException dax) {
+            String errorMessage = String.format("Failed to save order with id %s", mappedOrder.getId());
+            LOGGER.error(errorMessage, dax);
+            throw new MongoOperationException(errorMessage, dax);
         }
 
         return savedOrder;

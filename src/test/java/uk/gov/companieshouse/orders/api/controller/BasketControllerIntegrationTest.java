@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -30,6 +31,7 @@ import uk.gov.companieshouse.orders.api.dto.ItemDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentLinksDTO;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
+import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.model.Basket;
 import uk.gov.companieshouse.orders.api.model.BasketData;
@@ -44,6 +46,7 @@ import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
 import uk.gov.companieshouse.orders.api.model.ItemOptions;
 import uk.gov.companieshouse.orders.api.model.Order;
+import uk.gov.companieshouse.orders.api.model.OrderData;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
@@ -51,6 +54,7 @@ import uk.gov.companieshouse.orders.api.repository.OrderRepository;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.service.EtagGeneratorService;
+import uk.gov.companieshouse.orders.api.service.OrderService;
 import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
 import uk.gov.companieshouse.orders.api.validator.DeliveryDetailsValidator;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
@@ -80,6 +84,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
@@ -221,6 +227,24 @@ class BasketControllerIntegrationTest {
 
     @Mock
     private ApiErrorResponseException apiErrorResponseException;
+
+    @SpyBean
+    private OrderService orderService;
+
+    @MockBean
+    private OrderRepository orderRepositoryMock;
+
+    @Mock
+    private DataAccessException dataAccessException;
+
+    @MockBean
+    private Order order;
+
+    @MockBean
+    private CheckoutToOrderMapper checkoutToOrderMapper;
+
+    @MockBean
+    private OrderData orderData;
 
     @BeforeEach
     void setUp() {
@@ -1330,6 +1354,37 @@ class BasketControllerIntegrationTest {
         timestamps.end();
 
         checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.FAILED);
+    }
+
+    @Test
+    @DisplayName("Patch payment-details endpoint returns 500 when Mongo fails to save order")
+    void patchBasketPaymentDetailsReturns500OnMongoFailure() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        final BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        final Checkout checkout = createCertifiedCopyCheckout();
+        final PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
+
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
+        when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
+        when(checkoutToOrderMapper.checkoutToOrder(checkout)).thenReturn(order);
+        when(order.getData()).thenReturn(orderData);
+        doThrow(dataAccessException).when(orderRepositoryMock).save(order);
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isInternalServerError());
+
+        timestamps.end();
+
+        //checkPatchHasNotUpdated(checkout.getId(), PaymentStatus.FAILED);
     }
 
     @Test
