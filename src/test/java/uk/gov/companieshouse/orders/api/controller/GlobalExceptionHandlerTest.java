@@ -16,13 +16,16 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.context.request.WebRequest;
 import uk.gov.companieshouse.orders.api.exception.KafkaMessagingException;
+import uk.gov.companieshouse.orders.api.exception.MongoOperationException;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.util.FieldNameConverter;
 
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.MULTI_STATUS;
@@ -38,6 +41,7 @@ public class GlobalExceptionHandlerTest {
     private static final String ORIGINAL_MESSAGE = "original";
     private static final HttpStatus ORIGINAL_STATUS = MULTI_STATUS;
     public static final String KAFKA_MESSAGING_FAILURE = "Kafka messaging failure";
+    public static final String MONGO_OPERATION_FAILURE = "Mongo operation failure";
 
     /**
      * Extends {@link GlobalExceptionHandler} to facilitate its unit testing.
@@ -69,6 +73,9 @@ public class GlobalExceptionHandlerTest {
 
     @Mock
     private KafkaMessagingException kmex;
+
+    @Mock
+    private MongoOperationException moex;
 
     @Mock
     private JsonProcessingException jpe;
@@ -152,5 +159,19 @@ public class GlobalExceptionHandlerTest {
         assertThat(response, is(notNullValue()));
         assertThat(response.getStatusCode(), is(INTERNAL_SERVER_ERROR));
         assertThat(response.getBody(), is(KAFKA_MESSAGING_FAILURE));
+    }
+
+    @Test
+    void delegatesHandlingOfMongoOperationExceptionToSpring() {
+        // Given
+        when(moex.getMessage()).thenReturn(MONGO_OPERATION_FAILURE);
+
+        // When
+        final ResponseEntity<Object> response = handlerUnderTest.handleMongoOperationException(moex);
+
+        // Then
+        assertThat(response, is(notNullValue()));
+        assertThat(response.getStatusCode(), is(INTERNAL_SERVER_ERROR));
+        assertThat(response.getBody(), is(MONGO_OPERATION_FAILURE));
     }
 }

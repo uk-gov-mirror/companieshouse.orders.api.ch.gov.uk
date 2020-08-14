@@ -1,11 +1,13 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import com.mongodb.MongoException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.orders.OrderReceived;
 import uk.gov.companieshouse.orders.api.exception.ForbiddenException;
+import uk.gov.companieshouse.orders.api.exception.MongoOperationException;
 import uk.gov.companieshouse.orders.api.kafka.OrderReceivedMessageProducer;
 import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToOrderMapper;
@@ -67,7 +69,16 @@ public class OrderService {
         LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId(), logMap);
         sendOrderReceivedMessage(mappedOrder.getId());
 
-        return repository.save(mappedOrder);
+        Order savedOrder = null;
+        try {
+            savedOrder = repository.save(mappedOrder);
+        } catch (MongoException ex) {
+            String errorMessage = String.format("Failed to save order with id %s", mappedOrder.getId());
+            LOGGER.error(errorMessage, ex, logMap);
+            throw new MongoOperationException(errorMessage, ex);
+        }
+
+        return savedOrder;
     }
 
     public Optional<Order> getOrder(String id) {

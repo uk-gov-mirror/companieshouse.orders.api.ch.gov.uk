@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import uk.gov.companieshouse.orders.api.exception.MongoOperationException;
 import uk.gov.companieshouse.orders.api.exception.KafkaMessagingException;
 import uk.gov.companieshouse.orders.api.model.ApiError;
 import uk.gov.companieshouse.orders.api.util.FieldNameConverter;
@@ -56,7 +57,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
-     * Returns Http Status 500 when Kafka message sending fails
+     * Returns Http Status 500 when mongo db fails to run an operation.
+     * @param ex exception
+     * @return
+     */
+    @ExceptionHandler(MongoOperationException.class)
+    public ResponseEntity<Object> handleMongoOperationException(final MongoOperationException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
+
+     /** Returns Http Status 500 when Kafka message sending fails
      * @param ex exception
      * @return
      */
@@ -75,9 +85,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         final List<String> errors = new ArrayList<>();
 
         for (final FieldError error : ex.getBindingResult().getFieldErrors()) {
-            System.out.println("HIII");
-            System.out.println(error.getObjectName());
-
             errors.add(converter.toSnakeCase(error.getField()) + ": " + error.getDefaultMessage());
         }
         for (final ObjectError error : ex.getBindingResult().getGlobalErrors()) {
