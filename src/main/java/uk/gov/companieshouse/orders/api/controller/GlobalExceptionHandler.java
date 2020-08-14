@@ -85,9 +85,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         final List<String> errors = new ArrayList<>();
 
         for (final FieldError error : ex.getBindingResult().getFieldErrors()) {
-            System.out.println("HIII");
-            System.out.println(error.getObjectName());
-
             errors.add(converter.toSnakeCase(error.getField()) + ": " + error.getDefaultMessage());
         }
         for (final ObjectError error : ex.getBindingResult().getGlobalErrors()) {
