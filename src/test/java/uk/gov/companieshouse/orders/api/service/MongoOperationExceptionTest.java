@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @EmbeddedKafka
-public class OrderServiceIntegrationTest {
+public class MongoOperationExceptionTest {
     @InjectMocks
     private OrderService orderService;
 

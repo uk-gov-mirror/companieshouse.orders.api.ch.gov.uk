@@ -74,7 +74,7 @@ public class OrderService {
             savedOrder = repository.save(mappedOrder);
         } catch (MongoException ex) {
             String errorMessage = String.format("Failed to save order with id %s", mappedOrder.getId());
-            LOGGER.error(errorMessage, ex);
+            LOGGER.error(errorMessage, ex, logMap);
             throw new MongoOperationException(errorMessage, ex);
         }
 
