@@ -943,11 +943,11 @@ class BasketControllerIntegrationTest {
         certificate.setPostageCost(POSTAGE_COST);
 
         mockMvc.perform(get("/basket")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         assertNotNull(retrievedBasket);
@@ -973,12 +973,12 @@ class BasketControllerIntegrationTest {
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
         mockMvc.perform(patch("/basket")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
-                .andExpect(status().isOk());
+            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+            .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
@@ -1011,12 +1011,12 @@ class BasketControllerIntegrationTest {
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
         mockMvc.perform(patch("/basket")
-                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
-                .andExpect(status().isOk());
+            .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+            .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+            .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
+            .andExpect(status().isOk());
 
         final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
         final DeliveryDetails getDeliveryDetails = retrievedBasket.get().getData().getDeliveryDetails();
