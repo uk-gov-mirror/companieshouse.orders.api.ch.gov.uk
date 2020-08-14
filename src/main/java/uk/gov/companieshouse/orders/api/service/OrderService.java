@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import com.mongodb.MongoException;
+import com.mongodb.MongoWriteException;
+import com.mongodb.WriteError;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -72,10 +75,10 @@ public class OrderService {
         Order savedOrder = null;
         try {
             savedOrder = repository.save(mappedOrder);
-        } catch (DataAccessException dax) {
+        } catch (MongoException ex) {
             String errorMessage = String.format("Failed to save order with id %s", mappedOrder.getId());
-            LOGGER.error(errorMessage, dax);
-            throw new MongoOperationException(errorMessage, dax);
+            LOGGER.error(errorMessage, ex);
+            throw new MongoOperationException(errorMessage, ex);
         }
 
         return savedOrder;
