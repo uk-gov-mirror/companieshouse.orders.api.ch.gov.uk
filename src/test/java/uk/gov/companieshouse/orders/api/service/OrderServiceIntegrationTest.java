@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.orders.api.service;
 
+import com.mongodb.MongoException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,7 +8,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataAccessException;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import uk.gov.companieshouse.orders.api.controller.GlobalExceptionHandler;
 import uk.gov.companieshouse.orders.api.exception.MongoOperationException;
@@ -36,7 +36,7 @@ public class OrderServiceIntegrationTest {
     @Mock
     private Checkout checkout;
     @Mock
-    private DataAccessException dataAccessException;
+    private MongoException mongoException;
     @Mock
     private Order order;
     @Mock
@@ -54,7 +54,7 @@ public class OrderServiceIntegrationTest {
         // and when mongo db save operation fails with DataAccessException
         Mockito.when(checkoutToOrderMapper.checkoutToOrder(checkout)).thenReturn(order);
         Mockito.when(order.getData()).thenReturn(orderData);
-        Mockito.doThrow(dataAccessException).when(orderRepository).save(order);
+        Mockito.doThrow(mongoException).when(orderRepository).save(order);
 
         // then global exception handler handles the exception
         Assertions.assertThrows(MongoOperationException.class, () -> {
