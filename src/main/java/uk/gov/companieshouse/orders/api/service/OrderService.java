@@ -66,9 +66,6 @@ public class OrderService {
             }
         );
 
-        LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId(), logMap);
-        sendOrderReceivedMessage(mappedOrder.getId());
-
         Order savedOrder = null;
         try {
             savedOrder = repository.save(mappedOrder);
@@ -77,6 +74,9 @@ public class OrderService {
             LOGGER.error(errorMessage, ex, logMap);
             throw new MongoOperationException(errorMessage, ex);
         }
+
+        LOGGER.info("Publishing notification to Kafka 'order-received' topic for order - " + mappedOrder.getId(), logMap);
+        sendOrderReceivedMessage(mappedOrder.getId());
 
         return savedOrder;
     }
