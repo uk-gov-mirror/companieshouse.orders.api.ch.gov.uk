@@ -26,11 +26,11 @@ public class TestConstants {
     public static final String SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST = "100";
 
     public static final FilingHistoryDocument DOCUMENT = new FilingHistoryDocument(
-            "1993-04-01",
-            "memorandum-articles",
-            null,
-            "MDAxMTEyNzExOGFkaXF6a2N4",
-            "MEM/ARTS"
+        "1993-04-01",
+        "memorandum-articles",
+        null,
+        "MDAxMTEyNzExOGFkaXF6a2N4",
+        "MEM/ARTS",
+        "£15"
     );
-
 }
