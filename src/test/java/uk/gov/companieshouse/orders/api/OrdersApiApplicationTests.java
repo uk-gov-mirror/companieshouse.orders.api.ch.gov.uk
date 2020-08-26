@@ -31,7 +31,7 @@ class OrdersApiApplicationTests {
 	}
 
 	@Test
-	public void checkEnvironmentVariablesIsOrdersDatabaseMissingReturnsFalse() {
+	public void checkEnvironmentVariablesMissingMongodbUrlReturnsFalse() {
 		environmentVariables.set(ORDERS_DATABASE, ORDERS_DATABASE);
 		boolean present = OrdersApiApplication.checkEnvironmentVariables();
 		assertFalse(present);
@@ -39,7 +39,7 @@ class OrdersApiApplicationTests {
 	}
 
 	@Test
-	public void checkEnvironmentVariablesMongodbUrlMissingReturnFalse() {
+	public void checkEnvironmentVariablesMissingOrdersDatabaseReturnFalse() {
 		environmentVariables.set(MONGODB_URL, MONGODB_URL);
 		boolean present = OrdersApiApplication.checkEnvironmentVariables();
 		assertFalse(present);
