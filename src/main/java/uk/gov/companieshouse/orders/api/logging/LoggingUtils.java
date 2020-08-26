@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.orders.api.logging;
 
+import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,17 +34,23 @@ public class LoggingUtils {
     public static final String VALIDATION_ERRORS = "validation_errors";
     
     public static final String REQUEST_ID_HEADER_NAME = "X-Request-ID";
-    
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);
+
     public static Map<String, Object> createLogMapWithRequestId(String requestId){
         Map<String, Object> logMap = new HashMap<>();
         logMap.put(REQUEST_ID, requestId);
         return logMap;
     }
-    
+
     public static Map<String, Object> createLogMap() {
         return new HashMap<String, Object>();
     }
-    
+
+    public static Logger getLogger() {
+        return LOGGER;
+    }
+
     public static void logIfNotNull(Map<String, Object> logMap, String key, Object loggingObject) {
         if(loggingObject != null) {
             logMap.put(key, loggingObject);
