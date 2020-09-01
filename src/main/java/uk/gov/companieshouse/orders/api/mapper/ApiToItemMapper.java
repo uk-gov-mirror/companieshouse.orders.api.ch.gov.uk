@@ -2,8 +2,16 @@ package uk.gov.companieshouse.orders.api.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uk.gov.companieshouse.api.model.order.item.*;
-import uk.gov.companieshouse.orders.api.model.*;
+import uk.gov.companieshouse.api.model.order.item.BaseItemApi;
+import uk.gov.companieshouse.api.model.order.item.CertificateApi;
+import uk.gov.companieshouse.api.model.order.item.CertificateItemOptionsApi;
+import uk.gov.companieshouse.api.model.order.item.CertifiedCopyApi;
+import uk.gov.companieshouse.api.model.order.item.CertifiedCopyItemOptionsApi;
+import uk.gov.companieshouse.orders.api.model.Certificate;
+import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopy;
+import uk.gov.companieshouse.orders.api.model.CertifiedCopyItemOptions;
+import uk.gov.companieshouse.orders.api.model.Item;
 
 @Mapper(componentModel = "spring")
 public interface ApiToItemMapper {

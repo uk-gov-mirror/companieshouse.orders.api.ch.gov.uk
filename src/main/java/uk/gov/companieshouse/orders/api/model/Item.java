@@ -1,11 +1,18 @@
 package uk.gov.companieshouse.orders.api.model;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+//@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+//@JsonSubTypes({
+//        @JsonSubTypes.Type(value = CertificateItemOptions.class, name = "CertificateItemOptions"),
+//        @JsonSubTypes.Type(value = CertifiedCopyItemOptions.class, name = "CertifiedCopyItemOptions")
+//})
 public class Item {
 
     @Field("id")
@@ -25,6 +32,7 @@ public class Item {
 
     private List<ItemCosts> itemCosts;
 
+    @JsonTypeInfo(use=JsonTypeInfo.Id.NAME)
     private ItemOptions itemOptions;
 
     private String etag;

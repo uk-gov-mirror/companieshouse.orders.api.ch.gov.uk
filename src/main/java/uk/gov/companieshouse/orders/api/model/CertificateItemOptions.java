@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.orders.api.model;
 
+import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public class CertificateItemOptions extends ItemOptions {
 
     private CertificateType certificateType;
