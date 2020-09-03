@@ -132,7 +132,9 @@ class ApiToItemMapperTest {
                                                       DOCUMENT.getFilingHistoryDescription(),
                                                       DOCUMENT.getFilingHistoryDescriptionValues(),
                                                       DOCUMENT.getFilingHistoryId(),
-                                                      DOCUMENT.getFilingHistoryType());
+                                                      DOCUMENT.getFilingHistoryType(),
+                                                      DOCUMENT.getFilingHistoryCost()
+                );
 
         CERTIFIED_COPY_ITEM_OPTIONS = new CertifiedCopyItemOptionsApi();
         CERTIFIED_COPY_ITEM_OPTIONS.setCollectionLocation(CollectionLocationApi.BELFAST);
