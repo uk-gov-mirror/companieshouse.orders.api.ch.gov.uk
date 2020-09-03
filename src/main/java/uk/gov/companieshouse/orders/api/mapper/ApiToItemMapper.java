@@ -12,6 +12,7 @@ import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
 import uk.gov.companieshouse.orders.api.model.CertifiedCopyItemOptions;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemOptions;
+import uk.gov.companieshouse.orders.api.model.ItemType;
 
 @Mapper(componentModel = "spring")
 public interface ApiToItemMapper {
@@ -50,7 +51,7 @@ public interface ApiToItemMapper {
     }
 
     default ItemOptions mapToSpecificItemOptions(BaseItemOptionsApi baseItemOptionsApi, String kind) {
-        if (kind.equals("item#certificate")) {
+        if (kind.equals(ItemType.CERTIFICATE.getKind())) {
             return apiToCertificateItemOptions((CertificateItemOptionsApi) baseItemOptionsApi);
         }
         else {

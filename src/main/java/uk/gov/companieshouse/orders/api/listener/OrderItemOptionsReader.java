@@ -7,6 +7,7 @@ import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
 import uk.gov.companieshouse.orders.api.model.CertifiedCopyItemOptions;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemOptions;
+import uk.gov.companieshouse.orders.api.model.ItemType;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,24 +26,6 @@ class OrderItemOptionsReader {
 
     OrderItemOptionsReader(final ObjectMapper mapper) {
         this.mapper = mapper;
-    }
-
-    /** Values of this represent different item types (aka kinds). */
-    enum ItemType {
-        CERTIFICATE("item#certificate", CertificateItemOptions.class),
-        CERTIFIED_COPY("item#certified-copy", CertifiedCopyItemOptions.class);
-
-        ItemType(final String kind, final Class<? extends ItemOptions> optionsType) {
-            this.kind = kind;
-            this.optionsType = optionsType;
-        }
-
-        Class<? extends ItemOptions> getOptionsType() {
-            return optionsType;
-        }
-
-        private String kind;
-        private Class<? extends ItemOptions> optionsType;
     }
 
     /**
@@ -83,7 +66,7 @@ class OrderItemOptionsReader {
             return;
         }
         ItemOptions options = readItemOptions(optionsDocument, item.getKind());
-        if (item.getKind().equals(ItemType.CERTIFICATE.kind)){
+        if (item.getKind().equals(ItemType.CERTIFICATE.getKind())){
             options.setType(CERTIFICATE_ITEM_OPTIONS_TYPE);
         }
         else {
@@ -115,7 +98,7 @@ class OrderItemOptionsReader {
      * @throws IOException should there be an issue parsing the item options JSON from the DB
      */
     ItemOptions readItemOptions(final Document optionsDocument, final String kind) throws IOException {
-        return mapper.readValue(optionsDocument.toJson(), getType(kind).optionsType);
+        return mapper.readValue(optionsDocument.toJson(), getType(kind).getOptionsType());
     }
 
     /**
@@ -125,9 +108,8 @@ class OrderItemOptionsReader {
      */
     ItemType getType(final String kind) {
         return stream(ItemType.values())
-                .filter(value -> value.kind.equals(kind))
+                .filter(value -> value.getKind().equals(kind))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("'" + kind + "' is not a known kind!"));
     }
-
 }
