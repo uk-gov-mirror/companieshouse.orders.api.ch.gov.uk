@@ -20,6 +20,8 @@ import static java.util.Arrays.stream;
 class OrderItemOptionsReader {
 
     private final ObjectMapper mapper;
+    private static final String CERTIFICATE_ITEM_OPTIONS_TYPE = "CertificateItemOptions";
+    private static final String CERTIFIEDCOPY_ITEM_OPTIONS_TYPE = "CertifiedCopyItemOptions";
 
     OrderItemOptionsReader(final ObjectMapper mapper) {
         this.mapper = mapper;
@@ -80,7 +82,13 @@ class OrderItemOptionsReader {
             // No item options to read.
             return;
         }
-        final ItemOptions options = readItemOptions(optionsDocument, item.getKind());
+        ItemOptions options = readItemOptions(optionsDocument, item.getKind());
+        if (item.getKind().equals(ItemType.CERTIFICATE.kind)){
+            options.setType(CERTIFICATE_ITEM_OPTIONS_TYPE);
+        }
+        else {
+            options.setType(CERTIFIEDCOPY_ITEM_OPTIONS_TYPE);
+        }
         item.setItemOptions(options);
     }
 

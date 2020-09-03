@@ -32,9 +32,11 @@ class ApiToItemMapperTest {
     private static final String COMPANY_NUMBER = "00006444";
     private static final int QUANTITY = 10;
     private static final String DESCRIPTION = "Certificate";
-    private static final String DESCRIPTION_IDENTIFIER = "Description Identifier";
+    private static final String DESCRIPTION_IDENTIFIER_CERTIFICATE = "certificate";
+    private static final String DESCRIPTION_IDENTIFIER_CERTIFIEDCOPY = "certified-copy";
     private static final Map<String, String> DESCRIPTION_VALUES = singletonMap("key1", "value1");
-    private static final String KIND = "certificate";
+    private static final String KIND_CERTIFICATE = "item#certificate";
+    private static final String KIND_CERTIFIEDCOPY = "item#certified-copy";
     private static final boolean POSTAL_DELIVERY = true;
     private static final String CUSTOMER_REFERENCE = "Certificate ordered by NJ.";
     private static final String COMPANY_NAME = "Phillips & Daughters";
@@ -155,19 +157,17 @@ class ApiToItemMapperTest {
         certificateApi.setCustomerReference(CUSTOMER_REFERENCE);
         certificateApi.setQuantity(QUANTITY);
         certificateApi.setDescription(DESCRIPTION);
-        certificateApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        certificateApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER_CERTIFICATE);
         certificateApi.setDescriptionValues(DESCRIPTION_VALUES);
         certificateApi.setItemCosts(singletonList(ITEM_COSTS));
-        certificateApi.setKind(KIND);
+        certificateApi.setKind(KIND_CERTIFICATE);
         certificateApi.setPostalDelivery(POSTAL_DELIVERY);
         certificateApi.setItemOptions(CERTIFICATE_ITEM_OPTIONS);
         certificateApi.setLinks(LINKS_API);
         certificateApi.setPostageCost(POSTAGE_COST);
         certificateApi.setTotalItemCost(TOTAL_ITEM_COST);
 
-        final Item item = apiToItemMapper.apiToItem(certificateApi);
-        assertThat(item instanceof Certificate, is(true));
-        final Certificate certificate = (Certificate) item;
+        final Item certificate = apiToItemMapper.apiToItem(certificateApi);
 
         assertEquals(certificateApi.getId(), certificate.getId());
         assertThat(certificate.getId(), is(certificateApi.getId()));
@@ -185,7 +185,8 @@ class ApiToItemMapperTest {
         assertThat(certificate.getLinks().getSelf(), is(certificateApi.getLinks().getSelf()));
 
         assertItemCosts(certificateApi.getItemCosts().get(0), certificate.getItemCosts().get(0));
-        assertItemOptionsSame(certificateApi.getItemOptions(), (CertificateItemOptions) certificate.getItemOptions());
+        assertItemOptionsSame((CertificateItemOptionsApi) certificateApi.getItemOptions(),
+                (CertificateItemOptions) certificate.getItemOptions());
         assertThat(certificate.getPostageCost(), is(certificateApi.getPostageCost()));
         assertThat(certificate.getTotalItemCost(), is(certificateApi.getTotalItemCost()));
     }
@@ -199,19 +200,17 @@ class ApiToItemMapperTest {
         certifiedCopyApi.setCustomerReference(CUSTOMER_REFERENCE);
         certifiedCopyApi.setQuantity(QUANTITY);
         certifiedCopyApi.setDescription(DESCRIPTION);
-        certifiedCopyApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER);
+        certifiedCopyApi.setDescriptionIdentifier(DESCRIPTION_IDENTIFIER_CERTIFIEDCOPY);
         certifiedCopyApi.setDescriptionValues(DESCRIPTION_VALUES);
         certifiedCopyApi.setItemCosts(singletonList(CERTIFIED_COPY_ITEM_COSTS));
-        certifiedCopyApi.setKind(KIND);
+        certifiedCopyApi.setKind(KIND_CERTIFIEDCOPY);
         certifiedCopyApi.setPostalDelivery(POSTAL_DELIVERY);
         certifiedCopyApi.setItemOptions(CERTIFIED_COPY_ITEM_OPTIONS);
         certifiedCopyApi.setLinks(LINKS_API);
         certifiedCopyApi.setPostageCost(POSTAGE_COST);
         certifiedCopyApi.setTotalItemCost(TOTAL_ITEM_COST);
 
-        final Item item = apiToItemMapper.apiToItem(certifiedCopyApi);
-        assertThat(item instanceof CertifiedCopy, is(true));
-        final CertifiedCopy certifiedCopy = (CertifiedCopy) item;
+        final Item certifiedCopy = apiToItemMapper.apiToItem(certifiedCopyApi);
 
         assertEquals(certifiedCopyApi.getId(), certifiedCopy.getId());
         assertThat(certifiedCopy.getId(), is(certifiedCopyApi.getId()));
@@ -229,7 +228,8 @@ class ApiToItemMapperTest {
         assertThat(certifiedCopy.getLinks().getSelf(), is(certifiedCopyApi.getLinks().getSelf()));
 
         assertItemCosts(certifiedCopyApi.getItemCosts().get(0), certifiedCopy.getItemCosts().get(0));
-        assertItemOptionsSame(certifiedCopyApi.getItemOptions(), (CertifiedCopyItemOptions) certifiedCopy.getItemOptions());
+        assertItemOptionsSame((CertifiedCopyItemOptionsApi) certifiedCopyApi.getItemOptions(),
+                (CertifiedCopyItemOptions) certifiedCopy.getItemOptions());
         assertThat(certifiedCopy.getPostageCost(), is(certifiedCopyApi.getPostageCost()));
         assertThat(certifiedCopy.getTotalItemCost(), is(certifiedCopyApi.getTotalItemCost()));
     }
