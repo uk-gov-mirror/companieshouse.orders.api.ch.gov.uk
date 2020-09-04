@@ -65,13 +65,7 @@ class OrderItemOptionsReader {
             // No item options to read.
             return;
         }
-        ItemOptions options = readItemOptions(optionsDocument, item.getKind());
-        if (item.getKind().equals(ItemType.CERTIFICATE.getKind())){
-            options.setType(CERTIFICATE_ITEM_OPTIONS_TYPE);
-        }
-        else {
-            options.setType(CERTIFIEDCOPY_ITEM_OPTIONS_TYPE);
-        }
+        final ItemOptions options = readItemOptions(optionsDocument, item.getKind());
         item.setItemOptions(options);
     }
 
