@@ -94,7 +94,7 @@ class OrderItemOptionsReaderTest {
 
         // Then
         verify(items).get(0);
-        verify(certificateItem, times(2)).getKind();
+        verify(certificateItem).getKind();
         verify(mapper).readValue("{}", CertificateItemOptions.class);
         verify(certificateItem).setItemOptions(certificateItemOptions);
     }
@@ -120,7 +120,7 @@ class OrderItemOptionsReaderTest {
 
         // Then
         verify(items).get(0);
-        verify(certifiedCopyItem, times(2)).getKind();
+        verify(certifiedCopyItem).getKind();
         verify(mapper).readValue("{}", CertifiedCopyItemOptions.class);
         verify(certifiedCopyItem).setItemOptions(certifiedCopyItemOptions);
     }
