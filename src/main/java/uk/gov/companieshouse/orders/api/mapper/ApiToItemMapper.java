@@ -38,7 +38,7 @@ public interface ApiToItemMapper {
     Item apiToItem(BaseItemApi baseItemApi);
 
     /**
-     * Maps item_options based on description_identifier correctly to
+     * Maps item's `item_options` based on its `kind` correctly to
      * {@link CertificateItemOptions} or {@link CertifiedCopyItemOptions}
      * @param baseItemApi item object received via api call
      * @param item item object to be mapped from received api item
