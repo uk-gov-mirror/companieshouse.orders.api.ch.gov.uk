@@ -21,8 +21,6 @@ import static java.util.Arrays.stream;
 class OrderItemOptionsReader {
 
     private final ObjectMapper mapper;
-    private static final String CERTIFICATE_ITEM_OPTIONS_TYPE = "CertificateItemOptions";
-    private static final String CERTIFIEDCOPY_ITEM_OPTIONS_TYPE = "CertifiedCopyItemOptions";
 
     OrderItemOptionsReader(final ObjectMapper mapper) {
         this.mapper = mapper;
