@@ -55,8 +55,10 @@ public class ApiClientServiceIntegrationTest {
 
     static {
         CERTIFICATE = new CertificateApi();
+        CERTIFICATE.setKind("item#certificate");
         CERTIFICATE.setItemOptions(new CertificateItemOptionsApi());
         CERTIFIED_COPY = new CertifiedCopyApi();
+        CERTIFIED_COPY.setKind("item#certified-copy");
         CERTIFIED_COPY.setItemOptions(new CertifiedCopyItemOptionsApi());
     }
 
@@ -100,7 +102,6 @@ public class ApiClientServiceIntegrationTest {
         final Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
 
         // Then
-        assertThat(item instanceof Certificate, is(true));
         assertThat(item.getItemOptions() instanceof CertificateItemOptions, is(true));
     }
 
@@ -119,7 +120,6 @@ public class ApiClientServiceIntegrationTest {
         final Item item = serviceUnderTest.getItem(VALID_CERTIFIED_COPY_URI);
 
         // Then
-        assertThat(item instanceof CertifiedCopy, is(true));
         assertThat(item.getItemOptions() instanceof CertifiedCopyItemOptions, is(true));
     }
 
