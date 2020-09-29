@@ -27,5 +27,4 @@ else
     source "${APP_DIR}/app_env"
 fi
 
-#exec java ${JAVA_MEM_ARGS} -jar -Dserver.port="${PORT}" "${APP_DIR}/orders.api.ch.gov.uk.jar"
-exec mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Dserver.port=10021"
+exec java ${JAVA_MEM_ARGS} -jar -Dserver.port="${PORT}" "${APP_DIR}/orders.api.ch.gov.uk.jar"
