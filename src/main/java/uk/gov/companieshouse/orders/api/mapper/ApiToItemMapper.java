@@ -34,6 +34,7 @@ public interface ApiToItemMapper {
     /**
      * Maps item's `item_options` based on its `kind` correctly to
      * {@link CertificateItemOptions} or {@link CertifiedCopyItemOptions}
+     * or {@link MissingImageDeliveryItemOptions}
      * @param baseItemApi item object received via api call
      * @param item item object to be mapped from received api item
      */
