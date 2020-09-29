@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFICATE;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
+import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.MISSING_IMAGE_DELIVERY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
 
 @ExtendWith(SpringExtension.class)
@@ -34,9 +35,11 @@ class ApiToItemMapperTest {
     private static final String DESCRIPTION = "Certificate";
     private static final String CERTIFICATE_DESCRIPTION_IDENTIFIER = "certificate";
     private static final String CERTIFIED_COPY_DESCRIPTION_IDENTIFIER = "certified-copy";
+    private static final String MISSING_IMAGE_DELIVERY_DESCRIPTION_IDENTIFIER = "missing-image-delivery";
     private static final Map<String, String> DESCRIPTION_VALUES = singletonMap("key1", "value1");
     private static final String CERTIFICATE_KIND = "item#certificate";
     private static final String CERTIFIED_COPY_KIND = "item#certified-copy";
+    private static final String MISSING_IMAGE_DELIVERY_KIND = "item#missing-image-delivery";
     private static final boolean POSTAL_DELIVERY = true;
     private static final String CUSTOMER_REFERENCE = "Certificate ordered by NJ.";
     private static final String COMPANY_NAME = "Phillips & Daughters";
@@ -68,9 +71,11 @@ class ApiToItemMapperTest {
     private static final RegisteredOfficeAddressDetailsApi REGISTERED_OFFICE_ADDRESS_DETAILS;
     private static final ItemCostsApi ITEM_COSTS;
     private static final ItemCostsApi CERTIFIED_COPY_ITEM_COSTS;
+    private static final ItemCostsApi MISSING_IMAGE_DELIVERY_ITEM_COSTS;
     private static final LinksApi LINKS_API;
     private static final CertifiedCopyItemOptionsApi CERTIFIED_COPY_ITEM_OPTIONS;
     private static final FilingHistoryDocumentApi FILING_HISTORY;
+    private static final MissingImageDeliveryItemOptionsApi MISSING_IMAGE_DELIVERY_ITEM_OPTIONS;
 
     @Configuration
     @ComponentScan(basePackageClasses = ApiToItemMapperTest.class)
@@ -99,6 +104,12 @@ class ApiToItemMapperTest {
         CERTIFIED_COPY_ITEM_COSTS.setItemCost("2");
         CERTIFIED_COPY_ITEM_COSTS.setCalculatedCost("3");
         CERTIFIED_COPY_ITEM_COSTS.setProductType(CERTIFIED_COPY_INCORPORATION_SAME_DAY);
+
+        MISSING_IMAGE_DELIVERY_ITEM_COSTS = new ItemCostsApi();
+        MISSING_IMAGE_DELIVERY_ITEM_COSTS.setDiscountApplied("1");
+        MISSING_IMAGE_DELIVERY_ITEM_COSTS.setItemCost("2");
+        MISSING_IMAGE_DELIVERY_ITEM_COSTS.setCalculatedCost("3");
+        MISSING_IMAGE_DELIVERY_ITEM_COSTS.setProductType(MISSING_IMAGE_DELIVERY);
 
         DIRECTOR_OR_SECRETARY_DETAILS = new DirectorOrSecretaryDetailsApi();
         DIRECTOR_OR_SECRETARY_DETAILS.setIncludeAddress(INCLUDE_ADDRESS);
@@ -144,6 +155,14 @@ class ApiToItemMapperTest {
         CERTIFIED_COPY_ITEM_OPTIONS.setFilingHistoryDocuments(singletonList(FILING_HISTORY));
         CERTIFIED_COPY_ITEM_OPTIONS.setForename(FORENAME);
         CERTIFIED_COPY_ITEM_OPTIONS.setSurname(SURNAME);
+
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS = new MissingImageDeliveryItemOptionsApi();
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDate(DOCUMENT.getFilingHistoryDate());
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDescription(DOCUMENT.getFilingHistoryDescription());
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS
+                .setFilingHistoryDescriptionValues(DOCUMENT.getFilingHistoryDescriptionValues());
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryId(DOCUMENT.getFilingHistoryId());
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryType(DOCUMENT.getFilingHistoryType());
 
         LINKS_API = new LinksApi();
         LINKS_API.setSelf(LINKS_SELF);
@@ -236,6 +255,49 @@ class ApiToItemMapperTest {
         assertThat(certifiedCopy.getTotalItemCost(), is(certifiedCopyApi.getTotalItemCost()));
     }
 
+    @Test
+    void testMissingImageDeliveryApiToMissingImageDelivery() throws JsonProcessingException {
+        MissingImageDeliveryApi missingImageDeliveryApi = new MissingImageDeliveryApi();
+        missingImageDeliveryApi.setId(ID);
+        missingImageDeliveryApi.setCompanyName(COMPANY_NAME);
+        missingImageDeliveryApi.setCompanyNumber(COMPANY_NUMBER);
+        missingImageDeliveryApi.setCustomerReference(CUSTOMER_REFERENCE);
+        missingImageDeliveryApi.setQuantity(QUANTITY);
+        missingImageDeliveryApi.setDescription(DESCRIPTION);
+        missingImageDeliveryApi.setDescriptionIdentifier(MISSING_IMAGE_DELIVERY_DESCRIPTION_IDENTIFIER);
+        missingImageDeliveryApi.setDescriptionValues(DESCRIPTION_VALUES);
+        missingImageDeliveryApi.setItemCosts(singletonList(MISSING_IMAGE_DELIVERY_ITEM_COSTS));
+        missingImageDeliveryApi.setKind(MISSING_IMAGE_DELIVERY_KIND);
+        missingImageDeliveryApi.setPostalDelivery(POSTAL_DELIVERY);
+        missingImageDeliveryApi.setItemOptions(MISSING_IMAGE_DELIVERY_ITEM_OPTIONS);
+        missingImageDeliveryApi.setLinks(LINKS_API);
+        missingImageDeliveryApi.setPostageCost(POSTAGE_COST);
+        missingImageDeliveryApi.setTotalItemCost(TOTAL_ITEM_COST);
+
+        final Item missingImageDelivery = apiToItemMapper.apiToItem(missingImageDeliveryApi);
+
+        assertEquals(missingImageDeliveryApi.getId(), missingImageDelivery.getId());
+        assertThat(missingImageDelivery.getId(), is(missingImageDeliveryApi.getId()));
+        assertThat(missingImageDelivery.getCompanyName(), is(missingImageDeliveryApi.getCompanyName()));
+        assertThat(missingImageDelivery.getCompanyNumber(), is(missingImageDeliveryApi.getCompanyNumber()));
+        assertThat(missingImageDelivery.getCustomerReference(), is(missingImageDeliveryApi.getCustomerReference()));
+        assertThat(missingImageDelivery.getQuantity(), is(missingImageDeliveryApi.getQuantity()));
+        assertThat(missingImageDelivery.getDescription(), is(missingImageDeliveryApi.getDescription()));
+        assertThat(missingImageDelivery.getDescriptionIdentifier(),
+                is(missingImageDeliveryApi.getDescriptionIdentifier()));
+        assertThat(missingImageDelivery.getDescriptionValues(), is(missingImageDeliveryApi.getDescriptionValues()));
+        assertThat(missingImageDelivery.getKind(), is(missingImageDeliveryApi.getKind()));
+        assertThat(missingImageDelivery.isPostalDelivery(), is(missingImageDeliveryApi.isPostalDelivery()));
+        assertThat(missingImageDelivery.getEtag(), is(missingImageDeliveryApi.getEtag()));
+        assertThat(missingImageDelivery.getItemUri(), is(missingImageDeliveryApi.getLinks().getSelf()));
+        assertThat(missingImageDelivery.getLinks().getSelf(), is(missingImageDeliveryApi.getLinks().getSelf()));
+
+        assertItemCosts(missingImageDeliveryApi.getItemCosts().get(0), missingImageDelivery.getItemCosts().get(0));
+        assertItemOptionsSame((MissingImageDeliveryItemOptionsApi) missingImageDeliveryApi.getItemOptions(),
+                (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions());
+        assertThat(missingImageDelivery.getPostageCost(), is(missingImageDeliveryApi.getPostageCost()));
+        assertThat(missingImageDelivery.getTotalItemCost(), is(missingImageDeliveryApi.getTotalItemCost()));
+    }
     private void assertItemCosts(final ItemCostsApi itemCostsApi, final ItemCosts itemCosts) {
         assertThat(itemCosts.getDiscountApplied(), is(itemCostsApi.getDiscountApplied()));
         assertThat(itemCosts.getItemCost(), is(itemCostsApi.getItemCost()));
@@ -270,6 +332,15 @@ class ApiToItemMapperTest {
                 is(objectMapper.writeValueAsString(source.getFilingHistoryDocuments())));
         assertThat(target.getForename(), is(source.getForename()));
         assertThat(target.getSurname(), is(source.getSurname()));
+    }
+
+    private void assertItemOptionsSame(final MissingImageDeliveryItemOptionsApi source,
+                                       final MissingImageDeliveryItemOptions target) throws JsonProcessingException {
+        assertThat(target.getFilingHistoryDate(), is(source.getFilingHistoryDate()));
+        assertThat(target.getFilingHistoryDescription(), is(source.getFilingHistoryDescription()));
+        assertThat(target.getFilingHistoryDescriptionValues(), is(source.getFilingHistoryDescriptionValues()));
+        assertThat(target.getFilingHistoryId(), is(source.getFilingHistoryId()));
+        assertThat(target.getFilingHistoryType(), is(source.getFilingHistoryType()));
     }
 
     private void assertDetailsSame(final DirectorOrSecretaryDetailsApi source,
