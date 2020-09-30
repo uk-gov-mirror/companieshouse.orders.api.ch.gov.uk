@@ -43,6 +43,8 @@ import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
 import uk.gov.companieshouse.orders.api.model.ItemOptions;
+import uk.gov.companieshouse.orders.api.model.MissingImageDelivery;
+import uk.gov.companieshouse.orders.api.model.MissingImageDeliveryItemOptions;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
@@ -96,23 +98,7 @@ import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADD
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_SAME_DAY;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY_KIND;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_ACCESS_TOKEN;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_API_KEY_TYPE_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_OAUTH2_TYPE_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_TYPE_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.SAME_DAY_CERTIFIED_COPY_COST;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFICATE_URI;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIED_COPY_URI;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @DirtiesContext
 @AutoConfigureMockMvc
@@ -399,6 +385,42 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Add missing image delivery to basket responds with correctly populated missing image delivery options")
+    void addMissingImageDeliveryCorrectlyPopulatedOptions() throws Exception {
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(VALID_MISSING_IMAGE_DELIVERY_URI);
+
+        final MissingImageDelivery missingImageDelivery = new MissingImageDelivery();
+        final MissingImageDeliveryItemOptions options = new MissingImageDeliveryItemOptions();
+        options.setFilingHistoryId(DOCUMENT.getFilingHistoryId());
+        options.setFilingHistoryDate(DOCUMENT.getFilingHistoryDate());
+        options.setFilingHistoryDescription(DOCUMENT.getFilingHistoryDescription());
+        options.setFilingHistoryType(DOCUMENT.getFilingHistoryType());
+        missingImageDelivery.setItemOptions(options);
+        when(apiClientService.getItem(VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item_options.filing_history_date",
+                        is(DOCUMENT.getFilingHistoryDate())))
+                .andExpect(jsonPath("$.item_options.filing_history_description",
+                        is(DOCUMENT.getFilingHistoryDescription())))
+                .andExpect(jsonPath("$.item_options.filing_history_id",
+                        is(DOCUMENT.getFilingHistoryId())))
+                .andExpect(jsonPath("$.item_options.filing_history_type",
+                        is(DOCUMENT.getFilingHistoryType())))
+                .andDo(MockMvcResultHandlers.print());
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertThat(retrievedBasket.get().getData().getItems().get(0).getItemUri(), is(VALID_MISSING_IMAGE_DELIVERY_URI));
+    }
+
+    @Test
     @DisplayName("Add item returns 400 when invalid item passed in request")
     void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
         Basket basket = new Basket();
@@ -505,7 +527,7 @@ class BasketControllerIntegrationTest {
         final CheckoutData checkoutData = retrievedCheckout.get().getData();
         final Item item = checkoutData.getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
-        final ItemOptions retrievedOptions = item.getItemOptions();
+        final CertificateItemOptions retrievedOptions = (CertificateItemOptions) item.getItemOptions();
         assertEquals(FORENAME, retrievedOptions.getForename());
         assertEquals(SURNAME, retrievedOptions.getSurname());
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
@@ -624,7 +646,7 @@ class BasketControllerIntegrationTest {
 
         Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
-        certificate.setItemOptions(new ItemOptions());
+        certificate.setItemOptions(new CertificateItemOptions());
         certificate.setItemCosts(ITEM_COSTS_ZERO);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
@@ -660,7 +682,7 @@ class BasketControllerIntegrationTest {
 
         final Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
-        certificate.setItemOptions(new ItemOptions());
+        certificate.setItemOptions(new CertificateItemOptions());
         certificate.setPostalDelivery(true);
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
@@ -754,7 +776,7 @@ class BasketControllerIntegrationTest {
 
         final Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
-        certificate.setItemOptions(new ItemOptions());
+        certificate.setItemOptions(new CertificateItemOptions());
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);

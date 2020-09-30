@@ -19,6 +19,7 @@ public class TestConstants {
     public static final String ERIC_IDENTITY_INVALID_TYPE_VALUE = "invalid identity type";
     public static final String VALID_CERTIFICATE_URI = "/orderable/certificates/CRT-283515-943657";
     public static final String VALID_CERTIFIED_COPY_URI = "/orderable/certified-copies/CCD-473815-935982";
+    public static final String VALID_MISSING_IMAGE_DELIVERY_URI = "/orderable/missing-image-deliveries/MID-473815-935982";
     public static final String CERTIFICATE_KIND = "item#certificate";
     public static final String CERTIFIED_COPY_KIND = "item#certified-copy";
     public static final String CERTIFIED_COPY_COST = "15";
