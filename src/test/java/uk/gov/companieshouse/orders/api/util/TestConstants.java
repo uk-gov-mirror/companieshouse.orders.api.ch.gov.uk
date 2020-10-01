@@ -22,6 +22,7 @@ public class TestConstants {
     public static final String VALID_MISSING_IMAGE_DELIVERY_URI = "/orderable/missing-image-deliveries/MID-473815-935982";
     public static final String CERTIFICATE_KIND = "item#certificate";
     public static final String CERTIFIED_COPY_KIND = "item#certified-copy";
+    public static final String MISSING_IMAGE_DELIVERY_KIND = "item#missing-image-delivery";
     public static final String CERTIFIED_COPY_COST = "15";
     public static final String SAME_DAY_CERTIFIED_COPY_COST = "50";
     public static final String SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST = "100";
