@@ -60,9 +60,11 @@ import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1694,7 +1696,8 @@ class BasketControllerIntegrationTest {
         assertThat(options.getFilingHistoryDate(),is(MISSING_IMAGE_DELIVERY_FHD_DATE));
         assertThat(options.getFilingHistoryDescription(),is(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION));
         // TODO GCI-886 check this
-        // assertThat(options.getFilingHistoryDescriptionValues().get("change_date").toString(), is(MID_FHD_DESCRIPTION_VALUES.get("change_date")));
+        assertThat(Instant.ofEpochMilli(((Long)((Map) options.getFilingHistoryDescriptionValues().get("change_date")).get("$date"))).atZone(ZoneId.systemDefault()).toLocalDate(),
+                is(MID_FHD_DESCRIPTION_VALUES.get("change_date")));
         assertThat(options.getFilingHistoryDescriptionValues().get("officer_name"), is(is(MID_FHD_DESCRIPTION_VALUES.get("officer_name"))));
         assertThat(options.getFilingHistoryType(),is(MISSING_IMAGE_DELIVERY_FHD_TYPE));
     }
