@@ -192,7 +192,7 @@ class BasketControllerIntegrationTest {
     private static final String MISSING_IMAGE_DELIVERY_FHD_DATE = "2010-02-12";
     private static final String MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION = "change-person-director-company-with-change-date";
     private static final Map<String, Object> MID_FHD_DESCRIPTION_VALUES = new HashMap<String, Object>() {{
-        put("change_date", LocalDate.of(2010, 2, 12));
+        put("change_date", MISSING_IMAGE_DELIVERY_FHD_DATE);
         put("officer_name", "Thomas David Wheare");
     }};
     private static final String MISSING_IMAGE_DELIVERY_FHD_TYPE = "CH01";
@@ -1685,20 +1685,21 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Verifies that the missing image delivey item's options are of the right type and have the expected field
+     * Verifies that the missing image delivery item's options are of the right type and have the expected field
      * correctly populated.
      * @param missingImageDelivery the {@link Item} to check
      */
     private void verifyMissingImageDeliveryItemOptionsAreCorrect(final Item missingImageDelivery) {
         assertThat(missingImageDelivery.getItemOptions() instanceof MissingImageDeliveryItemOptions, is(true));
-        final MissingImageDeliveryItemOptions options = (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions();
+        final MissingImageDeliveryItemOptions options =
+                (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions();
         assertThat(options.getFilingHistoryId(),is(MISSING_IMAGE_DELIVERY_FHD_ID));
         assertThat(options.getFilingHistoryDate(),is(MISSING_IMAGE_DELIVERY_FHD_DATE));
         assertThat(options.getFilingHistoryDescription(),is(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION));
-        // TODO GCI-886 check this
-        assertThat(Instant.ofEpochMilli(((Long)((Map) options.getFilingHistoryDescriptionValues().get("change_date")).get("$date"))).atZone(ZoneId.systemDefault()).toLocalDate(),
+        assertThat(options.getFilingHistoryDescriptionValues().get("change_date"),
                 is(MID_FHD_DESCRIPTION_VALUES.get("change_date")));
-        assertThat(options.getFilingHistoryDescriptionValues().get("officer_name"), is(is(MID_FHD_DESCRIPTION_VALUES.get("officer_name"))));
+        assertThat(options.getFilingHistoryDescriptionValues().get("officer_name"),
+                is(is(MID_FHD_DESCRIPTION_VALUES.get("officer_name"))));
         assertThat(options.getFilingHistoryType(),is(MISSING_IMAGE_DELIVERY_FHD_TYPE));
     }
 
