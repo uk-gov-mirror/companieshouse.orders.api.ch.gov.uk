@@ -677,7 +677,7 @@ class BasketControllerIntegrationTest {
         assertTrue(retrievedCheckout.isPresent());
         assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
         assertThat(isNotEmpty(retrievedCheckout.get().getData().getItems()), is(true));
-        verifyMissingImageDeliveryItemOptionsAreCorrectForCheckout(retrievedCheckout.get().getData().getItems().get(0));
+        verifyMissingImageDeliveryItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
     }
 
     private Basket getBasketWithCertificateInIt(boolean isPostalDelivery) {
@@ -1722,26 +1722,11 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Verifies that the missing image delivery item's options are of the right type and have the expected field
-     * correctly populated.
-     * @param missingImageDelivery the {@link Item} to check
-     */
-    private void verifyMissingImageDeliveryItemOptionsAreCorrect(final Item missingImageDelivery) {
-        assertThat(missingImageDelivery.getItemOptions() instanceof MissingImageDeliveryItemOptions, is(true));
-        final MissingImageDeliveryItemOptions options = (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions();
-        assertThat(options.getFilingHistoryDate(), is(DOCUMENT.getFilingHistoryDate()));
-        assertThat(options.getFilingHistoryDescription(), is(DOCUMENT.getFilingHistoryDescription()));
-        assertThat(options.getFilingHistoryDescriptionValues(), is(DOCUMENT.getFilingHistoryDescriptionValues()));
-        assertThat(options.getFilingHistoryId(), is(DOCUMENT.getFilingHistoryId()));
-        assertThat(options.getFilingHistoryType(), is(DOCUMENT.getFilingHistoryType()));
-    }
-
-    /**
      * Verifies that the missing image delivery item's options are of the right type and have the expected fields
      * correctly populated.
      * @param missingImageDelivery the {@link Item} to check
      */
-    private void verifyMissingImageDeliveryItemOptionsAreCorrectForCheckout(final Item missingImageDelivery) {
+    private void verifyMissingImageDeliveryItemOptionsAreCorrect(final Item missingImageDelivery) {
         assertThat(missingImageDelivery.getItemOptions() instanceof MissingImageDeliveryItemOptions, is(true));
         final MissingImageDeliveryItemOptions options =
                 (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions();
@@ -1822,13 +1807,7 @@ class BasketControllerIntegrationTest {
         missingImageDelivery.setTotalItemCost(TOTAL_ITEM_COST);
         missingImageDelivery.setCompanyNumber(COMPANY_NUMBER);
         missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
-        final MissingImageDeliveryItemOptions options = new MissingImageDeliveryItemOptions();
-        options.setFilingHistoryDescription(DOCUMENT.getFilingHistoryDescription());
-        options.setFilingHistoryDescriptionValues(DOCUMENT.getFilingHistoryDescriptionValues());
-        options.setFilingHistoryId(DOCUMENT.getFilingHistoryId());
-        options.setFilingHistoryDate(DOCUMENT.getFilingHistoryDate());
-        options.setFilingHistoryType(DOCUMENT.getFilingHistoryType());
-        missingImageDelivery.setItemOptions(options);
+        missingImageDelivery.setItemOptions(MISSING_IMAGE_DELIVERY_ITEM_OPTIONS);
 
         return checkoutService.createCheckout(
                 missingImageDelivery, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
