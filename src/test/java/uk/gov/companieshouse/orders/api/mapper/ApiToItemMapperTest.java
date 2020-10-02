@@ -24,7 +24,10 @@ import static org.junit.Assert.assertEquals;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFICATE;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.MISSING_IMAGE_DELIVERY;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY_KIND;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.MISSING_IMAGE_DELIVERY_KIND;
 
 @ExtendWith(SpringExtension.class)
 @SpringJUnitConfig(ApiToItemMapperTest.Config.class)
@@ -37,9 +40,6 @@ class ApiToItemMapperTest {
     private static final String CERTIFIED_COPY_DESCRIPTION_IDENTIFIER = "certified-copy";
     private static final String MISSING_IMAGE_DELIVERY_DESCRIPTION_IDENTIFIER = "missing-image-delivery";
     private static final Map<String, String> DESCRIPTION_VALUES = singletonMap("key1", "value1");
-    private static final String CERTIFICATE_KIND = "item#certificate";
-    private static final String CERTIFIED_COPY_KIND = "item#certified-copy";
-    private static final String MISSING_IMAGE_DELIVERY_KIND = "item#missing-image-delivery";
     private static final boolean POSTAL_DELIVERY = true;
     private static final String CUSTOMER_REFERENCE = "Certificate ordered by NJ.";
     private static final String COMPANY_NAME = "Phillips & Daughters";

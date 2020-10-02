@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.orders.api.model.CertificateItemOptions;
 import uk.gov.companieshouse.orders.api.model.CertifiedCopyItemOptions;
 import uk.gov.companieshouse.orders.api.model.Item;
+import uk.gov.companieshouse.orders.api.model.MissingImageDeliveryItemOptions;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,11 +23,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY_KIND;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.MISSING_IMAGE_DELIVERY_KIND;
 
 /**
  * Unit tests the {@link OrderItemOptionsReader} component.
@@ -53,6 +54,9 @@ class OrderItemOptionsReaderTest {
     private Item certifiedCopyItem;
 
     @Mock
+    private Item missingImageDeliveryItem;
+
+    @Mock
     private Document orderDataDocument;
 
     @Mock
@@ -72,6 +76,9 @@ class OrderItemOptionsReaderTest {
 
     @Mock
     private CertifiedCopyItemOptions certifiedCopyItemOptions;
+
+    @Mock
+    private MissingImageDeliveryItemOptions missingImageDeliveryItemOptions;
 
     @Test
     @DisplayName("readOrderItemsOptions() updates certificate item options correctly")
@@ -123,6 +130,32 @@ class OrderItemOptionsReaderTest {
         verify(certifiedCopyItem).getKind();
         verify(mapper).readValue("{}", CertifiedCopyItemOptions.class);
         verify(certifiedCopyItem).setItemOptions(certifiedCopyItemOptions);
+    }
+
+    @Test
+    @DisplayName("readOrderItemsOptions() updates missing image delivery item options correctly")
+    void readOrderItemsOptionsUpdatesMissingImageDeliveryItemOptionsCorrectly() throws IOException {
+
+        // Given
+        when(items.size()).thenReturn(1);
+        when(items.get(0)).thenReturn(missingImageDeliveryItem);
+
+        when(orderDocument.get("data", Document.class)).thenReturn(orderDataDocument);
+        when(orderDataDocument.get("items", List.class)).thenReturn(itemDocuments);
+        when(itemDocuments.get(0)).thenReturn(itemDocument);
+        when(itemDocument.get("item_options", Document.class)).thenReturn(optionsDocument);
+        when(optionsDocument.toJson()).thenReturn("{}");
+        when(missingImageDeliveryItem.getKind()).thenReturn(MISSING_IMAGE_DELIVERY_KIND);
+        when(mapper.readValue("{}", MissingImageDeliveryItemOptions.class)).thenReturn(missingImageDeliveryItemOptions);
+
+        // When
+        readerUnderTest.readOrderItemsOptions(items, orderDocument, UNUSED_ORDER_TYPE_NAME);
+
+        // Then
+        verify(items).get(0);
+        verify(missingImageDeliveryItem).getKind();
+        verify(mapper).readValue("{}", MissingImageDeliveryItemOptions.class);
+        verify(missingImageDeliveryItem).setItemOptions(missingImageDeliveryItemOptions);
     }
 
     @Test

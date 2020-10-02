@@ -42,7 +42,6 @@ import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
-import uk.gov.companieshouse.orders.api.model.ItemOptions;
 import uk.gov.companieshouse.orders.api.model.MissingImageDelivery;
 import uk.gov.companieshouse.orders.api.model.MissingImageDeliveryItemOptions;
 import uk.gov.companieshouse.orders.api.model.Order;
@@ -176,6 +175,33 @@ class BasketControllerIntegrationTest {
     private static final List<ItemCosts> CERTIFIED_COPY_ITEM_COSTS =
             asList(SAME_DAY_COPY_COST, SAME_DAY_NEW_INCORPORATION_COPY_COST);
 
+    private static final String MID_DISCOUNT_APPLIED = "0";
+    private static final String MID_ITEM_COST = "3";
+    private static final String MID_CALCULATED_COST = "3";
+    private static final List<ItemCosts> MISSING_IMAGE_DELIVERY_COSTS =
+            singletonList(
+                    new ItemCosts(MID_DISCOUNT_APPLIED, MID_ITEM_COST, MID_CALCULATED_COST, MISSING_IMAGE_DELIVERY));
+    private static final String MID_TOTAL_ITEM_COST = "0";
+
+    private static final String MISSING_IMAGE_DELIVERY_FHD_ID = "MzAwOTM2MDg5OWFkaXF6a2N4";
+    private static final String MISSING_IMAGE_DELIVERY_FHD_DATE = "2010-02-12";
+    private static final String MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION = "change-person-director-company-with-change-date";
+    private static final Map<String, Object> MID_FHD_DESCRIPTION_VALUES = new HashMap<String, Object>() {{
+        put("change_date", MISSING_IMAGE_DELIVERY_FHD_DATE);
+        put("officer_name", "Thomas David Wheare");
+    }};
+    private static final String MISSING_IMAGE_DELIVERY_FHD_TYPE = "CH01";
+
+    private static final MissingImageDeliveryItemOptions MISSING_IMAGE_DELIVERY_ITEM_OPTIONS;
+
+    static {
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS = new MissingImageDeliveryItemOptions();
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryId(MISSING_IMAGE_DELIVERY_FHD_ID);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDate(MISSING_IMAGE_DELIVERY_FHD_DATE);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDescription(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDescriptionValues(MID_FHD_DESCRIPTION_VALUES);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryType(MISSING_IMAGE_DELIVERY_FHD_TYPE);
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -608,12 +634,62 @@ class BasketControllerIntegrationTest {
         verifyCertifiedCopyItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
     }
 
+    @Test
+    @DisplayName("Checkout basket responds with correctly populated missing image delivery item options")
+    void checkoutMissingImageDeliveryBasketReturnsCorrectlyPopulatedOptions() throws Exception {
+        basketRepository.save(getBasketWithMissingDeliveryImageInIt());
+
+        final MissingImageDelivery missingImageDelivery = new MissingImageDelivery();
+        missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
+        missingImageDelivery.setItemOptions(MISSING_IMAGE_DELIVERY_ITEM_OPTIONS);
+        missingImageDelivery.setItemCosts(MISSING_IMAGE_DELIVERY_COSTS);
+        missingImageDelivery.setPostageCost(POSTAGE_COST);
+        missingImageDelivery.setPostalDelivery(false);
+        missingImageDelivery.setTotalItemCost(MID_TOTAL_ITEM_COST);
+        missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
+
+        when(apiClientService.getItem(VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
+
+        final ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_date",
+                        is(MISSING_IMAGE_DELIVERY_FHD_DATE)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_description",
+                        is(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_description_values.change_date",
+                        is(MID_FHD_DESCRIPTION_VALUES.get("change_date").toString())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_description_values.officer_name",
+                        is(MID_FHD_DESCRIPTION_VALUES.get("officer_name").toString())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_id",
+                        is(MISSING_IMAGE_DELIVERY_FHD_ID)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_type",
+                        is(MISSING_IMAGE_DELIVERY_FHD_TYPE)))
+                .andDo(MockMvcResultHandlers.print());
+
+        final MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        final CheckoutData responseCheckoutData = mapper.readValue(response.getContentAsString(), CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(isNotEmpty(retrievedCheckout.get().getData().getItems()), is(true));
+        verifyMissingImageDeliveryItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
+    }
+
     private Basket getBasketWithCertificateInIt(boolean isPostalDelivery) {
         return getBasket(isPostalDelivery, VALID_CERTIFICATE_URI);
     }
 
     private Basket getBasketWithCertifiedCopyInIt() {
         return getBasket(false, VALID_CERTIFIED_COPY_URI);
+    }
+
+    private Basket getBasketWithMissingDeliveryImageInIt() {
+        return getBasket(false, VALID_MISSING_IMAGE_DELIVERY_URI);
     }
 
     private Basket getBasket(boolean isPostalDelivery, final String itemUri) {
@@ -1646,18 +1722,22 @@ class BasketControllerIntegrationTest {
     }
 
     /**
-     * Verifies that the missing image delivery item's options are of the right type and have the expected field
+     * Verifies that the missing image delivery item's options are of the right type and have the expected fields
      * correctly populated.
      * @param missingImageDelivery the {@link Item} to check
      */
     private void verifyMissingImageDeliveryItemOptionsAreCorrect(final Item missingImageDelivery) {
         assertThat(missingImageDelivery.getItemOptions() instanceof MissingImageDeliveryItemOptions, is(true));
-        final MissingImageDeliveryItemOptions options = (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions();
-        assertThat(options.getFilingHistoryDate(), is(DOCUMENT.getFilingHistoryDate()));
-        assertThat(options.getFilingHistoryDescription(), is(DOCUMENT.getFilingHistoryDescription()));
-        assertThat(options.getFilingHistoryDescriptionValues(), is(DOCUMENT.getFilingHistoryDescriptionValues()));
-        assertThat(options.getFilingHistoryId(), is(DOCUMENT.getFilingHistoryId()));
-        assertThat(options.getFilingHistoryType(), is(DOCUMENT.getFilingHistoryType()));
+        final MissingImageDeliveryItemOptions options =
+                (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions();
+        assertThat(options.getFilingHistoryId(),is(MISSING_IMAGE_DELIVERY_FHD_ID));
+        assertThat(options.getFilingHistoryDate(),is(MISSING_IMAGE_DELIVERY_FHD_DATE));
+        assertThat(options.getFilingHistoryDescription(),is(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION));
+        assertThat(options.getFilingHistoryDescriptionValues().get("change_date"),
+                is(MID_FHD_DESCRIPTION_VALUES.get("change_date")));
+        assertThat(options.getFilingHistoryDescriptionValues().get("officer_name"),
+                is(is(MID_FHD_DESCRIPTION_VALUES.get("officer_name"))));
+        assertThat(options.getFilingHistoryType(),is(MISSING_IMAGE_DELIVERY_FHD_TYPE));
     }
 
     private List<ItemCosts> createItemCosts(){
@@ -1727,13 +1807,7 @@ class BasketControllerIntegrationTest {
         missingImageDelivery.setTotalItemCost(TOTAL_ITEM_COST);
         missingImageDelivery.setCompanyNumber(COMPANY_NUMBER);
         missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
-        final MissingImageDeliveryItemOptions options = new MissingImageDeliveryItemOptions();
-        options.setFilingHistoryDescription(DOCUMENT.getFilingHistoryDescription());
-        options.setFilingHistoryDescriptionValues(DOCUMENT.getFilingHistoryDescriptionValues());
-        options.setFilingHistoryId(DOCUMENT.getFilingHistoryId());
-        options.setFilingHistoryDate(DOCUMENT.getFilingHistoryDate());
-        options.setFilingHistoryType(DOCUMENT.getFilingHistoryType());
-        missingImageDelivery.setItemOptions(options);
+        missingImageDelivery.setItemOptions(MISSING_IMAGE_DELIVERY_ITEM_OPTIONS);
 
         return checkoutService.createCheckout(
                 missingImageDelivery, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
