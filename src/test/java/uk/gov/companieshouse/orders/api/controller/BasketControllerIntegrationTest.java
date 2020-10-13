@@ -97,7 +97,7 @@ import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADD
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_SAME_DAY;
-import static uk.gov.companieshouse.orders.api.model.ProductType.MISSING_IMAGE_DELIVERY;
+import static uk.gov.companieshouse.orders.api.model.ProductType.MISSING_IMAGE_DELIVERY_ACCOUNTS;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @DirtiesContext
@@ -180,7 +180,7 @@ class BasketControllerIntegrationTest {
     private static final String MID_CALCULATED_COST = "3";
     private static final List<ItemCosts> MISSING_IMAGE_DELIVERY_COSTS =
             singletonList(
-                    new ItemCosts(MID_DISCOUNT_APPLIED, MID_ITEM_COST, MID_CALCULATED_COST, MISSING_IMAGE_DELIVERY));
+                    new ItemCosts(MID_DISCOUNT_APPLIED, MID_ITEM_COST, MID_CALCULATED_COST, MISSING_IMAGE_DELIVERY_ACCOUNTS));
     private static final String MID_TOTAL_ITEM_COST = "0";
 
     private static final String MISSING_IMAGE_DELIVERY_FHD_ID = "MzAwOTM2MDg5OWFkaXF6a2N4";
