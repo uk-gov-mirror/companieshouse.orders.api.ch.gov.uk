@@ -23,7 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFICATE;
 import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
-import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.MISSING_IMAGE_DELIVERY;
+import static uk.gov.companieshouse.api.model.order.item.ProductTypeApi.MISSING_IMAGE_DELIVERY_ACCOUNTS;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY_KIND;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
@@ -109,7 +109,7 @@ class ApiToItemMapperTest {
         MISSING_IMAGE_DELIVERY_ITEM_COSTS.setDiscountApplied("1");
         MISSING_IMAGE_DELIVERY_ITEM_COSTS.setItemCost("2");
         MISSING_IMAGE_DELIVERY_ITEM_COSTS.setCalculatedCost("3");
-        MISSING_IMAGE_DELIVERY_ITEM_COSTS.setProductType(MISSING_IMAGE_DELIVERY);
+        MISSING_IMAGE_DELIVERY_ITEM_COSTS.setProductType(MISSING_IMAGE_DELIVERY_ACCOUNTS);
 
         DIRECTOR_OR_SECRETARY_DETAILS = new DirectorOrSecretaryDetailsApi();
         DIRECTOR_OR_SECRETARY_DETAILS.setIncludeAddress(INCLUDE_ADDRESS);
