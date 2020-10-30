@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.orders.api.interceptor;
 
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import uk.gov.companieshouse.logging.Logger;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static uk.gov.companieshouse.orders.api.logging.LoggingUtils.APPLICATION_NAMESPACE;
 
+@Component
 public class LoggingInterceptor extends HandlerInterceptorAdapter implements RequestLogger {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAMESPACE);

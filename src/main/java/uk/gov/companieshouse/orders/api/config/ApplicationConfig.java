@@ -25,16 +25,19 @@ import uk.gov.companieshouse.orders.api.interceptor.UserAuthorisationInterceptor
 @Configuration
 public class ApplicationConfig implements WebMvcConfigurer {
 
+    private final LoggingInterceptor loggingInterceptor;
     private final UserAuthenticationInterceptor authenticationInterceptor;
     private final UserAuthorisationInterceptor authorisationInterceptor;
     private final String healthcheckUri;
     private final String patchPaymentDetailsUri;
 
-    public ApplicationConfig(final UserAuthenticationInterceptor authenticationInterceptor,
+    public ApplicationConfig(final LoggingInterceptor loggingInterceptor,
+                             final UserAuthenticationInterceptor authenticationInterceptor,
                              final UserAuthorisationInterceptor authorisationInterceptor,
                              @Value(HEALTHCHECK_URI) final String healthcheckUri,
                              @Value(PATCH_PAYMENT_DETAILS_URI)
                              final String patchPaymentDetailsUri) {
+        this.loggingInterceptor = loggingInterceptor;
         this.authenticationInterceptor = authenticationInterceptor;
         this.authorisationInterceptor = authorisationInterceptor;
         this.healthcheckUri = healthcheckUri;
@@ -43,7 +46,7 @@ public class ApplicationConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
-        registry.addInterceptor(new LoggingInterceptor());
+        registry.addInterceptor(loggingInterceptor);
         registry.addInterceptor(authenticationInterceptor).excludePathPatterns(healthcheckUri);
         registry.addInterceptor(authorisationInterceptor).excludePathPatterns(healthcheckUri);
         registry.addInterceptor(crudPermissionInterceptor()).excludePathPatterns(patchPaymentDetailsUri, healthcheckUri);
