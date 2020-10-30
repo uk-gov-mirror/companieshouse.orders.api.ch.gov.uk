@@ -42,7 +42,8 @@ import uk.gov.companieshouse.orders.api.model.CheckoutData;
 import uk.gov.companieshouse.orders.api.model.DeliveryDetails;
 import uk.gov.companieshouse.orders.api.model.Item;
 import uk.gov.companieshouse.orders.api.model.ItemCosts;
-import uk.gov.companieshouse.orders.api.model.ItemOptions;
+import uk.gov.companieshouse.orders.api.model.MissingImageDelivery;
+import uk.gov.companieshouse.orders.api.model.MissingImageDeliveryItemOptions;
 import uk.gov.companieshouse.orders.api.model.Order;
 import uk.gov.companieshouse.orders.api.model.PaymentStatus;
 import uk.gov.companieshouse.orders.api.repository.BasketRepository;
@@ -96,23 +97,8 @@ import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADD
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_INCORPORATION_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFIED_COPY_SAME_DAY;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFICATE_KIND;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.CERTIFIED_COPY_KIND;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.DOCUMENT;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_ACCESS_TOKEN;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_API_KEY_TYPE_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_OAUTH2_TYPE_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_TYPE_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.SAME_DAY_CERTIFIED_COPY_COST;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFICATE_URI;
-import static uk.gov.companieshouse.orders.api.util.TestConstants.VALID_CERTIFIED_COPY_URI;
+import static uk.gov.companieshouse.orders.api.model.ProductType.MISSING_IMAGE_DELIVERY_ACCOUNTS;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 
 @DirtiesContext
 @AutoConfigureMockMvc
@@ -189,6 +175,35 @@ class BasketControllerIntegrationTest {
     private static final List<ItemCosts> CERTIFIED_COPY_ITEM_COSTS =
             asList(SAME_DAY_COPY_COST, SAME_DAY_NEW_INCORPORATION_COPY_COST);
 
+    private static final String MID_DISCOUNT_APPLIED = "0";
+    private static final String MID_ITEM_COST = "3";
+    private static final String MID_CALCULATED_COST = "3";
+    private static final List<ItemCosts> MISSING_IMAGE_DELIVERY_COSTS =
+            singletonList(
+                    new ItemCosts(MID_DISCOUNT_APPLIED, MID_ITEM_COST, MID_CALCULATED_COST, MISSING_IMAGE_DELIVERY_ACCOUNTS));
+    private static final String MID_TOTAL_ITEM_COST = "0";
+
+    private static final String MISSING_IMAGE_DELIVERY_FHD_ID = "MzAwOTM2MDg5OWFkaXF6a2N4";
+    private static final String MISSING_IMAGE_DELIVERY_FHD_DATE = "2010-02-12";
+    private static final String MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION = "change-person-director-company-with-change-date";
+    private static final Map<String, Object> MID_FHD_DESCRIPTION_VALUES = new HashMap<String, Object>() {{
+        put("change_date", MISSING_IMAGE_DELIVERY_FHD_DATE);
+        put("officer_name", "Thomas David Wheare");
+    }};
+    private static final String MISSING_IMAGE_DELIVERY_FHD_TYPE = "CH01";
+    private static final String MISSING_IMAGE_DELIVERY_FHD_CATEGORY = "accounts";
+
+    private static final MissingImageDeliveryItemOptions MISSING_IMAGE_DELIVERY_ITEM_OPTIONS;
+
+    static {
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS = new MissingImageDeliveryItemOptions();
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryId(MISSING_IMAGE_DELIVERY_FHD_ID);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDate(MISSING_IMAGE_DELIVERY_FHD_DATE);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDescription(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDescriptionValues(MID_FHD_DESCRIPTION_VALUES);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryType(MISSING_IMAGE_DELIVERY_FHD_TYPE);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryCategory(MISSING_IMAGE_DELIVERY_FHD_CATEGORY);
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -399,6 +414,42 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Add missing image delivery to basket responds with correctly populated missing image delivery options")
+    void addMissingImageDeliveryCorrectlyPopulatedOptions() throws Exception {
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+        addToBasketRequestDTO.setItemUri(VALID_MISSING_IMAGE_DELIVERY_URI);
+
+        final MissingImageDelivery missingImageDelivery = new MissingImageDelivery();
+        final MissingImageDeliveryItemOptions options = new MissingImageDeliveryItemOptions();
+        options.setFilingHistoryId(DOCUMENT.getFilingHistoryId());
+        options.setFilingHistoryDate(DOCUMENT.getFilingHistoryDate());
+        options.setFilingHistoryDescription(DOCUMENT.getFilingHistoryDescription());
+        options.setFilingHistoryType(DOCUMENT.getFilingHistoryType());
+        missingImageDelivery.setItemOptions(options);
+        when(apiClientService.getItem(VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
+
+        mockMvc.perform(post("/basket/items")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(addToBasketRequestDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.item_options.filing_history_date",
+                        is(DOCUMENT.getFilingHistoryDate())))
+                .andExpect(jsonPath("$.item_options.filing_history_description",
+                        is(DOCUMENT.getFilingHistoryDescription())))
+                .andExpect(jsonPath("$.item_options.filing_history_id",
+                        is(DOCUMENT.getFilingHistoryId())))
+                .andExpect(jsonPath("$.item_options.filing_history_type",
+                        is(DOCUMENT.getFilingHistoryType())))
+                .andDo(MockMvcResultHandlers.print());
+
+        final Optional<Basket> retrievedBasket = basketRepository.findById(ERIC_IDENTITY_VALUE);
+        assertThat(retrievedBasket.get().getData().getItems().get(0).getItemUri(), is(VALID_MISSING_IMAGE_DELIVERY_URI));
+    }
+
+    @Test
     @DisplayName("Add item returns 400 when invalid item passed in request")
     void addItemReturns400WhenRequestedItemIsInvalid() throws Exception {
         Basket basket = new Basket();
@@ -505,7 +556,7 @@ class BasketControllerIntegrationTest {
         final CheckoutData checkoutData = retrievedCheckout.get().getData();
         final Item item = checkoutData.getItems().get(0);
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
-        final ItemOptions retrievedOptions = item.getItemOptions();
+        final CertificateItemOptions retrievedOptions = (CertificateItemOptions) item.getItemOptions();
         assertEquals(FORENAME, retrievedOptions.getForename());
         assertEquals(SURNAME, retrievedOptions.getSurname());
         assertEquals(EXPECTED_TOTAL_ORDER_COST, checkoutData.getTotalOrderCost());
@@ -585,12 +636,64 @@ class BasketControllerIntegrationTest {
         verifyCertifiedCopyItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
     }
 
+    @Test
+    @DisplayName("Checkout basket responds with correctly populated missing image delivery item options")
+    void checkoutMissingImageDeliveryBasketReturnsCorrectlyPopulatedOptions() throws Exception {
+        basketRepository.save(getBasketWithMissingDeliveryImageInIt());
+
+        final MissingImageDelivery missingImageDelivery = new MissingImageDelivery();
+        missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
+        missingImageDelivery.setItemOptions(MISSING_IMAGE_DELIVERY_ITEM_OPTIONS);
+        missingImageDelivery.setItemCosts(MISSING_IMAGE_DELIVERY_COSTS);
+        missingImageDelivery.setPostageCost(POSTAGE_COST);
+        missingImageDelivery.setPostalDelivery(false);
+        missingImageDelivery.setTotalItemCost(MID_TOTAL_ITEM_COST);
+        missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
+
+        when(apiClientService.getItem(VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
+
+        final ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_date",
+                        is(MISSING_IMAGE_DELIVERY_FHD_DATE)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_description",
+                        is(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_description_values.change_date",
+                        is(MID_FHD_DESCRIPTION_VALUES.get("change_date").toString())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_description_values.officer_name",
+                        is(MID_FHD_DESCRIPTION_VALUES.get("officer_name").toString())))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_id",
+                        is(MISSING_IMAGE_DELIVERY_FHD_ID)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_type",
+                        is(MISSING_IMAGE_DELIVERY_FHD_TYPE)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_category",
+                        is(MISSING_IMAGE_DELIVERY_FHD_CATEGORY)))
+                .andDo(MockMvcResultHandlers.print());
+
+        final MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        final CheckoutData responseCheckoutData = mapper.readValue(response.getContentAsString(), CheckoutData.class);
+
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(responseCheckoutData.getReference());
+        assertTrue(retrievedCheckout.isPresent());
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        assertThat(isNotEmpty(retrievedCheckout.get().getData().getItems()), is(true));
+        verifyMissingImageDeliveryItemOptionsAreCorrect(retrievedCheckout.get().getData().getItems().get(0));
+    }
+
     private Basket getBasketWithCertificateInIt(boolean isPostalDelivery) {
         return getBasket(isPostalDelivery, VALID_CERTIFICATE_URI);
     }
 
     private Basket getBasketWithCertifiedCopyInIt() {
         return getBasket(false, VALID_CERTIFIED_COPY_URI);
+    }
+
+    private Basket getBasketWithMissingDeliveryImageInIt() {
+        return getBasket(false, VALID_MISSING_IMAGE_DELIVERY_URI);
     }
 
     private Basket getBasket(boolean isPostalDelivery, final String itemUri) {
@@ -624,7 +727,7 @@ class BasketControllerIntegrationTest {
 
         Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
-        certificate.setItemOptions(new ItemOptions());
+        certificate.setItemOptions(new CertificateItemOptions());
         certificate.setItemCosts(ITEM_COSTS_ZERO);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
@@ -660,7 +763,7 @@ class BasketControllerIntegrationTest {
 
         final Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
-        certificate.setItemOptions(new ItemOptions());
+        certificate.setItemOptions(new CertificateItemOptions());
         certificate.setPostalDelivery(true);
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
@@ -754,7 +857,7 @@ class BasketControllerIntegrationTest {
 
         final Certificate certificate = new Certificate();
         certificate.setKind(CERTIFICATE_KIND);
-        certificate.setItemOptions(new ItemOptions());
+        certificate.setItemOptions(new CertificateItemOptions());
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
@@ -1309,6 +1412,48 @@ class BasketControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Patch payment details paid populates checkout and order missing image delivery item options correctly")
+    void patchBasketMissingImageDeliveryPaymentSuccessfullyPaid() throws Exception {
+        final LocalDateTime start = timestamps.start();
+
+        final BasketPaymentRequestDTO basketPaymentRequest = createBasketPaymentRequest(PaymentStatus.PAID);
+        createBasket(start);
+        final Checkout checkout = createMissingImageCheckout();
+        final PaymentApi paymentSession = createPaymentSession(checkout.getId(), "paid", "70.00");
+
+        when(apiClientService.getPaymentSummary(ERIC_ACCESS_TOKEN, PAYMENT_ID)).thenReturn(paymentSession);
+        when(etagGenerator.generateEtag()).thenReturn(UPDATED_ETAG);
+
+        mockMvc.perform(patch("/basket/checkouts/" + checkout.getId() + "/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_KEY_ROLES, INTERNAL_USER_ROLE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(basketPaymentRequest)))
+                .andExpect(status().isNoContent());
+
+        timestamps.end();
+
+        // Check checkout is correctly updated
+        final Optional<Checkout> retrievedCheckout = checkoutRepository.findById(checkout.getId());
+        assertThat(retrievedCheckout.isPresent(), is(true));
+        assertThat(retrievedCheckout.get().getData(), is(notNullValue()));
+        final CheckoutData data = retrievedCheckout.get().getData();
+        assertThat(data.getItems().isEmpty(), is(false));
+        final Item checkoutItem = data.getItems().get(0);
+        verifyMissingImageDeliveryItemOptionsAreCorrect(checkoutItem);
+
+        // Assert order is created with correct information
+        final Order orderRetrieved = assertOrderCreatedCorrectly(checkout.getId(), timestamps);
+        assertThat(orderRetrieved.getData(), is(notNullValue()));
+        assertThat(isNotEmpty(orderRetrieved.getData().getItems()), is(true));
+        final Item retrievedItem = orderRetrieved.getData().getItems().get(0);
+        verifyMissingImageDeliveryItemOptionsAreCorrect(retrievedItem);
+    }
+
+    @Test
     @DisplayName("Patch payment-details endpoint success path for failed payments session")
     void patchBasketPaymentDetailsSuccessFailed() throws Exception {
         final LocalDateTime start = timestamps.start();
@@ -1580,6 +1725,25 @@ class BasketControllerIntegrationTest {
                 .isEqualToComparingFieldByFieldRecursively(DOCUMENT);
     }
 
+    /**
+     * Verifies that the missing image delivery item's options are of the right type and have the expected fields
+     * correctly populated.
+     * @param missingImageDelivery the {@link Item} to check
+     */
+    private void verifyMissingImageDeliveryItemOptionsAreCorrect(final Item missingImageDelivery) {
+        assertThat(missingImageDelivery.getItemOptions() instanceof MissingImageDeliveryItemOptions, is(true));
+        final MissingImageDeliveryItemOptions options =
+                (MissingImageDeliveryItemOptions) missingImageDelivery.getItemOptions();
+        assertThat(options.getFilingHistoryId(),is(MISSING_IMAGE_DELIVERY_FHD_ID));
+        assertThat(options.getFilingHistoryDate(),is(MISSING_IMAGE_DELIVERY_FHD_DATE));
+        assertThat(options.getFilingHistoryDescription(),is(MISSING_IMAGE_DELIVERY_FHD_DESCRIPTION));
+        assertThat(options.getFilingHistoryDescriptionValues().get("change_date"),
+                is(MID_FHD_DESCRIPTION_VALUES.get("change_date")));
+        assertThat(options.getFilingHistoryDescriptionValues().get("officer_name"),
+                is(is(MID_FHD_DESCRIPTION_VALUES.get("officer_name"))));
+        assertThat(options.getFilingHistoryType(),is(MISSING_IMAGE_DELIVERY_FHD_TYPE));
+    }
+
     private List<ItemCosts> createItemCosts(){
         List<ItemCosts> itemCosts = new ArrayList<>();
         ItemCosts itemCosts1 = new ItemCosts();
@@ -1638,6 +1802,19 @@ class BasketControllerIntegrationTest {
 
         return checkoutService.createCheckout(
                 certificate, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
+    }
+
+    private Checkout createMissingImageCheckout() {
+        final MissingImageDelivery missingImageDelivery = new MissingImageDelivery();
+        missingImageDelivery.setItemCosts(ITEM_COSTS);
+        missingImageDelivery.setPostageCost(POSTAGE_COST);
+        missingImageDelivery.setTotalItemCost(TOTAL_ITEM_COST);
+        missingImageDelivery.setCompanyNumber(COMPANY_NUMBER);
+        missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
+        missingImageDelivery.setItemOptions(MISSING_IMAGE_DELIVERY_ITEM_OPTIONS);
+
+        return checkoutService.createCheckout(
+                missingImageDelivery, ERIC_IDENTITY_VALUE, ERIC_AUTHORISED_USER_VALUE, new DeliveryDetails());
     }
 
     /**
