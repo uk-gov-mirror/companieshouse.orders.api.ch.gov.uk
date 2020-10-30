@@ -20,7 +20,7 @@ import uk.gov.companieshouse.orders.api.interceptor.UserAuthenticationIntercepto
 import uk.gov.companieshouse.orders.api.interceptor.UserAuthorisationInterceptor;
 
 @ExtendWith(MockitoExtension.class)
-public class ApplicationConfigTest {
+class ApplicationConfigTest {
 
     ApplicationConfig config;
 
@@ -81,7 +81,5 @@ public class ApplicationConfigTest {
         inOrder.verify(registry).addInterceptor(authorisationInterceptor);
         inOrder.verify(registry).addInterceptor(crudPermissionInterceptor);
         inOrder.verify(registry).addInterceptor(crudPermissionInterceptorSkipPatch);
-
     }
-
 }
