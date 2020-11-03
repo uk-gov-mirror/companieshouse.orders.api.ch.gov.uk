@@ -10,8 +10,8 @@ import java.io.IOException;
 @Component
 public class Api {
 
-    public InternalApiClient getInternalApiClient() {
-        return ApiSdkManager.getPrivateSDK();
+    public InternalApiClient getInternalApiClient(String passthroughHeader) throws IOException {
+        return ApiSdkManager.getPrivateSDK(passthroughHeader);
     }
 
     public ApiClient getPublicApiClient(String passthroughHeader) throws IOException {

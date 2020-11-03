@@ -101,7 +101,7 @@ class BasketControllerTest {
         basket.get().getData().setItems(items);
 
         when(basketService.getBasketById(any())).thenReturn(basket);
-        when(apiClientService.getItem(any())).thenThrow(ApiErrorResponseException.class);
+        when(apiClientService.getItem(any(), any())).thenThrow(ApiErrorResponseException.class);
 
         ResponseEntity<?> responseEntity = controllerUnderTest.getBasket(httpServletRequest, "requestId");
 

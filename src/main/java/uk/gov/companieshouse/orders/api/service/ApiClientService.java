@@ -33,15 +33,17 @@ public class ApiClientService {
 
     /**
      * Gets an item from a remote API by sending it a get item HTTP GET request.
+     * @param passthroughHeader the eric access token header to pass through as auth for api to api communication
      * @param itemUri the URI path representing the item (and implicitly the type of item) sought
      * @return the item (either a {@link Certificate}, or a {@link CertifiedCopy})
      * @throws ApiErrorResponseException should there be a 4xx or 5xx response from the API
+     * @throws IOException
      */
-    public Item getItem(String itemUri) throws ApiErrorResponseException {
+    public Item getItem(String passthroughHeader, String itemUri) throws ApiErrorResponseException, IOException {
         final BaseItemApi baseItemApi;
         try {
             baseItemApi = apiClient
-                    .getInternalApiClient()
+                    .getInternalApiClient(passthroughHeader)
                     .privateItemResourceHandler()
                     .getItem(itemUri)
                     .execute()
