@@ -29,19 +29,19 @@ public class ApplicationConfig implements WebMvcConfigurer {
     private final UserAuthenticationInterceptor authenticationInterceptor;
     private final UserAuthorisationInterceptor authorisationInterceptor;
     private final String healthcheckUri;
-    private final String patchPaymentDetailsUri;
+    private final String paymentDetailsUri;
 
     public ApplicationConfig(final LoggingInterceptor loggingInterceptor,
                              final UserAuthenticationInterceptor authenticationInterceptor,
                              final UserAuthorisationInterceptor authorisationInterceptor,
                              @Value(HEALTHCHECK_URI) final String healthcheckUri,
                              @Value(PATCH_PAYMENT_DETAILS_URI)
-                             final String patchPaymentDetailsUri) {
+                             final String paymentDetailsUri) {
         this.loggingInterceptor = loggingInterceptor;
         this.authenticationInterceptor = authenticationInterceptor;
         this.authorisationInterceptor = authorisationInterceptor;
         this.healthcheckUri = healthcheckUri;
-        this.patchPaymentDetailsUri = patchPaymentDetailsUri;
+        this.paymentDetailsUri = paymentDetailsUri;
     }
 
     @Override
@@ -49,9 +49,11 @@ public class ApplicationConfig implements WebMvcConfigurer {
         registry.addInterceptor(loggingInterceptor);
         registry.addInterceptor(authenticationInterceptor).excludePathPatterns(healthcheckUri);
         registry.addInterceptor(authorisationInterceptor).excludePathPatterns(healthcheckUri);
-        registry.addInterceptor(crudPermissionInterceptor()).excludePathPatterns(patchPaymentDetailsUri, healthcheckUri);
-        // Do not run the permission check for patch payment as it is API key only
-        registry.addInterceptor(crudPermissionInterceptorSkipPatch()).addPathPatterns(patchPaymentDetailsUri);
+        registry.addInterceptor(crudPermissionInterceptor()).excludePathPatterns(paymentDetailsUri, healthcheckUri);
+        // Different interceptor for payment details as API key traffic needs to be allowed:
+        // - PATCH is always ignored since oauth2 is blocked for this function
+        // - GET ignores API key requests to allow payments api to get costs but if oauth2 is used it still checks token permissions
+        registry.addInterceptor(crudPermissionInterceptorPaymentDetails()).addPathPatterns(paymentDetailsUri);
     }
 
     @Bean
@@ -75,8 +77,10 @@ public class ApplicationConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    CRUDAuthenticationInterceptor crudPermissionInterceptorSkipPatch() {
-        return new CRUDAuthenticationInterceptor(Permission.Key.USER_ORDERS, "PATCH");
+    CRUDAuthenticationInterceptor crudPermissionInterceptorPaymentDetails() {
+        // true allows all api key traffic through but still checks for CRUD permissions when using oauth
+        // PATCH added to ignoreHttpMethods means it will also be skipped for oauth crud functions since oauth is never allowed for this method
+        return new CRUDAuthenticationInterceptor(Permission.Key.USER_ORDERS, true, "PATCH");
     }
 
 }
