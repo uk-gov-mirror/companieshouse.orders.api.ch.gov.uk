@@ -192,6 +192,7 @@ class BasketControllerIntegrationTest {
     }};
     private static final String MISSING_IMAGE_DELIVERY_FHD_TYPE = "CH01";
     private static final String MISSING_IMAGE_DELIVERY_FHD_CATEGORY = "accounts";
+    private static final String MISSING_IMAGE_DELIVERY_FH_BARCODE = "01234567";
 
     private static final MissingImageDeliveryItemOptions MISSING_IMAGE_DELIVERY_ITEM_OPTIONS;
 
@@ -203,6 +204,7 @@ class BasketControllerIntegrationTest {
         MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryDescriptionValues(MID_FHD_DESCRIPTION_VALUES);
         MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryType(MISSING_IMAGE_DELIVERY_FHD_TYPE);
         MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryCategory(MISSING_IMAGE_DELIVERY_FHD_CATEGORY);
+        MISSING_IMAGE_DELIVERY_ITEM_OPTIONS.setFilingHistoryBarcode(MISSING_IMAGE_DELIVERY_FH_BARCODE);
     }
 
     @Autowired
@@ -672,6 +674,8 @@ class BasketControllerIntegrationTest {
                         is(MISSING_IMAGE_DELIVERY_FHD_TYPE)))
                 .andExpect(jsonPath("$.items[0].item_options.filing_history_category",
                         is(MISSING_IMAGE_DELIVERY_FHD_CATEGORY)))
+                .andExpect(jsonPath("$.items[0].item_options.filing_history_barcode",
+                        is(MISSING_IMAGE_DELIVERY_FH_BARCODE)))
                 .andDo(MockMvcResultHandlers.print());
 
         final MockHttpServletResponse response = resultActions.andReturn().getResponse();
