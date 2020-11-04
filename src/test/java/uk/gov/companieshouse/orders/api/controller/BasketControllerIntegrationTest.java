@@ -261,12 +261,13 @@ class BasketControllerIntegrationTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk());
@@ -299,12 +300,13 @@ class BasketControllerIntegrationTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk());
@@ -333,12 +335,13 @@ class BasketControllerIntegrationTest {
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
         certificate.setItemOptions(options);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk())
@@ -359,12 +362,13 @@ class BasketControllerIntegrationTest {
         final CertifiedCopyItemOptions options = new CertifiedCopyItemOptions();
         options.setFilingHistoryDocuments(singletonList(DOCUMENT));
         copy.setItemOptions(options);
-        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk())
@@ -390,12 +394,13 @@ class BasketControllerIntegrationTest {
 
         final CertifiedCopy copy = new CertifiedCopy();
         copy.setItemCosts(CERTIFIED_COPY_ITEM_COSTS);
-        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk())
@@ -428,12 +433,13 @@ class BasketControllerIntegrationTest {
         options.setFilingHistoryDescription(DOCUMENT.getFilingHistoryDescription());
         options.setFilingHistoryType(DOCUMENT.getFilingHistoryType());
         missingImageDelivery.setItemOptions(options);
-        when(apiClientService.getItem(VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
 
         mockMvc.perform(post("/basket/items")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk())
@@ -463,7 +469,7 @@ class BasketControllerIntegrationTest {
 
         AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
         addToBasketRequestDTO.setItemUri(INVALID_ITEM_URI);
-        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
+        when(apiClientService.getItem(anyString(), anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -473,6 +479,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isBadRequest())
@@ -537,13 +544,14 @@ class BasketControllerIntegrationTest {
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setPostalDelivery(false);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted());
 
         MvcResult result = resultActions.andReturn();
@@ -577,13 +585,14 @@ class BasketControllerIntegrationTest {
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setPostalDelivery(false);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         final ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.items[0].item_options.certificate_type",
                         is(INCORPORATION_WITH_ALL_NAME_CHANGES.getJsonName())));
@@ -611,13 +620,14 @@ class BasketControllerIntegrationTest {
         copy.setItemCosts(createItemCosts());
         copy.setPostageCost(POSTAGE_COST);
         copy.setPostalDelivery(false);
-        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
 
         final ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_date",
                         is(DOCUMENT.getFilingHistoryDate())))
@@ -652,13 +662,14 @@ class BasketControllerIntegrationTest {
         missingImageDelivery.setTotalItemCost(MID_TOTAL_ITEM_COST);
         missingImageDelivery.setKind(MISSING_IMAGE_DELIVERY_KIND);
 
-        when(apiClientService.getItem(VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_MISSING_IMAGE_DELIVERY_URI)).thenReturn(missingImageDelivery);
 
         final ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.items[0].item_options.filing_history_date",
                         is(MISSING_IMAGE_DELIVERY_FHD_DATE)))
@@ -736,13 +747,14 @@ class BasketControllerIntegrationTest {
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST_ZERO);
         certificate.setPostalDelivery(false);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isOk());
 
         MvcResult result = resultActions.andReturn();
@@ -772,13 +784,14 @@ class BasketControllerIntegrationTest {
         certificate.setItemCosts(ITEM_COSTS);
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         ResultActions resultActions = mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted());
 
         MvcResult result = resultActions.andReturn();
@@ -828,12 +841,13 @@ class BasketControllerIntegrationTest {
     void checkoutBasketFailsToCreateCheckoutWhenItFailsToGetAnItem() throws Exception {
         basketRepository.save(getBasketWithCertificateInIt(false));
 
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenThrow(apiErrorResponseException);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenThrow(apiErrorResponseException);
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isBadRequest());
 
         assertEquals(0, checkoutRepository.count());
@@ -866,7 +880,7 @@ class BasketControllerIntegrationTest {
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
         certificate.setPostalDelivery(false);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         final CheckoutData expectedResponseBody = new CheckoutData();
         final Item item = new Item();
@@ -879,7 +893,8 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(content().json(mapper.writeValueAsString(expectedResponseBody)));
 
@@ -923,12 +938,13 @@ class BasketControllerIntegrationTest {
         final CertificateItemOptions options = new CertificateItemOptions();
         options.setCertificateType(INCORPORATION_WITH_ALL_NAME_CHANGES);
         certificate.setItemOptions(options);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         final String jsonResponse = mockMvc.perform(get("/basket")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].item_options.certificate_type",
@@ -992,12 +1008,13 @@ class BasketControllerIntegrationTest {
         copy.setSatisfiedAt(SATISFIED_AT);
         copy.setPostageCost(POSTAGE_COST);
         copy.setTotalItemCost(TOTAL_ITEM_COST);
-        when(apiClientService.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFIED_COPY_URI)).thenReturn(copy);
 
         final String jsonResponse = mockMvc.perform(get("/basket")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_date",
@@ -1189,7 +1206,7 @@ class BasketControllerIntegrationTest {
         deliveryDetailsDTO.setSurname(SURNAME);
         addDeliveryDetailsRequestDTO.setDeliveryDetails(deliveryDetailsDTO);
 
-        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
+        when(apiClientService.getItem(anyString(), anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -1199,6 +1216,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
                 .andExpect(status().isBadRequest())
@@ -1213,7 +1231,7 @@ class BasketControllerIntegrationTest {
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
 
-        when(apiClientService.getItem(null)).thenThrow(apiErrorResponseException);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, null)).thenThrow(apiErrorResponseException);
         final ApiError expectedValidationError =
                 new ApiError(CONFLICT,
                         asList(ErrorType.BASKET_ITEMS_MISSING.getValue()));
@@ -1221,7 +1239,8 @@ class BasketControllerIntegrationTest {
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isConflict())
                 .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)));
 
@@ -1247,12 +1266,13 @@ class BasketControllerIntegrationTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         certificate.setItemCosts(createItemCosts());
         certificate.setPostageCost(POSTAGE_COST);
-        when(apiClientService.getItem(VALID_CERTIFICATE_URI)).thenReturn(certificate);
+        when(apiClientService.getItem(ERIC_ACCESS_TOKEN, VALID_CERTIFICATE_URI)).thenReturn(certificate);
 
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isConflict());
 
         assertEquals(0, checkoutRepository.count());
@@ -1268,7 +1288,7 @@ class BasketControllerIntegrationTest {
         basket.getData().setItems(Collections.singletonList(basketItem));
         basketRepository.save(basket);
 
-        when(apiClientService.getItem(anyString())).thenThrow(apiErrorResponseException);
+        when(apiClientService.getItem(anyString(), anyString())).thenThrow(apiErrorResponseException);
 
         final ApiError expectedValidationError =
                 new ApiError(BAD_REQUEST,
@@ -1278,7 +1298,8 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
-                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE))
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
                 .andDo(MockMvcResultHandlers.print());

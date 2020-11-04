@@ -31,6 +31,7 @@ public class CheckoutBasketValidatorTest {
     private static final String ITEM_URI = "/orderable/certificates/12345678";
     private static final String INVALID_ITEM_URI = "invalid_uri";
     private static final String COMPANY_NUMBER = "00000000";
+    private static final String PASS_THROUGH_HEADER = "passThroughHeader";
     private static final List<ItemCosts> ITEM_COSTS =
             asList(new ItemCosts( "0", "50", "50", CERTIFICATE_SAME_DAY),
                     new ItemCosts("40", "50", "10", CERTIFICATE_ADDITIONAL_COPY),
@@ -51,7 +52,7 @@ public class CheckoutBasketValidatorTest {
         // Given
         Basket basket = setupBasketWithMissingItems();
         // When
-        List<String> errors = validatorUnderTest.getValidationErrors(basket);
+        List<String> errors = validatorUnderTest.getValidationErrors(PASS_THROUGH_HEADER, basket);
         // Then
         assertThat(errors.isEmpty(), is(false));
         assertThat(errors.size(), is(1));
@@ -64,7 +65,7 @@ public class CheckoutBasketValidatorTest {
         // Given
         Basket basket = setupBasketWithInvalidItem();
         // When
-        List<String> errors = validatorUnderTest.getValidationErrors(basket);
+        List<String> errors = validatorUnderTest.getValidationErrors(PASS_THROUGH_HEADER, basket);
         // Then
         assertThat(errors.isEmpty(), is(false));
         assertThat(errors.size(), is(1));
@@ -83,8 +84,8 @@ public class CheckoutBasketValidatorTest {
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
         certificate.setPostalDelivery(true);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
-        List<String> errors = validatorUnderTest.getValidationErrors(basket);
+        when(apiClientService.getItem(PASS_THROUGH_HEADER, ITEM_URI)).thenReturn(certificate);
+        List<String> errors = validatorUnderTest.getValidationErrors(PASS_THROUGH_HEADER, basket);
         // Then
         assertThat(errors.isEmpty(), is(false));
         assertThat(errors.size(), is(1));
@@ -103,8 +104,8 @@ public class CheckoutBasketValidatorTest {
         certificate.setPostageCost(POSTAGE_COST);
         certificate.setTotalItemCost(TOTAL_ITEM_COST);
         certificate.setPostalDelivery(true);
-        when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
-        List<String> errors = validatorUnderTest.getValidationErrors(basket);
+        when(apiClientService.getItem(PASS_THROUGH_HEADER, ITEM_URI)).thenReturn(certificate);
+        List<String> errors = validatorUnderTest.getValidationErrors(PASS_THROUGH_HEADER, basket);
         // Then
         assertThat(errors.isEmpty(), is(false));
         assertThat(errors.size(), is(1));

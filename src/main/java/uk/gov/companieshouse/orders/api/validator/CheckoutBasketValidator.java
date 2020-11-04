@@ -26,7 +26,7 @@ public class CheckoutBasketValidator {
         this.deliveryDetailsValidator = deliveryDetailsValidator;
     }
 
-    public List<String> getValidationErrors(final Basket basket) {
+    public List<String> getValidationErrors(final String passthroughHeader, final Basket basket) {
         Map<String, Object> logMap = LoggingUtils.createLogMap();
         LoggingUtils.logIfNotNull(logMap, LoggingUtils.BASKET_ID, basket.getId());
         List<String> errors = new ArrayList<>();
@@ -41,7 +41,7 @@ public class CheckoutBasketValidator {
                 itemUri = item.getItemUri();
                 LoggingUtils.logIfNotNull(logMap, LoggingUtils.ITEM_URI, itemUri);
 
-                item = apiClientService.getItem(itemUri);
+                item = apiClientService.getItem(passthroughHeader, itemUri);
 
                 if (item.isPostalDelivery() && !deliveryDetailsValidator.isValid(basket.getData().getDeliveryDetails())) {
                     logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.DELIVERY_DETAILS_MISSING.getValue());

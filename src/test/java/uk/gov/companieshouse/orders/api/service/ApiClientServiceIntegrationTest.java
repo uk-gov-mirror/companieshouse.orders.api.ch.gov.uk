@@ -42,6 +42,7 @@ public class ApiClientServiceIntegrationTest {
 
     private static final String UNKNOWN_CERTIFICATE_URI = "/orderable/certificates/CRT-000000-000000";
     private static final String UNKNOWN_CERTIFIED_COPY_URI = "/orderable/certified-copies/CCD-000000-000000";
+    private static final String PASS_THROUGH_HEADER = "{\"token_type\": \"Bearer\", \"access_token\": \"foobar\", \"expires_in\": 5}";
     private static final String SDK_ERROR_MESSAGE =
             "field private java.util.List uk.gov.companieshouse.api.error.ApiErrorResponse.errors";
 
@@ -99,7 +100,7 @@ public class ApiClientServiceIntegrationTest {
                         .withBody(objectMapper.writeValueAsString(CERTIFICATE))));
 
         // When
-        final Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
+        final Item item = serviceUnderTest.getItem(PASS_THROUGH_HEADER, VALID_CERTIFICATE_URI);
 
         // Then
         assertThat(item.getItemOptions() instanceof CertificateItemOptions, is(true));
@@ -117,7 +118,7 @@ public class ApiClientServiceIntegrationTest {
                         .withBody(objectMapper.writeValueAsString(CERTIFIED_COPY))));
 
         // When
-        final Item item = serviceUnderTest.getItem(VALID_CERTIFIED_COPY_URI);
+        final Item item = serviceUnderTest.getItem(PASS_THROUGH_HEADER, VALID_CERTIFIED_COPY_URI);
 
         // Then
         assertThat(item.getItemOptions() instanceof CertifiedCopyItemOptions, is(true));
@@ -149,7 +150,7 @@ public class ApiClientServiceIntegrationTest {
         // When and then
         final ApiErrorResponseException exception =
                 Assertions.assertThrows(ApiErrorResponseException.class,
-                        () -> serviceUnderTest.getItem(VALID_CERTIFICATE_URI));
+                        () -> serviceUnderTest.getItem(PASS_THROUGH_HEADER, VALID_CERTIFICATE_URI));
         assertThat(exception.getStatusCode(), is(INTERNAL_SERVER_ERROR.value()));
         assertThat(exception.getStatusMessage(), is("Connection reset"));
     }
@@ -174,7 +175,7 @@ public class ApiClientServiceIntegrationTest {
         // When and then
         final IllegalArgumentException exception =
                 Assertions.assertThrows(IllegalArgumentException.class,
-                        () -> serviceUnderTest.getItem(unknownItemUri));
+                        () -> serviceUnderTest.getItem(PASS_THROUGH_HEADER, unknownItemUri));
         assertThat(exception.getCause() instanceof IllegalArgumentException, is(true));
         assertThat(exception.getCause().getMessage(), is(SDK_ERROR_MESSAGE));
     }

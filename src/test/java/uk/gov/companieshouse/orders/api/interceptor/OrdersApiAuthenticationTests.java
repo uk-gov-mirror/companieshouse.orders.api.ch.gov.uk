@@ -23,6 +23,7 @@ import uk.gov.companieshouse.orders.api.model.ItemCosts;
 import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.BasketService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
+import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_ACCESS_TOKEN;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_AUTHORISED_USER_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_API_KEY_TYPE_VALUE;
@@ -163,7 +165,7 @@ class OrdersApiAuthenticationTests {
 		options.setForename(FORENAME);
 		options.setSurname(SURNAME);
 		certificate.setItemOptions(options);
-		when(apiClientService.getItem(ITEM_URI)).thenReturn(certificate);
+		when(apiClientService.getItem(ERIC_ACCESS_TOKEN, ITEM_URI)).thenReturn(certificate);
 
 		when(basketService.getBasketById(anyString())).thenReturn(Optional.of(basket));
 		when(checkoutService.createCheckout(
@@ -181,6 +183,7 @@ class OrdersApiAuthenticationTests {
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
 				.header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
 				.exchange()
 				.expectStatus().isAccepted()
 				.expectBody(Checkout.class);

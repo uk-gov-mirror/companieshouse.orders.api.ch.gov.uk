@@ -31,12 +31,12 @@ class ApplicationConfigTest {
     @Mock
     private UserAuthorisationInterceptor authorisationInterceptor;
     private final String healthcheckUri = "healthcheck";
-    private final String patchPaymentDetailsUri = "payment-details";
+    private final String paymentDetailsUri = "payment-details";
 
     @BeforeEach
     void setup() {
         config = Mockito.spy(new ApplicationConfig(loggingInterceptor, authenticationInterceptor,
-                authorisationInterceptor, healthcheckUri, patchPaymentDetailsUri));
+                authorisationInterceptor, healthcheckUri, paymentDetailsUri));
     }
 
     @Test
@@ -47,7 +47,7 @@ class ApplicationConfigTest {
                 .mock(CRUDAuthenticationInterceptor.class);
 
         when(config.crudPermissionInterceptor()).thenReturn(crudPermissionInterceptor);
-        when(config.crudPermissionInterceptorSkipPatch()).thenReturn(crudPermissionInterceptorSkipPatch);
+        when(config.crudPermissionInterceptorPaymentDetails()).thenReturn(crudPermissionInterceptorSkipPatch);
 
         InterceptorRegistry registry = Mockito.mock(InterceptorRegistry.class);
 
@@ -63,17 +63,17 @@ class ApplicationConfigTest {
         InterceptorRegistration crudPermissionInterceptorRegistration = Mockito.mock(InterceptorRegistration.class);
         doReturn(crudPermissionInterceptorRegistration).when(registry).addInterceptor(crudPermissionInterceptor);
 
-        InterceptorRegistration crudPermissionInterceptorSkipPatchRegistration = Mockito
+        InterceptorRegistration crudPermissionInterceptorPaymentDetailsRegistration = Mockito
                 .mock(InterceptorRegistration.class);
-        doReturn(crudPermissionInterceptorSkipPatchRegistration).when(registry)
+        doReturn(crudPermissionInterceptorPaymentDetailsRegistration).when(registry)
                 .addInterceptor(crudPermissionInterceptorSkipPatch);
 
         config.addInterceptors(registry);
 
         verify(authenticationInterceptorRegistration).excludePathPatterns(healthcheckUri);
         verify(authorisationInterceptorRegistration).excludePathPatterns(healthcheckUri);
-        verify(crudPermissionInterceptorRegistration).excludePathPatterns(patchPaymentDetailsUri, healthcheckUri);
-        verify(crudPermissionInterceptorSkipPatchRegistration).addPathPatterns(patchPaymentDetailsUri);
+        verify(crudPermissionInterceptorRegistration).excludePathPatterns(paymentDetailsUri, healthcheckUri);
+        verify(crudPermissionInterceptorPaymentDetailsRegistration).addPathPatterns(paymentDetailsUri);
 
         InOrder inOrder = Mockito.inOrder(registry);
         inOrder.verify(registry).addInterceptor(loggingInterceptor);

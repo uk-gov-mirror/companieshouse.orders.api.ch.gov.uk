@@ -147,7 +147,9 @@ public class BasketController {
         logMap.put(LoggingUtils.ITEM_URI, itemUri);
         Item item;
         try {
-            item = apiClientService.getItem(itemUri);
+            // Use header in request as header for request to item api
+            String passthroughHeader = request.getHeader(ApiSdkManager.getEricPassthroughTokenHeader());
+            item = apiClientService.getItem(passthroughHeader, itemUri);
         } catch (Exception exception) {
             logMap.put(LoggingUtils.EXCEPTION, exception);
             logMap.put(LoggingUtils.STATUS, BAD_REQUEST);
@@ -210,8 +212,10 @@ public class BasketController {
         Item item;
         String itemUri = null;
         try {
+            // Use header in request as header for request to item api
+            String passthroughHeader = request.getHeader(ApiSdkManager.getEricPassthroughTokenHeader());
             itemUri = basket.getData().getItems().get(0).getItemUri();
-            item = apiClientService.getItem(itemUri);
+            item = apiClientService.getItem(passthroughHeader, itemUri);
 
             logMap.put(LoggingUtils.ITEM_URI, itemUri);
             if(item != null) {                
@@ -256,7 +260,8 @@ public class BasketController {
         if(retrievedBasket.isPresent()) {
             Basket basket = retrievedBasket.get();
             LoggingUtils.logIfNotNull(logMap, LoggingUtils.BASKET_ID, basket.getId());
-            final List<String> basketErrors = checkoutBasketValidator.getValidationErrors(basket);
+            String passthroughHeader = request.getHeader(ApiSdkManager.getEricPassthroughTokenHeader());
+            final List<String> basketErrors = checkoutBasketValidator.getValidationErrors(passthroughHeader, basket);
             if (!basketErrors.isEmpty() && basketErrors.contains(ErrorType.BASKET_ITEM_INVALID.getValue())){
                 logMap.put(LoggingUtils.VALIDATION_ERRORS, basketErrors);
                 logMap.put(LoggingUtils.ERROR_TYPE, ErrorType.BASKET_ITEM_INVALID.getValue());
@@ -292,7 +297,9 @@ public class BasketController {
         final Basket retrievedBasket = basketService.getBasketById(EricHeaderHelper.getIdentity(request))
                 .orElseThrow(ConflictException::new);
 
-        final List<String> errors = checkoutBasketValidator.getValidationErrors(retrievedBasket);
+        // Use header in request as header for request to item api
+        String passthroughHeader = request.getHeader(ApiSdkManager.getEricPassthroughTokenHeader());
+        final List<String> errors = checkoutBasketValidator.getValidationErrors(passthroughHeader, retrievedBasket);
         if (!errors.isEmpty()){
             logMap.put(LoggingUtils.VALIDATION_ERRORS, errors);
             if (errors.contains(ErrorType.BASKET_ITEMS_MISSING.getValue())) {
@@ -320,7 +327,7 @@ public class BasketController {
         try {
             itemUri = retrievedBasket.getData().getItems().get(0).getItemUri();
             LoggingUtils.logIfNotNull(logMap, LoggingUtils.ITEM_URI, itemUri);
-            item = apiClientService.getItem(itemUri);
+            item = apiClientService.getItem(passthroughHeader, itemUri);
             if(item != null) {                
                 LoggingUtils.logIfNotNull(logMap, LoggingUtils.COMPANY_NUMBER, item.getCompanyNumber());
             }

@@ -80,7 +80,7 @@ public class ApiClientServiceTest {
 
     @Test
     public void shouldGetCertificateItemIfUriIsValid() throws Exception {
-        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(api.getInternalApiClient(PASS_THROUGH_HEADER)).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
         when(privateItemResourceHandler.getItem(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
         doReturn(certificateApiResponse).when(itemGet).execute();
@@ -89,7 +89,7 @@ public class ApiClientServiceTest {
         certificate.setCompanyNumber(COMPANY_NUMBER);
         when(apiToItemMapper.apiToItem(certificateApiResponse.getData())).thenReturn(certificate);
 
-        Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
+        Item item = serviceUnderTest.getItem(PASS_THROUGH_HEADER, VALID_CERTIFICATE_URI);
 
         assertEquals(COMPANY_NUMBER, item.getCompanyNumber());
         assertEquals(VALID_CERTIFICATE_URI, item.getItemUri());
@@ -100,7 +100,7 @@ public class ApiClientServiceTest {
     public void shouldGetCertificateItemOptions() throws Exception {
 
         // Given
-        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(api.getInternalApiClient(PASS_THROUGH_HEADER)).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
         when(privateItemResourceHandler.getItem(VALID_CERTIFICATE_URI)).thenReturn(itemGet);
         doReturn(certificateApiResponse).when(itemGet).execute();
@@ -111,7 +111,7 @@ public class ApiClientServiceTest {
         when(apiToItemMapper.apiToItem(certificateApiResponse.getData())).thenReturn(certificate);
 
         // When
-        final Item item = serviceUnderTest.getItem(VALID_CERTIFICATE_URI);
+        final Item item = serviceUnderTest.getItem(PASS_THROUGH_HEADER, VALID_CERTIFICATE_URI);
 
         // Then
         assertEquals(CertificateItemOptions.class, item.getItemOptions().getClass());
@@ -123,7 +123,7 @@ public class ApiClientServiceTest {
     public void shouldGetCertifiedCopyItemOptions() throws Exception {
 
         // Given
-        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(api.getInternalApiClient(PASS_THROUGH_HEADER)).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
         when(privateItemResourceHandler.getItem(VALID_CERTIFIED_COPY_URI)).thenReturn(itemGet);
         doReturn(certifiedCopyApiResponse).when(itemGet).execute();
@@ -134,7 +134,7 @@ public class ApiClientServiceTest {
         when(apiToItemMapper.apiToItem(certifiedCopyApiResponse.getData())).thenReturn(copy);
 
         // When
-        final Item item = serviceUnderTest.getItem(VALID_CERTIFIED_COPY_URI);
+        final Item item = serviceUnderTest.getItem(PASS_THROUGH_HEADER, VALID_CERTIFIED_COPY_URI);
 
         // Then
         assertEquals(CertifiedCopyItemOptions.class, item.getItemOptions().getClass());
@@ -146,14 +146,14 @@ public class ApiClientServiceTest {
     public void shouldThrowExceptionIfCertificateItemUriIsInvalid() throws Exception {
 
         // Given
-        when(api.getInternalApiClient()).thenReturn(mockInternalApiClient);
+        when(api.getInternalApiClient(PASS_THROUGH_HEADER)).thenReturn(mockInternalApiClient);
         when(mockInternalApiClient.privateItemResourceHandler()).thenReturn(privateItemResourceHandler);
         when(privateItemResourceHandler.getItem(INVALID_CERTIFICATE_URI)).thenReturn(itemGet);
         when(itemGet.execute()).thenThrow(new URIValidationException("Test exception"));
 
         // When and then
         ServiceException exception =
-                assertThrows(ServiceException.class, () -> serviceUnderTest.getItem(INVALID_CERTIFICATE_URI));
+                assertThrows(ServiceException.class, () -> serviceUnderTest.getItem(PASS_THROUGH_HEADER, INVALID_CERTIFICATE_URI));
         assertEquals("Unrecognised uri pattern for " + INVALID_CERTIFICATE_URI, exception.getMessage());
     }
 
