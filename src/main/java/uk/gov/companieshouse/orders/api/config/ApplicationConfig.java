@@ -73,7 +73,9 @@ public class ApplicationConfig implements WebMvcConfigurer {
 
     @Bean
     CRUDAuthenticationInterceptor crudPermissionInterceptor() {
-        return new CRUDAuthenticationInterceptor(Permission.Key.USER_ORDERS);
+        // true allows all api key traffic through but still checks for CRUD permissions when using oauth.
+        // the UserAuthorisationInterceptor applies further checks to api key traffic to ensure where it is allowed it has the correct privileges.
+        return new CRUDAuthenticationInterceptor(Permission.Key.USER_ORDERS, true);
     }
 
     @Bean
