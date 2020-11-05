@@ -1,7 +1,6 @@
 package uk.gov.companieshouse.orders.api.controller;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +21,7 @@ import uk.gov.companieshouse.orders.api.dto.BasketPaymentRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.PaymentDetailsDTO;
 import uk.gov.companieshouse.orders.api.exception.ConflictException;
 import uk.gov.companieshouse.orders.api.exception.ErrorType;
+import uk.gov.companieshouse.orders.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.mapper.BasketMapper;
 import uk.gov.companieshouse.orders.api.mapper.CheckoutToPaymentDetailsMapper;
