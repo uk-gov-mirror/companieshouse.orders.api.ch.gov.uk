@@ -1,12 +1,12 @@
 package uk.gov.companieshouse.orders.api.interceptor;
 
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import uk.gov.companieshouse.api.util.security.AuthorisationUtil;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
+import uk.gov.companieshouse.orders.api.exception.ResourceNotFoundException;
 import uk.gov.companieshouse.orders.api.logging.LoggingUtils;
 import uk.gov.companieshouse.orders.api.model.AbstractOrder;
 import uk.gov.companieshouse.orders.api.repository.CheckoutRepository;
