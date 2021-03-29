@@ -8,7 +8,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import uk.gov.companieshouse.api.util.security.Permission;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.DeliveryDetailsDTO;
@@ -33,6 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_TOKEN_PERMISSIONS;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_SAME_DAY;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_ACCESS_TOKEN;
@@ -44,11 +48,13 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_TYPE_HEADER_NAME;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.ERIC_IDENTITY_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.REQUEST_ID_HEADER_NAME;
+import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_PERMISSION_VALUE;
 import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_ID_VALUE;
 
 @DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka
+@TestPropertySource(properties = {"ENABLE_TOKEN_PERMISSION_AUTH=1"})
 class OrdersApiAuthenticationTests {
 
 	private static final String ITEM_URI = "/orderable/certificates/12345678";
@@ -101,6 +107,7 @@ class OrdersApiAuthenticationTests {
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
 				.body(fromObject(addToBasketRequestDTO))
 				.exchange()
 				.expectStatus().isOk();
@@ -118,6 +125,7 @@ class OrdersApiAuthenticationTests {
 		webTestClient.post().uri("/basket/items")
 				.contentType(MediaType.APPLICATION_JSON)
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
 				.body(fromObject(addToBasketRequestDTO))
 				.exchange()
 				.expectStatus().isUnauthorized();
@@ -137,10 +145,30 @@ class OrdersApiAuthenticationTests {
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
 				.body(fromObject(addToBasketRequestDTO))
 				.exchange()
 				.expectStatus().isUnauthorized();
 	}
+
+    @Test
+    @DisplayName("Add item returns unathorised when using wrong token permissions")
+    void addItemInvalidTokenPermissions() {
+        // Given
+        AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+
+        // When and then
+        webTestClient.post().uri("/basket/items")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .body(fromObject(addToBasketRequestDTO))
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
 
 	@Test
 	@DisplayName("Checkout basket accepts request with signed in user")
@@ -183,6 +211,7 @@ class OrdersApiAuthenticationTests {
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
 				.header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
 				.exchange()
 				.expectStatus().isAccepted()
@@ -197,6 +226,7 @@ class OrdersApiAuthenticationTests {
 		webTestClient.post().uri("/basket/checkouts")
 				.contentType(MediaType.APPLICATION_JSON)
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
 				.exchange()
 				.expectStatus().isUnauthorized();
 	}
@@ -211,10 +241,27 @@ class OrdersApiAuthenticationTests {
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
 				.exchange()
 				.expectStatus().isUnauthorized();
 	}
 
+    @Test
+    @DisplayName("Checkout basket returns unathorised when using wrong token permissions")
+    void checkoutBasketInvalidTokenPermissions() {
+        // When and then
+        webTestClient.post().uri("/basket/checkouts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+	
 	@Test
 	@DisplayName("Patch basket accepts request with signed in user")
 	void patchBasketAcceptsRequestWithSignedInUser() {
@@ -243,6 +290,7 @@ class OrdersApiAuthenticationTests {
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.UPDATE))
 				.body(fromObject(addDeliveryDetailsRequestDTO))
 				.exchange()
 				.expectStatus().isOk();
@@ -260,6 +308,7 @@ class OrdersApiAuthenticationTests {
 		webTestClient.patch().uri("/basket")
 				.contentType(MediaType.APPLICATION_JSON)
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.UPDATE))
 				.body(fromObject(addToBasketRequestDTO))
 				.exchange()
 				.expectStatus().isUnauthorized();
@@ -279,9 +328,69 @@ class OrdersApiAuthenticationTests {
 				.header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
 				.header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_API_KEY_TYPE_VALUE)
 				.header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.UPDATE))
 				.body(fromObject(addToBasketRequestDTO))
 				.exchange()
 				.expectStatus().isUnauthorized();
 	}
 
+    @Test
+    @DisplayName("Patch basket returns unauthorised when using wrong token permissions")
+    void patchBasketInvalidTokenPermissions() throws Exception {
+     // Given
+        final AddToBasketRequestDTO addToBasketRequestDTO = new AddToBasketRequestDTO();
+
+        // When and then
+        webTestClient.patch().uri("/basket")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .body(fromObject(addToBasketRequestDTO))
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @DisplayName("Get basket returns unauthorised when using wrong token permissions")
+    void getBasketInvalidTokenPermissions() {
+        // When and then
+        webTestClient.get().uri("/basket")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.DELETE))
+                .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @DisplayName("Get payment details returns unauthorised when using wrong token permissions")
+    void getPaymentDetailsInvalidTokenPermissions() throws Exception {
+        // When and then
+        webTestClient.get().uri("/basket/checkouts/1/payment")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.DELETE))
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    @DisplayName("Get order returns unauthorised when using wrong token permissions")
+    void getOrderInvalidTokenPermissions() throws Exception {
+        // When and then
+        webTestClient.get().uri("orders/1")
+                .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.DELETE))
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
 }

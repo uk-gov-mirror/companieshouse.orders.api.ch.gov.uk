@@ -15,12 +15,14 @@ import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.model.payment.PaymentApi;
+import uk.gov.companieshouse.api.util.security.Permission;
 import uk.gov.companieshouse.orders.api.dto.AddDeliveryDetailsRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.AddToBasketRequestDTO;
 import uk.gov.companieshouse.orders.api.dto.BasketItemDTO;
@@ -53,7 +55,6 @@ import uk.gov.companieshouse.orders.api.service.ApiClientService;
 import uk.gov.companieshouse.orders.api.service.CheckoutService;
 import uk.gov.companieshouse.orders.api.service.EtagGeneratorService;
 import uk.gov.companieshouse.orders.api.util.TimestampedEntityVerifier;
-import uk.gov.companieshouse.orders.api.validator.DeliveryDetailsValidator;
 import uk.gov.companieshouse.sdk.manager.ApiSdkManager;
 
 import javax.servlet.http.HttpServletRequest;
@@ -91,6 +92,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_KEY_ROLES;
+import static uk.gov.companieshouse.api.util.security.EricConstants.ERIC_AUTHORISED_TOKEN_PERMISSIONS;
 import static uk.gov.companieshouse.api.util.security.SecurityConstants.INTERNAL_USER_ROLE;
 import static uk.gov.companieshouse.orders.api.model.CertificateType.INCORPORATION_WITH_ALL_NAME_CHANGES;
 import static uk.gov.companieshouse.orders.api.model.ProductType.CERTIFICATE_ADDITIONAL_COPY;
@@ -104,6 +106,7 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 @AutoConfigureMockMvc
 @SpringBootTest
 @EmbeddedKafka
+@TestPropertySource(properties = {"ENABLE_TOKEN_PERMISSION_AUTH=1"})
 class BasketControllerIntegrationTest {
 
     private static final String OLD_CERTIFICATE_URI = "/orderable/certificates/11111111";
@@ -231,9 +234,6 @@ class BasketControllerIntegrationTest {
     @MockBean
     private EtagGeneratorService etagGenerator;
 
-    @Autowired
-    private DeliveryDetailsValidator deliveryDetailsValidator;
-
     private TimestampedEntityVerifier timestamps;
 
     @Mock
@@ -267,6 +267,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -306,6 +307,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -341,6 +343,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -368,6 +371,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -400,6 +404,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -439,6 +444,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -479,6 +485,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
@@ -505,6 +512,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addToBasketRequestDTO)))
                 .andExpect(status().isOk());
@@ -521,6 +529,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"gibberish\":\"gibberish\"}"))
                 .andExpect(status().isBadRequest());
@@ -551,6 +560,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted());
 
@@ -592,6 +602,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.items[0].item_options.certificate_type",
@@ -627,6 +638,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.items[0].item_options.filing_history_documents[0].filing_history_date",
@@ -669,6 +681,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.items[0].item_options.filing_history_date",
@@ -754,6 +767,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isOk());
 
@@ -791,6 +805,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted());
 
@@ -809,7 +824,7 @@ class BasketControllerIntegrationTest {
 
     @Test
     @DisplayName("Checkout basket fails to create checkout and returns 409 conflict, when basket is empty")
-    void checkoutBasketfFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
+    void checkoutBasketFailsToCreateCheckoutIfBasketIsEmpty() throws Exception {
         Basket basket = new Basket();
         basket.setId(ERIC_IDENTITY_VALUE);
         basketRepository.save(basket);
@@ -817,7 +832,8 @@ class BasketControllerIntegrationTest {
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE)))
                 .andExpect(status().isConflict());
 
         assertEquals(0, checkoutRepository.count());
@@ -830,7 +846,8 @@ class BasketControllerIntegrationTest {
         mockMvc.perform(post("/basket/checkouts")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
-                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE))
+                .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE)))
                 .andExpect(status().isConflict());
 
         assertEquals(0, checkoutRepository.count());
@@ -847,6 +864,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isBadRequest());
 
@@ -861,6 +879,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"gibberish\":\"gibberish\"}"))
                 .andExpect(status().isBadRequest());
@@ -894,6 +913,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isAccepted())
                 .andExpect(content().json(mapper.writeValueAsString(expectedResponseBody)));
@@ -944,6 +964,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -1014,6 +1035,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -1070,6 +1092,7 @@ class BasketControllerIntegrationTest {
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
             .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
             .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
 
@@ -1100,6 +1123,7 @@ class BasketControllerIntegrationTest {
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
             .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
             .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.UPDATE))
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
             .andExpect(status().isOk());
@@ -1136,8 +1160,9 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(patch("/basket")
             .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
-                .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
+            .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
             .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+            .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.UPDATE))
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
             .andExpect(status().isOk());
@@ -1176,6 +1201,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.UPDATE))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
                 .andExpect(status().isBadRequest())
@@ -1216,6 +1242,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.UPDATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(addDeliveryDetailsRequestDTO)))
@@ -1240,6 +1267,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isConflict())
                 .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)));
@@ -1272,6 +1300,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isConflict());
 
@@ -1299,6 +1328,7 @@ class BasketControllerIntegrationTest {
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .header(ERIC_AUTHORISED_USER_HEADER_NAME, ERIC_AUTHORISED_USER_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.CREATE))
                 .header(ApiSdkManager.getEricPassthroughTokenHeader(), ERIC_ACCESS_TOKEN))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().json(mapper.writeValueAsString(expectedValidationError)))
@@ -1684,6 +1714,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
@@ -1712,6 +1743,7 @@ class BasketControllerIntegrationTest {
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, String.format(TOKEN_PERMISSION_VALUE, Permission.Value.READ))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(paymentDetailsDTO)))
@@ -1909,12 +1941,13 @@ class BasketControllerIntegrationTest {
     }
 
     private PaymentApi createPaymentSession(String checkoutId, String status, String total) {
+        final Map<String, String> links = new HashMap<>();
+        links.put("resource", "/basket/checkouts/" + checkoutId + "/payment");
+
         final PaymentApi paymentSummary = new PaymentApi();
         paymentSummary.setStatus(status);
         paymentSummary.setAmount(total);
-        paymentSummary.setLinks(new HashMap<String, String>() {{
-            put("resource", "/basket/checkouts/" + checkoutId + "/payment");
-        }});
+        paymentSummary.setLinks(links);
 
         return paymentSummary;
     }

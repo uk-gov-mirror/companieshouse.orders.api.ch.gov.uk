@@ -26,6 +26,7 @@ public class TestConstants {
     public static final String CERTIFIED_COPY_COST = "15";
     public static final String SAME_DAY_CERTIFIED_COPY_COST = "50";
     public static final String SAME_DAY_CERTIFIED_COPY_NEW_INCORPORATION_COST = "100";
+    public static final String TOKEN_PERMISSION_VALUE = "user_orders=%s";
 
     public static final FilingHistoryDocument DOCUMENT = new FilingHistoryDocument(
         "1993-04-01",
