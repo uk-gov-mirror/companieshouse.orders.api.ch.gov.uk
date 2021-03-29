@@ -8,7 +8,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import uk.gov.companieshouse.api.util.security.Permission;
@@ -54,7 +53,6 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.TOKEN_REQUEST_
 @DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka
-@TestPropertySource(properties = {"ENABLE_TOKEN_PERMISSION_AUTH=1"})
 class OrdersApiAuthenticationTests {
 
 	private static final String ITEM_URI = "/orderable/certificates/12345678";

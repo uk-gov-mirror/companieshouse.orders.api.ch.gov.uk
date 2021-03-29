@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -106,7 +105,6 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.*;
 @AutoConfigureMockMvc
 @SpringBootTest
 @EmbeddedKafka
-@TestPropertySource(properties = {"ENABLE_TOKEN_PERMISSION_AUTH=1"})
 class BasketControllerIntegrationTest {
 
     private static final String OLD_CERTIFICATE_URI = "/orderable/certificates/11111111";

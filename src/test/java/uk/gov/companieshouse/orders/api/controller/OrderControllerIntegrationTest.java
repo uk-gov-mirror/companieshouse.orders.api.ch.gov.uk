@@ -10,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import uk.gov.companieshouse.api.util.security.Permission;
@@ -46,7 +45,6 @@ import static uk.gov.companieshouse.orders.api.util.TestConstants.WRONG_ERIC_IDE
 @AutoConfigureMockMvc
 @SpringBootTest
 @EmbeddedKafka
-@TestPropertySource(properties = {"ENABLE_TOKEN_PERMISSION_AUTH=1"})
 class OrderControllerIntegrationTest {
     private static final String ORDER_ID = "0001";
     private static final String ORDER_REFERENCE = "0001";
