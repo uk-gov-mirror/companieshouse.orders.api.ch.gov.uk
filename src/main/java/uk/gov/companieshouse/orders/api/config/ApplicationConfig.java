@@ -46,14 +46,14 @@ public class ApplicationConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
-        registry.addInterceptor(loggingInterceptor);
-        registry.addInterceptor(authenticationInterceptor).excludePathPatterns(healthcheckUri);
-        registry.addInterceptor(authorisationInterceptor).excludePathPatterns(healthcheckUri);
+    	registry.addInterceptor(loggingInterceptor);
         registry.addInterceptor(crudPermissionInterceptor()).excludePathPatterns(paymentDetailsUri, healthcheckUri);
         // Different interceptor for payment details as API key traffic needs to be allowed:
         // - PATCH is always ignored since oauth2 is blocked for this function
         // - GET ignores API key requests to allow payments api to get costs but if oauth2 is used it still checks token permissions
         registry.addInterceptor(crudPermissionInterceptorPaymentDetails()).addPathPatterns(paymentDetailsUri);
+        registry.addInterceptor(authenticationInterceptor).excludePathPatterns(healthcheckUri);
+        registry.addInterceptor(authorisationInterceptor).excludePathPatterns(healthcheckUri);
     }
 
     @Bean

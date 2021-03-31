@@ -77,9 +77,9 @@ class ApplicationConfigTest {
 
         InOrder inOrder = Mockito.inOrder(registry);
         inOrder.verify(registry).addInterceptor(loggingInterceptor);
-        inOrder.verify(registry).addInterceptor(authenticationInterceptor);
-        inOrder.verify(registry).addInterceptor(authorisationInterceptor);
         inOrder.verify(registry).addInterceptor(crudPermissionInterceptor);
         inOrder.verify(registry).addInterceptor(crudPermissionInterceptorSkipPatch);
+        inOrder.verify(registry).addInterceptor(authenticationInterceptor);
+        inOrder.verify(registry).addInterceptor(authorisationInterceptor);
     }
 }

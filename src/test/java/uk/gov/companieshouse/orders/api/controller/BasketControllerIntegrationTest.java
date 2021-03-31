@@ -198,6 +198,8 @@ class BasketControllerIntegrationTest {
     private static final String MISSING_IMAGE_DELIVERY_FH_BARCODE = "01234567";
 
     private static final MissingImageDeliveryItemOptions MISSING_IMAGE_DELIVERY_ITEM_OPTIONS;
+    
+    private static final String TOKEN_PERMISSION_READ = String.format(TOKEN_PERMISSION_VALUE, "read");
 
     static {
         MISSING_IMAGE_DELIVERY_ITEM_OPTIONS = new MissingImageDeliveryItemOptions();
@@ -1693,6 +1695,7 @@ class BasketControllerIntegrationTest {
 
         mockMvc.perform(get("/basket/checkouts/doesnotexist/payment")
                 .header(REQUEST_ID_HEADER_NAME, TOKEN_REQUEST_ID_VALUE)
+                .header(ERIC_AUTHORISED_TOKEN_PERMISSIONS, TOKEN_PERMISSION_READ)
                 .header(ERIC_IDENTITY_TYPE_HEADER_NAME, ERIC_IDENTITY_OAUTH2_TYPE_VALUE)
                 .header(ERIC_IDENTITY_HEADER_NAME, ERIC_IDENTITY_VALUE)
                 .contentType(MediaType.APPLICATION_JSON))
